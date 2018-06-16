@@ -11,9 +11,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	println(pkg.DirPath)
-	println(pkg.ImportPath)
-	println(len(pkg.GoFileNames))
-	println(pkg.GoFileNames[0])
-	println(pkg.Name)
+	println(len(pkg.Types))
 }

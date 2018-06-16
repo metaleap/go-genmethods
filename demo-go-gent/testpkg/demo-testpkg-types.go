@@ -9,6 +9,8 @@ type simWorld struct {
 	Cities [123]city
 }
 
+type town (**(**([12]**(**(sort.Float64Slice)))))
+
 type city struct {
 	Name      string
 	ClosestTo *****city
