@@ -1,4 +1,4 @@
-package gens
+package gents
 
 type Pkg struct {
 	Gens map[string]Gen
