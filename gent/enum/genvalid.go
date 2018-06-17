@@ -40,7 +40,7 @@ func (this *GentValidMethod) GenerateTopLevelDecls(_ *gent.Pkg, t *gent.Type) (t
 			lastoperator, lasthint = Lt(V.This, N(lastname)), "exclusive"
 		}
 
-		method := Fn(V.This.Typed(TrNamed("", t.Name)), this.MethodName, TdFunc(nil, V.Ret.Typed(T.Bool)),
+		method := Fn(t.CodeGen.MethodRecvVal, this.MethodName, &Sigs.NoneToBool,
 			Set(V.Ret, And(firstoperator, lastoperator)),
 		)
 		method.Doc.Add(fmt.Sprintf(this.DocComment, method.Name, t.Name, firstname, firsthint, lastname, lasthint))

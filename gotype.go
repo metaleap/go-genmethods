@@ -3,6 +3,8 @@ package gent
 import (
 	"go/ast"
 	"go/token"
+
+	"github.com/go-leap/dev/go/gen"
 )
 
 type Types []*Type
@@ -50,6 +52,11 @@ type Type struct {
 		Potentially bool
 		ConstNames  []string
 	}
+
+	CodeGen struct {
+		MethodRecvVal udevgogen.NamedTyped
+		MethodRecvPtr udevgogen.NamedTyped
+	}
 }
 
 func (this *Pkg) load_Types(goFile *ast.File) {
@@ -58,29 +65,30 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			var curvaltident *ast.Ident
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
-					tdx, pt := goAstTypeExprSansParens(tdecl.Type), &Type{pkg: this, Name: tdecl.Name.Name, Decl: tdecl, Alias: tdecl.Assign.IsValid()}
-					this.Types.Add(pt)
+					tdx, t := goAstTypeExprSansParens(tdecl.Type), &Type{pkg: this, Name: tdecl.Name.Name, Decl: tdecl, Alias: tdecl.Assign.IsValid()}
+					t.CodeGen.MethodRecvVal, t.CodeGen.MethodRecvPtr = udevgogen.V.This.Typed(udevgogen.TrNamed("", t.Name)), udevgogen.V.This.Typed(udevgogen.TrPtr(udevgogen.TrNamed("", t.Name)))
+					this.Types.Add(t)
 
 					switch tdeclt := tdx.(type) {
 					case *ast.Ident:
-						pt.Ast.Named = tdeclt
-						pt.setPotentiallyEnumish()
+						t.Ast.Named = tdeclt
+						t.setPotentiallyEnumish()
 					case *ast.StarExpr:
-						pt.Ast.Ptr = tdeclt
+						t.Ast.Ptr = tdeclt
 					case *ast.SelectorExpr:
-						pt.Ast.Imported = tdeclt
+						t.Ast.Imported = tdeclt
 					case *ast.ArrayType:
-						pt.Ast.TArrOrSl = tdeclt
+						t.Ast.TArrOrSl = tdeclt
 					case *ast.ChanType:
-						pt.Ast.TChan = tdeclt
+						t.Ast.TChan = tdeclt
 					case *ast.FuncType:
-						pt.Ast.TFunc = tdeclt
+						t.Ast.TFunc = tdeclt
 					case *ast.InterfaceType:
-						pt.Ast.TInterface = tdeclt
+						t.Ast.TInterface = tdeclt
 					case *ast.MapType:
-						pt.Ast.TMap = tdeclt
+						t.Ast.TMap = tdeclt
 					case *ast.StructType:
-						pt.Ast.TStruct = tdeclt
+						t.Ast.TStruct = tdeclt
 					default:
 						panic(tdeclt)
 					}

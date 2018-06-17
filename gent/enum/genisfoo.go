@@ -22,14 +22,13 @@ type GentIsFooMethods struct {
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 func (this *GentIsFooMethods) GenerateTopLevelDecls(_ *gent.Pkg, t *gent.Type) (tlDecls []ISyn) {
 	if t.Enumish.Potentially && len(t.Enumish.ConstNames) > 0 {
-		trecv := TrNamed("", t.Name)
 		tlDecls = make([]ISyn, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if ren := enumerant; enumerant != "_" {
 				if this.RenameEnumerant != nil {
 					ren = this.RenameEnumerant(enumerant)
 				}
-				method := Fn(V.This.Typed(trecv), this.MethodNamePrefix+ren, TdFunc(nil, V.Ret.Typed(T.Bool)),
+				method := Fn(t.CodeGen.MethodRecvVal, this.MethodNamePrefix+ren, &Sigs.NoneToBool,
 					Set(V.Ret, Eq(V.This, N(enumerant))),
 				)
 				method.Doc.Add(fmt.Sprintf(this.DocComment, method.Name, t.Name, enumerant))
