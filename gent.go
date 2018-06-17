@@ -11,18 +11,22 @@ import (
 )
 
 type IGent interface {
-	GenerateTopLevelDecls(*Pkg, *Type) []udevgogen.ISyn
+	GenerateTopLevelDecls(*Type) []udevgogen.ISyn
 }
 
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) {
-	if err := this.RunGentsAndGenerateOutputFiles(gents...); err != nil {
+type Gents map[IGent]ShouldGentRunForType
+
+type ShouldGentRunForType func(IGent, *Type) bool
+
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents Gents) {
+	if err := this.RunGentsAndGenerateOutputFiles(gents); err != nil {
 		panic(err)
 	}
 }
 
-func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) error {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(gents Gents) error {
 	for _, pkg := range this {
-		src, err := pkg.RunGents(gents...)
+		src, err := pkg.RunGents(gents)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.OutputFileName), src)
 		}
@@ -33,11 +37,13 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) error {
 	return nil
 }
 
-func (this *Pkg) RunGents(gents ...IGent) ([]byte, error) {
+func (this *Pkg) RunGents(gents Gents) ([]byte, error) {
 	dst := udevgogen.File(this.Name)
 	for _, t := range this.Types {
-		for _, g := range gents {
-			dst.Body = append(dst.Body, g.GenerateTopLevelDecls(this, t)...)
+		for g, mayrun := range gents {
+			if mayrun == nil || mayrun(g, t) {
+				dst.Body = append(dst.Body, g.GenerateTopLevelDecls(t)...)
+			}
 		}
 	}
 
@@ -47,5 +53,5 @@ func (this *Pkg) RunGents(gents ...IGent) ([]byte, error) {
 			emitnoopfuncbodies = envbool
 		}
 	}
-	return dst.Src(fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName), emitnoopfuncbodies)
+	return dst.Src(fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName), emitnoopfuncbodies, this.CodeGen.PkgImportPathsToPkgImportNames)
 }

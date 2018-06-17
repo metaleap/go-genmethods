@@ -15,8 +15,8 @@ type GentStringMethods struct {
 	}
 }
 
-func (this *GentStringMethods) GenerateTopLevelDecls(_ *gent.Pkg, t *gent.Type) (tlDecls []ISyn) {
-	if len(this.Stringers) > 0 && t.Enumish.Potentially && len(t.Enumish.ConstNames) > 0 {
+func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn) {
+	if len(this.Stringers) > 0 && t.SeemsEnumish() {
 		tlDecls = make([]ISyn, 0, 2+len(t.Enumish.ConstNames)*len(this.Stringers)*3)
 		for strname := range this.Stringers {
 			if fns := this.genStringer(strname, t); fns != nil {
@@ -35,8 +35,27 @@ func (this *GentStringMethods) GenerateTopLevelDecls(_ *gent.Pkg, t *gent.Type) 
 }
 
 func (this *GentStringMethods) genStringer(strName string, t *gent.Type) (method *SynFunc) {
+	caseof, pkgstrconv := Switch(V.This), N(t.Pkg.I("strconv"))
+	caseof.Cases = make([]SynCond, 0, len(t.Enumish.ConstNames))
+	for _, enumerant := range t.Enumish.ConstNames {
+		if renamed := enumerant; enumerant != "_" {
+			if rename := this.Stringers[strName]; rename != nil {
+				renamed = rename(renamed)
+			}
+			caseof.Cases = append(caseof.Cases, Cond(N(enumerant), Set(V.Ret, L(renamed))))
+		}
+	}
+	switch t.Enumish.BaseType {
+	case "int":
+		caseof.Default.Add(Set(V.Ret, Call(D(pkgstrconv, N("Itoa")), Call(N("int"), V.This))))
+	case "uint", "uint8", "uint16", "uint32", "uint64":
+		caseof.Default.Add(Set(V.Ret, Call(D(pkgstrconv, N("FormatUint")), Call(N("uint64"), V.This), L(10))))
+	default:
+		caseof.Default.Add(Set(V.Ret, Call(D(pkgstrconv, N("FormatInt")), Call(N("int64"), V.This), L(10))))
+	}
+
 	method = Fn(t.CodeGen.MethodRecvVal, strName, &Sigs.NoneToString,
-		Set(V.Ret, L("ret")),
+		caseof,
 	)
 	return
 }

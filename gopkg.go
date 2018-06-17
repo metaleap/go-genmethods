@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
+	"github.com/go-leap/dev/go/gen"
 	"github.com/go-leap/fs"
 	"github.com/go-leap/str"
 )
@@ -35,6 +36,10 @@ type Pkg struct {
 	}
 
 	Types Types
+
+	CodeGen struct {
+		PkgImportPathsToPkgImportNames udevgogen.PkgImports
+	}
 }
 
 func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs {
@@ -125,11 +130,15 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 					this.Name = gfname
 				} else if gfname != "" && gfname != this.Name {
 					err = errors.New("naming mismatch: " + this.Name + " vs. " + gfname)
-					break
+					return
 				}
 				this.load_Types(gofile)
 			}
 		}
 	}
 	return
+}
+
+func (this *Pkg) I(pkgImportPath string) (pkgImportName string) {
+	return this.CodeGen.PkgImportPathsToPkgImportNames.I(pkgImportPath)
 }
