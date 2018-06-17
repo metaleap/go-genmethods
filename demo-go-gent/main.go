@@ -3,6 +3,7 @@ package main
 import (
 	"path/filepath"
 
+	"github.com/go-leap/dev/go/syn"
 	"github.com/go-leap/fs"
 	"github.com/metaleap/go-gent"
 	// "github.com/metaleap/go-gent/gent/json"
@@ -26,9 +27,10 @@ func main() {
 	}
 
 	gents := []gent.IGent{
-		&gentenum.GentValidMethod{},
+		&gentenum.Defaults.Valid,
 	}
 
+	udevgosyn.EmitNoOpFuncBodies = false // need occasionally for the odd troubleshoot / pkg-parse-ensuring situation
 	for _, pkg := range pkgs {
 		src, err := pkg.RunGents(gents...)
 		if err == nil {

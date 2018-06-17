@@ -47,8 +47,8 @@ type Type struct {
 	}
 
 	Enumish struct {
-		Potentially   bool
-		ConstantNames []string
+		Potentially bool
+		ConstNames  []string
 	}
 }
 
@@ -69,7 +69,6 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 						pt.Ast.Ptr = tdeclt
 					case *ast.SelectorExpr:
 						pt.Ast.Imported = tdeclt
-						println("Sel", pt.Name, tdeclt.X)
 					case *ast.ArrayType:
 						pt.Ast.TArrOrSl = tdeclt
 					case *ast.ChanType:
@@ -91,7 +90,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 					}
 					if curvaltident != nil {
 						if tnamed := this.Types.Named(curvaltident.Name); tnamed != nil && tnamed.Enumish.Potentially {
-							tnamed.Enumish.ConstantNames = append(tnamed.Enumish.ConstantNames, cdecl.Names[0].Name)
+							tnamed.Enumish.ConstNames = append(tnamed.Enumish.ConstNames, cdecl.Names[0].Name)
 						}
 					}
 				}

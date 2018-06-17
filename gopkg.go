@@ -72,10 +72,8 @@ func (this *Pkg) load_SetPaths(pkgImportPathOrFileSystemPath string, errnogopkg 
 
 func (this *Pkg) load_SetFileNames(errnogopkg error) (goFilePaths []string, err error) {
 	ufs.WalkFilesIn(this.DirPath, func(fp string) bool {
-		if ustr.Suff(fp, ".go") && !ustr.Suff(fp, "_test.go") {
-			if fn := filepath.Base(fp); fn != this.OutputFileName {
-				goFilePaths, this.GoFileNames = append(goFilePaths, fp), append(this.GoFileNames, fn)
-			}
+		if fn := filepath.Base(fp); ustr.Suff(fp, ".go") && !ustr.Suff(fp, "_test.go") {
+			goFilePaths, this.GoFileNames = append(goFilePaths, fp), append(this.GoFileNames, fn)
 		}
 		return true
 	})
