@@ -49,15 +49,16 @@ type GentValidMethod struct {
 }
 ```
 
-GentValidMethod generated a `Valid` method for enum type-defs, checking whether
-the value seems to be within the range of the known enumerants. It only supports
-enum type-defs whose enumerants are ordered in the source such that the smallest
-values appear first and the largest last, with all enumerant `const`s appearing
-together.
+GentValidMethod generates a `Valid` method for enum type-defs that checks
+whether the receiver value seems to be within the range of the known enumerants.
+It's only correct for enum type-defs whose enumerants are ordered in the source
+such that the smallest values appear first, the largest last, and with all
+enumerant `const`s appearing together.
 
 #### func (*GentValidMethod) GenerateTopLevelDecls
 
 ```go
-func (this *GentValidMethod) GenerateTopLevelDecls(pkg *gent.Pkg, t *gent.Type) (tlDecls []gs.IEmit)
+func (this *GentValidMethod) GenerateTopLevelDecls(_ *gent.Pkg, t *gent.Type) (tlDecls []ISyn)
 ```
-GenerateTopLevelDecls implements github.com/metaleap/go-gent.IGent
+GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
+at most one method if `t` is a suitable enum type-def.

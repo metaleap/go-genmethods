@@ -11,7 +11,7 @@ import (
 )
 
 type IGent interface {
-	GenerateTopLevelDecls(*Pkg, *Type) []udevgosyn.IEmit
+	GenerateTopLevelDecls(*Pkg, *Type) []udevgosyn.ISyn
 }
 
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) {
