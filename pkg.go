@@ -2,12 +2,20 @@ package gent
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
+	"github.com/go-leap/dev/go/syn"
 	"github.com/go-leap/fs"
 	"github.com/go-leap/str"
 	"golang.org/x/tools/go/loader"
+)
+
+var (
+	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
+	CodeGenCommentProgName = filepath.Base(os.Args[0])
 )
 
 type Pkg struct {
@@ -95,4 +103,14 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 		}
 	}
 	return
+}
+
+func (this *Pkg) RunGents(gents ...IGent) ([]byte, error) {
+	dst := udevgosyn.File(this.Name)
+	for _, t := range this.Types {
+		for _, g := range gents {
+			dst.Body = append(dst.Body, g.GenerateTopLevelDecls(this, t)...)
+		}
+	}
+	return dst.Src(fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName))
 }

@@ -1,4 +1,9 @@
 package gent
 
-type Gent interface {
+import (
+	"github.com/go-leap/dev/go/syn"
+)
+
+type IGent interface {
+	GenerateTopLevelDecls(*Pkg, *Type) []udevgosyn.IEmit
 }

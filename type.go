@@ -103,7 +103,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 func (this *Type) setPotentiallyEnumish() {
 	if this.Enumish.Potentially = false; this.Ast.Named != nil && !this.Ast.Named.IsExported() {
 		switch this.Ast.Named.Name {
-		case "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "byte":
+		case "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
 			this.Enumish.Potentially = true
 		}
 	}
