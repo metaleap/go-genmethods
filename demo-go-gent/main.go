@@ -26,7 +26,10 @@ func main() {
 	}
 
 	gent.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {
-		return !(g == &gentenum.Defaults.String && t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
+		if g == &gentenum.Defaults.String {
+			return !(t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
+		}
+		return true
 	}
 	pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
 }
