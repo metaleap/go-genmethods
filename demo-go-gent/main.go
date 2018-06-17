@@ -19,13 +19,14 @@ func main() {
 		"github.com/metaleap/zentient/lang/golang":         "°gent.go",
 	})
 
-	gents := gent.Gents{
-		&gentenum.Defaults.Valid: nil,
-		&gentenum.Defaults.IsFoo: nil,
-		&gentenum.Defaults.String: func(_ gent.IGent, t *gent.Type) bool {
-			return !(t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
-		},
+	gents := []gent.IGent{
+		&gentenum.Defaults.Valid,
+		&gentenum.Defaults.IsFoo,
+		&gentenum.Defaults.String,
 	}
 
-	pkgs.MustRunGentsAndGenerateOutputFiles(gents)
+	gent.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {
+		return !(g == &gentenum.Defaults.String && t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
+	}
+	pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
 }

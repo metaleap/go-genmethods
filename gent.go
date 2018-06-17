@@ -10,23 +10,21 @@ import (
 	"github.com/go-leap/fs"
 )
 
+var MayGentRunForType func(IGent, *Type) bool
+
 type IGent interface {
 	GenerateTopLevelDecls(*Type) []udevgogen.ISyn
 }
 
-type Gents map[IGent]ShouldGentRunForType
-
-type ShouldGentRunForType func(IGent, *Type) bool
-
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents Gents) {
-	if err := this.RunGentsAndGenerateOutputFiles(gents); err != nil {
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) {
+	if err := this.RunGentsAndGenerateOutputFiles(gents...); err != nil {
 		panic(err)
 	}
 }
 
-func (this Pkgs) RunGentsAndGenerateOutputFiles(gents Gents) error {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) error {
 	for _, pkg := range this {
-		src, err := pkg.RunGents(gents)
+		src, err := pkg.RunGents(gents...)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.OutputFileName), src)
 		}
@@ -37,11 +35,11 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents Gents) error {
 	return nil
 }
 
-func (this *Pkg) RunGents(gents Gents) ([]byte, error) {
+func (this *Pkg) RunGents(gents ...IGent) ([]byte, error) {
 	dst := udevgogen.File(this.Name)
 	for _, t := range this.Types {
-		for g, mayrun := range gents {
-			if mayrun == nil || mayrun(g, t) {
+		for _, g := range gents {
+			if MayGentRunForType == nil || MayGentRunForType(g, t) {
 				dst.Body = append(dst.Body, g.GenerateTopLevelDecls(t)...)
 			}
 		}
