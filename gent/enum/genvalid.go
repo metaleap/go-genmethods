@@ -9,9 +9,9 @@ import (
 
 // GentValidMethod generates a `Valid` method for enum type-defs, which
 // checks whether the receiver value seems to be within the range of the
-// known enumerants. It's only correct for enum type-defs whose enumerants
-// are ordered in the source such that the smallest values appear first,
-// the largest last, and with all enumerant `const`s appearing together.
+// known enumerants. It is only correct for enum type-defs whose enumerants
+// are ordered in the source such that the numerically smallest values appear
+// first, the largest ones last, with all enumerant `const`s appearing together.
 type GentValidMethod struct {
 	DocComment     string
 	MethodName     string
@@ -40,7 +40,7 @@ func (this *GentValidMethod) GenerateTopLevelDecls(_ *gent.Pkg, t *gent.Type) (t
 			lastoperator, lasthint = Lt(V.This, N(lastname)), "exclusive"
 		}
 
-		method := Func(V.This.Typed(TrNamed("", t.Name)), this.MethodName, TdFunc(nil, V.Ret.Typed(T.Bool)),
+		method := Fn(V.This.Typed(TrNamed("", t.Name)), this.MethodName, TdFunc(nil, V.Ret.Typed(T.Bool)),
 			Set(V.Ret, And(firstoperator, lastoperator)),
 		)
 		method.Doc.Add(fmt.Sprintf(this.DocComment, method.Name, t.Name, firstname, firsthint, lastname, lasthint))

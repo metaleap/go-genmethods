@@ -22,7 +22,7 @@ func main() {
 	gents := []gent.IGent{
 		&gentenum.Defaults.Valid,
 		&gentenum.Defaults.IsFoo,
-		// &gentenum.Defaults.String,
+		&gentenum.Defaults.String,
 	}
 
 	pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
