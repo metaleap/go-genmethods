@@ -8,6 +8,10 @@ import (
 	"github.com/metaleap/go-gent/gent/enum"
 )
 
+func init() {
+	// gent.EmitNoOpFuncBodies = true
+}
+
 func main() {
 	pkgs := gent.MustLoadPkgs(map[string]string{
 		"github.com/metaleap/go-gent/demo-go-gent/testpkg": "°gent.go",
@@ -17,8 +21,9 @@ func main() {
 
 	gents := []gent.IGent{
 		&gentenum.Defaults.Valid,
+		&gentenum.Defaults.IsFoo,
+		// &gentenum.Defaults.String,
 	}
 
-	// gent.EmitNoOpFuncBodies = true
 	pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
 }

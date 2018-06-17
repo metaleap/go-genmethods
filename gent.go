@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/go-leap/dev/go/syn"
+	"github.com/go-leap/dev/go/gen"
 	"github.com/go-leap/fs"
 )
 
 type IGent interface {
-	GenerateTopLevelDecls(*Pkg, *Type) []udevgosyn.ISyn
+	GenerateTopLevelDecls(*Pkg, *Type) []udevgogen.ISyn
 }
 
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) {
@@ -34,7 +34,7 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) error {
 }
 
 func (this *Pkg) RunGents(gents ...IGent) ([]byte, error) {
-	dst := udevgosyn.File(this.Name)
+	dst := udevgogen.File(this.Name)
 	for _, t := range this.Types {
 		for _, g := range gents {
 			dst.Body = append(dst.Body, g.GenerateTopLevelDecls(this, t)...)
