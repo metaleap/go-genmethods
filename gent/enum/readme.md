@@ -35,6 +35,8 @@ type GentStringMethods struct {
 
 ```go
 type GentValidMethod struct {
+	DocComment string
+
 	// Defaults.Valid.MethodName
 	MethodName string
 

@@ -2,21 +2,24 @@ package gent
 
 import (
 	"errors"
-	"fmt"
+	"golang.org/x/tools/go/loader"
 	"os"
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
-	"github.com/go-leap/dev/go/syn"
 	"github.com/go-leap/fs"
 	"github.com/go-leap/str"
-	"golang.org/x/tools/go/loader"
 )
 
 var (
 	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
+
+	// overridden by env-var GOGENT_EMITNOOPS, if set to `strconv.ParseBool`able value
+	EmitNoOpFuncBodies = false
 )
+
+type Pkgs map[string]*Pkg
 
 type Pkg struct {
 	OutputFileName string
@@ -32,6 +35,34 @@ type Pkg struct {
 	}
 
 	Types Types
+}
+
+func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs {
+	if pkgs, err := LoadPkgs(pkgPathsWithOutputFileNames); err != nil {
+		panic(err)
+	} else {
+		return pkgs
+	}
+}
+
+func LoadPkgs(pkgPathsWithOutputFileNames map[string]string) (Pkgs, error) {
+	pkgs := make(Pkgs, len(pkgPathsWithOutputFileNames))
+	for pkgImportPathOrFileSystemPath, outputFileName := range pkgPathsWithOutputFileNames {
+		if pkg, err := LoadPkg(pkgImportPathOrFileSystemPath, outputFileName); err != nil {
+			return nil, err
+		} else {
+			pkgs[pkgImportPathOrFileSystemPath] = pkg
+		}
+	}
+	return pkgs, nil
+}
+
+func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *Pkg {
+	if pkg, err := LoadPkg(pkgImportPathOrFileSystemPath, outputFileName); err != nil {
+		panic(err)
+	} else {
+		return pkg
+	}
 }
 
 func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) (this *Pkg, err error) {
@@ -101,14 +132,4 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 		}
 	}
 	return
-}
-
-func (this *Pkg) RunGents(gents ...IGent) ([]byte, error) {
-	dst := udevgosyn.File(this.Name)
-	for _, t := range this.Types {
-		for _, g := range gents {
-			dst.Body = append(dst.Body, g.GenerateTopLevelDecls(this, t)...)
-		}
-	}
-	return dst.Src(fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName))
 }
