@@ -35,24 +35,29 @@ type GentStringMethods struct {
 
 ```go
 type GentValidMethod struct {
+	// defaults to Defaults.Valid.DocComment
 	DocComment string
 
-	// Defaults.Valid.MethodName
+	// defaults to Defaults.Valid.MethodName
 	MethodName string
 
-	// first of the enumerants
+	// if `true`, generate gt instead of geq
 	IsFirstInvalid bool
 
-	// last of the enumerants
+	// if `true`, generate lt instead of leq
 	IsLastInvalid bool
 }
 ```
 
-GentValidMethod works for enumish `type`s whose enumerants are ordered such that
-the smallest values appear first and the largest last.
+GentValidMethod generated a `Valid` method for enum type-defs, checking whether
+the value seems to be within the range of the known enumerants. It only supports
+enum type-defs whose enumerants are ordered in the source such that the smallest
+values appear first and the largest last, with all enumerant `const`s appearing
+together.
 
 #### func (*GentValidMethod) GenerateTopLevelDecls
 
 ```go
 func (this *GentValidMethod) GenerateTopLevelDecls(pkg *gent.Pkg, t *gent.Type) (tlDecls []gs.IEmit)
 ```
+GenerateTopLevelDecls implements github.com/metaleap/go-gent.IGent
