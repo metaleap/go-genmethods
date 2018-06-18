@@ -53,7 +53,10 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal 
 }
 
 func (this *Pkg) RunGents(gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
-	timestarted, dst := time.Now(), udevgogen.File(this.Name)
+	dst, codegencommentnotice := udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
+	optnoops, optgofmt := usys.EnvBool("GOGENT_EMITNOOPS", OptEmitNoOpFuncBodies), usys.EnvBool("GOGENT_GOFMT", OptGoFmt)
+
+	timestarted := time.Now()
 	for _, t := range this.Types {
 		for _, g := range gents {
 			if MayGentRunForType == nil || MayGentRunForType(g, t) {
@@ -62,10 +65,7 @@ func (this *Pkg) RunGents(gents ...IGent) (src []byte, timeTaken time.Duration, 
 		}
 	}
 
-	codegencommentnotice := fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
-	src, timeTaken, err = dst.CodeGen(codegencommentnotice, this.CodeGen.PkgImportPathsToPkgImportNames,
-		usys.EnvBool("GOGENT_EMITNOOPS", OptEmitNoOpFuncBodies),
-		usys.EnvBool("GOGENT_GOFMT", OptGoFmt))
+	src, timeTaken, err = dst.CodeGen(codegencommentnotice, this.CodeGen.PkgImportPathsToPkgImportNames, optnoops, optgofmt)
 	timeTaken = time.Since(timestarted) - timeTaken
 	return
 }
