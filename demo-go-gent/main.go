@@ -34,8 +34,8 @@ func main() {
 	}
 
 	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
-	println("total time taken for all parallel runs and incl. gofmt + file I/O :\n\t\t", timetotal.String())
+	println("total time taken for all parallel runs and incl. gofmt + file I/O :\n\t\t" + timetotal.String())
 	for pkg, timetaken := range timeperpkg {
-		println("time taken for "+pkg.ImportPath+" excl. gofmt & file I/O:\n\t\t", timetaken.String())
+		println("time taken for " + pkg.ImportPath + " excl. gofmt & file I/O:\n\t\t" + timetaken.String())
 	}
 }
