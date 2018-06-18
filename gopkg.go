@@ -17,7 +17,10 @@ var (
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	// overridden by env-var GOGENT_EMITNOOPS, if set to `strconv.ParseBool`able value
-	EmitNoOpFuncBodies = false
+	OptEmitNoOpFuncBodies = false
+
+	// overridden by env-var GOGENT_GOFMT, if set to `strconv.ParseBool`able value
+	OptGoFmt = true
 )
 
 type Pkgs map[string]*Pkg
@@ -140,5 +143,6 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 }
 
 func (this *Pkg) I(pkgImportPath string) (pkgImportName string) {
-	return this.CodeGen.PkgImportPathsToPkgImportNames.I(pkgImportPath)
+	pkgImportName = this.CodeGen.PkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
+	return
 }

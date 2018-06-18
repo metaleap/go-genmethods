@@ -9,7 +9,8 @@ import (
 )
 
 func init() {
-	// gent.EmitNoOpFuncBodies = true
+	// gent.OptEmitNoOpFuncBodies = true
+	// gent.OptGoFmt = false
 }
 
 func main() {
@@ -31,5 +32,10 @@ func main() {
 		}
 		return true
 	}
-	pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
+
+	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
+	println("total time taken for all parallel runs and incl. gofmt + file I/O :\n\t\t", timetotal.String())
+	for pkg, timetaken := range timeperpkg {
+		println("time taken for "+pkg.ImportPath+" excl. gofmt & file I/O:\n\t\t", timetaken.String())
+	}
 }

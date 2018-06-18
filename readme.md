@@ -11,7 +11,10 @@ var (
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	// overridden by env-var GOGENT_EMITNOOPS, if set to `strconv.ParseBool`able value
-	EmitNoOpFuncBodies = false
+	OptEmitNoOpFuncBodies = false
+
+	// overridden by env-var GOGENT_GOFMT, if set to `strconv.ParseBool`able value
+	OptGoFmt = true
 )
 ```
 
@@ -74,7 +77,7 @@ func (this *Pkg) I(pkgImportPath string) (pkgImportName string)
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(gents ...IGent) ([]byte, error)
+func (this *Pkg) RunGents(gents ...IGent) (src []byte, timeTaken time.Duration, err error)
 ```
 
 #### type Pkgs
@@ -99,13 +102,13 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
 ```
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) error
+func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 
 #### type Type
