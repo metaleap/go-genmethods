@@ -60,6 +60,8 @@ func (this *GentStringMethods) genStringer(strName string, t *gent.Type) (method
 }
 
 func (this *GentStringMethods) genParser(strName string, t *gent.Type) (fn *SynFunc) {
-	fn = Fn(NoMethodRecv, strings.NewReplacer("{T}", t.Name, "{s}", strName).Replace(this.Parsers.FuncName), TdFunc(nil))
+	fn = Fn(NoMethodRecv, strings.NewReplacer("{T}", t.Name, "{s}", strName).Replace(this.Parsers.FuncName), TdFunc(NTs("s", T.String), t.CodeGen.MethodRecvVal, V.Err),
+		K.Ret,
+	)
 	return
 }
