@@ -34,7 +34,7 @@ writing new ones from scratch.)
 #### func (*GentIsFooMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn)
+func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
@@ -49,6 +49,7 @@ type GentStringMethods struct {
 	Parsers    struct {
 		OnePerStringer         bool
 		OneUber                bool
+		FuncName               string
 		AddErrlessWithFallback bool
 	}
 }
@@ -58,7 +59,7 @@ type GentStringMethods struct {
 #### func (*GentStringMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn)
+func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 
 #### type GentValidMethod
@@ -81,7 +82,7 @@ with all enumerant `const`s appearing together.
 #### func (*GentValidMethod) GenerateTopLevelDecls
 
 ```go
-func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn)
+func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
 at most one method if `t` is a suitable enum type-def.

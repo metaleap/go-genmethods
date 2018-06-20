@@ -26,8 +26,6 @@ var (
 type Pkgs map[string]*Pkg
 
 type Pkg struct {
-	OutputFileName string
-
 	Name        string
 	ImportPath  string
 	DirPath     string
@@ -41,6 +39,7 @@ type Pkg struct {
 	Types Types
 
 	CodeGen struct {
+		OutputFileName                 string
 		PkgImportPathsToPkgImportNames udevgogen.PkgImports
 	}
 }
@@ -75,7 +74,8 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 
 func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) (this *Pkg, err error) {
 	errnogopkg := errors.New("not a Go package: " + pkgImportPathOrFileSystemPath)
-	this = &Pkg{OutputFileName: outputFileName}
+	this = &Pkg{}
+	this.CodeGen.OutputFileName = outputFileName
 
 	if err = this.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil {
 		var gofilepaths []string

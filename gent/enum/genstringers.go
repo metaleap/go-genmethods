@@ -1,6 +1,8 @@
 package gentenum
 
 import (
+	"strings"
+
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
 )
@@ -11,21 +13,18 @@ type GentStringMethods struct {
 	Parsers    struct {
 		OnePerStringer         bool
 		OneUber                bool
+		FuncName               string
 		AddErrlessWithFallback bool
 	}
 }
 
-func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn) {
+func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
 	if len(this.Stringers) > 0 && t.SeemsEnumish() {
-		tlDecls = make([]ISyn, 0, 2+len(t.Enumish.ConstNames)*len(this.Stringers)*3)
+		tlDecls = make(Syns, 0, 2+len(t.Enumish.ConstNames)*3*len(this.Stringers))
 		for strname := range this.Stringers {
-			if fns := this.genStringer(strname, t); fns != nil {
-				tlDecls = append(tlDecls, fns)
-			}
+			tlDecls.Add(this.genStringer(strname, t))
 			if this.Parsers.OnePerStringer {
-				if fnp := this.genParser(strname, t); fnp != nil {
-					tlDecls = append(tlDecls, fnp)
-				}
+				tlDecls.Add(this.genParser(strname, t))
 			}
 		}
 		if this.Parsers.OneUber {
@@ -60,6 +59,7 @@ func (this *GentStringMethods) genStringer(strName string, t *gent.Type) (method
 	return
 }
 
-func (this *GentStringMethods) genParser(strName string, t *gent.Type) (method *SynFunc) {
+func (this *GentStringMethods) genParser(strName string, t *gent.Type) (fn *SynFunc) {
+	fn = Fn(NoMethodRecv, strings.NewReplacer("{T}", t.Name, "{s}", strName).Replace(this.Parsers.FuncName), TdFunc(nil))
 	return
 }

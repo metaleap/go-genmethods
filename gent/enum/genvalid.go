@@ -1,7 +1,7 @@
 package gentenum
 
 import (
-	"fmt"
+	"strings"
 
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
@@ -21,7 +21,7 @@ type GentValidMethod struct {
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
-func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn) {
+func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
 	if t.SeemsEnumish() {
 		firstinvalid, firstname, lastname, firsthint, lasthint :=
 			this.IsFirstInvalid, t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive"
@@ -43,8 +43,15 @@ func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn
 		method := Fn(t.CodeGen.MethodRecvVal, this.MethodName, &Sigs.NoneToBool,
 			Set(V.Ret, And(firstoperator, lastoperator)),
 		)
-		method.Doc.Add(fmt.Sprintf(this.DocComment, method.Name, t.Name, firstname, firsthint, lastname, lasthint))
-		tlDecls = append(tlDecls, method)
+		method.Doc.Add(strings.NewReplacer(
+			"{N}", this.MethodName,
+			"{T}", t.Name,
+			"{fn}", firstname,
+			"{fh}", firsthint,
+			"{ln}", lastname,
+			"{lh}", lasthint,
+		).Replace(this.DocComment))
+		tlDecls = Syns{method}
 	}
 	return
 }

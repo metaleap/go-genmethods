@@ -14,7 +14,7 @@ import (
 var MayGentRunForType func(IGent, *Type) bool
 
 type IGent interface {
-	GenerateTopLevelDecls(*Type) []udevgogen.ISyn
+	GenerateTopLevelDecls(*Type) udevgogen.Syns
 }
 
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
@@ -32,7 +32,7 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal 
 	starttime, run := time.Now(), func(pkg *Pkg) {
 		src, timetaken, err := pkg.RunGents(gents...)
 		if err == nil {
-			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.OutputFileName), src)
+			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
 		}
 		maps.Lock()
 		if timeTakenPerPkg[pkg] = timetaken; err != nil {

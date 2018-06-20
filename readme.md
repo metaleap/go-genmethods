@@ -26,7 +26,7 @@ var MayGentRunForType func(IGent, *Type) bool
 
 ```go
 type IGent interface {
-	GenerateTopLevelDecls(*Type) []udevgogen.ISyn
+	GenerateTopLevelDecls(*Type) udevgogen.Syns
 }
 ```
 
@@ -35,8 +35,6 @@ type IGent interface {
 
 ```go
 type Pkg struct {
-	OutputFileName string
-
 	Name        string
 	ImportPath  string
 	DirPath     string
@@ -50,6 +48,7 @@ type Pkg struct {
 	Types Types
 
 	CodeGen struct {
+		OutputFileName                 string
 		PkgImportPathsToPkgImportNames udevgogen.PkgImports
 	}
 }

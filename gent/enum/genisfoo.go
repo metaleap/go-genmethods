@@ -1,7 +1,7 @@
 package gentenum
 
 import (
-	"fmt"
+	"strings"
 
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
@@ -20,9 +20,9 @@ type GentIsFooMethods struct {
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
-func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISyn) {
+func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
 	if t.SeemsEnumish() {
-		tlDecls = make([]ISyn, 0, len(t.Enumish.ConstNames))
+		tlDecls = make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if ren := enumerant; enumerant != "_" {
 				if this.RenameEnumerant != nil {
@@ -31,8 +31,12 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls []ISy
 				method := Fn(t.CodeGen.MethodRecvVal, this.MethodNamePrefix+ren, &Sigs.NoneToBool,
 					Set(V.Ret, Eq(V.This, N(enumerant))),
 				)
-				method.Doc.Add(fmt.Sprintf(this.DocComment, method.Name, t.Name, enumerant))
-				tlDecls = append(tlDecls, method)
+				method.Doc.Add(strings.NewReplacer(
+					"{N}", method.Name,
+					"{T}", t.Name,
+					"{e}", enumerant,
+				).Replace(this.DocComment))
+				tlDecls.Add(method)
 			}
 		}
 	}
