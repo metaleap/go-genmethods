@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/metaleap/go-gent"
 	// "github.com/metaleap/go-gent/gent/json"
 	// "github.com/metaleap/go-gent/gent/maps"
@@ -34,8 +35,8 @@ func main() {
 	}
 
 	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
-	println("total time taken for all parallel runs and incl. gofmt + file I/O :\n\t\t" + timetotal.String())
+	fmt.Println("total time taken for all parallel runs and incl. gofmt + file I/O :\n\t\t" + timetotal.String())
 	for pkg, timetaken := range timeperpkg {
-		println("time taken for " + pkg.ImportPath + " excl. gofmt & file I/O:\n\t\t" + timetaken.String())
+		fmt.Println("time taken for " + pkg.ImportPath + " excl. gofmt & file I/O:\n\t\t" + timetaken.String())
 	}
 }

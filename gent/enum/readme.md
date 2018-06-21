@@ -49,6 +49,7 @@ type GentStringMethods struct {
 	Parsers    struct {
 		OnePerStringer         bool
 		OneUber                bool
+		AddIgnoreCaseCmp       bool
 		FuncName               string
 		AddErrlessWithFallback bool
 	}

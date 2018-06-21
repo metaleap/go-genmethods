@@ -33,6 +33,8 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal 
 		src, timetaken, err := pkg.RunGents(gents...)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
+		} else {
+			println(string(src))
 		}
 		maps.Lock()
 		if timeTakenPerPkg[pkg] = timetaken; err != nil {
