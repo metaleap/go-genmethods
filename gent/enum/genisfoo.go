@@ -28,7 +28,7 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 				if this.RenameEnumerant != nil {
 					ren = this.RenameEnumerant(enumerant)
 				}
-				method := Fn(t.CodeGen.MethodRecvVal, this.MethodNamePrefix+ren, &Sigs.NoneToBool,
+				method := Fn(t.CodeGen.ThisVal, this.MethodNamePrefix+ren, &Sigs.NoneToBool,
 					Set(V.Ret, Eq(V.This, N(enumerant))),
 				)
 				method.Doc.Add(strings.NewReplacer(

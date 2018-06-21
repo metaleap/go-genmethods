@@ -54,9 +54,9 @@ type Type struct {
 	}
 
 	CodeGen struct {
-		MethodRecvVal udevgogen.NamedTyped
-		MethodRecvPtr udevgogen.NamedTyped
-		Ref           *udevgogen.TypeRef
+		ThisVal udevgogen.NamedTyped
+		ThisPtr udevgogen.NamedTyped
+		Ref     *udevgogen.TypeRef
 	}
 }
 
@@ -68,7 +68,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
 					tdx, t := goAstTypeExprSansParens(tdecl.Type), &Type{Pkg: this, Name: tdecl.Name.Name, Decl: tdecl, Alias: tdecl.Assign.IsValid()}
 					t.CodeGen.Ref = udevgogen.TrNamed("", t.Name)
-					t.CodeGen.MethodRecvVal, t.CodeGen.MethodRecvPtr = udevgogen.V.This.Typed(t.CodeGen.Ref), udevgogen.V.This.Typed(udevgogen.TrPtr(t.CodeGen.Ref))
+					t.CodeGen.ThisVal, t.CodeGen.ThisPtr = udevgogen.V.This.Typed(t.CodeGen.Ref), udevgogen.V.This.Typed(udevgogen.TrPtr(t.CodeGen.Ref))
 					this.Types.Add(t)
 					switch tdeclt := tdx.(type) {
 					case *ast.Ident:

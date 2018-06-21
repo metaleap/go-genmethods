@@ -45,14 +45,7 @@ enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 ```go
 type GentStringMethods struct {
 	DocComment string
-	Stringers  map[string]func(string) string
-	Parsers    struct {
-		OnePerStringer         bool
-		OneUber                bool
-		AddIgnoreCaseCmp       bool
-		FuncName               string
-		AddErrlessWithFallback bool
-	}
+	Stringers  []Stringer
 }
 ```
 
@@ -87,3 +80,15 @@ func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
 at most one method if `t` is a suitable enum type-def.
+
+#### type Stringer
+
+```go
+type Stringer struct {
+	Name                   string
+	EnumerantRename        func(string) string
+	ParseFuncName          string
+	ParseAddIgnoreCaseCmp  bool
+	ParseAddErrlessVariant string
+}
+```

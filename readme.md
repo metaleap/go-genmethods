@@ -138,9 +138,9 @@ type Type struct {
 	}
 
 	CodeGen struct {
-		MethodRecvVal udevgogen.NamedTyped
-		MethodRecvPtr udevgogen.NamedTyped
-		Ref           *udevgogen.TypeRef
+		ThisVal udevgogen.NamedTyped
+		ThisPtr udevgogen.NamedTyped
+		Ref     *udevgogen.TypeRef
 	}
 }
 ```

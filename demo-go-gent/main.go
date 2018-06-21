@@ -23,7 +23,7 @@ func main() {
 
 	gents := []gent.IGent{
 		&gentenum.Defaults.Valid,
-		&gentenum.Defaults.IsFoo,
+		// &gentenum.Defaults.IsFoo, // useless & noisy, disabled by default, just a nice simply starting point for custom/new gents
 		&gentenum.Defaults.String,
 	}
 

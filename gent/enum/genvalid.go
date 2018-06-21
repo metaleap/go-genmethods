@@ -40,7 +40,7 @@ func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) 
 			lastoperator, lasthint = Lt(V.This, N(lastname)), "exclusive"
 		}
 
-		method := Fn(t.CodeGen.MethodRecvVal, this.MethodName, &Sigs.NoneToBool,
+		method := Fn(t.CodeGen.ThisVal, this.MethodName, &Sigs.NoneToBool,
 			Set(V.Ret, And(firstoperator, lastoperator)),
 		)
 		method.Doc.Add(strings.NewReplacer(
