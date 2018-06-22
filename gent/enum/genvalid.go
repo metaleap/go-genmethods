@@ -26,9 +26,6 @@ func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) 
 		firstinvalid, firstname, lastname, firsthint, lasthint :=
 			this.IsFirstInvalid, t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive"
 		if firstname == "_" {
-			if len(t.Enumish.ConstNames) == 1 {
-				return
-			}
 			firstinvalid, firstname = false, t.Enumish.ConstNames[1]
 		}
 

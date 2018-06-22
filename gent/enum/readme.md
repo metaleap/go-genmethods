@@ -40,6 +40,24 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
 enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 
+#### type GentIterateFunc
+
+```go
+type GentIterateFunc struct {
+	FuncName       string
+	EnumerantName  bool
+	EnumerantValue bool
+}
+```
+
+
+#### func (*GentIterateFunc) GenerateTopLevelDecls
+
+```go
+func (this *GentIterateFunc) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
+```
+GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+
 #### type GentStringMethods
 
 ```go

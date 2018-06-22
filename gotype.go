@@ -118,5 +118,5 @@ func (this *Type) setPotentiallyEnumish() {
 }
 
 func (this *Type) SeemsEnumish() bool {
-	return this.Enumish.BaseType != "" && len(this.Enumish.ConstNames) > 0
+	return this.Enumish.BaseType != "" && len(this.Enumish.ConstNames) > 0 && (this.Enumish.ConstNames[0] != "_" || len(this.Enumish.ConstNames) > 1)
 }
