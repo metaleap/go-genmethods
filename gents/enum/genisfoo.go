@@ -25,7 +25,7 @@ type GentIsFooMethods struct {
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
-func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (decls Syns) {
+func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if (!this.Disabled) && t.SeemsEnumish() {
 		decls = make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {

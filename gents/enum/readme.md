@@ -11,6 +11,10 @@ the largest ones last, with all enumerant `const`s appearing next to each other.
 
 ```go
 var (
+	// These `Defaults` are convenience offerings in two ways:
+	// they illustrate usage of this package's individual `IGent`s' fields,
+	// and they allow importers their own "defaults" base with less-noisy tweaks.
+	// They are only initialized by this package, but not otherwise used by it.
 	Defaults struct {
 		IsValid GentIsValidMethod
 		IsFoo   GentIsFooMethods
@@ -46,7 +50,7 @@ An instance with illustrative defaults is in `Defaults.IsFoo`.
 #### func (*GentIsFooMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (decls Syns)
+func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
@@ -72,7 +76,7 @@ An instance with illustrative defaults is in `Defaults.IsValid`.
 #### func (*GentIsValidMethod) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsValidMethod) GenerateTopLevelDecls(t *gent.Type) (decls Syns)
+func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
 at most one method if `t` is a suitable enum type-def.
@@ -98,7 +102,7 @@ An instance with illustrative defaults is in `Defaults.List`.
 #### func (*GentListEnumerantsFunc) GenerateTopLevelDecls
 
 ```go
-func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(t *gent.Type) (decls Syns)
+func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -123,7 +127,7 @@ An instance with illustrative defaults is in `Defaults.String`.
 #### func (*GentStringMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (decls Syns)
+func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 

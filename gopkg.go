@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
-	"github.com/go-leap/dev/go/gen"
 	"github.com/go-leap/fs"
 	"github.com/go-leap/str"
 	"golang.org/x/tools/go/loader"
@@ -27,8 +26,7 @@ type Pkg struct {
 	Types Types
 
 	CodeGen struct {
-		OutputFileName                 string
-		PkgImportPathsToPkgImportNames udevgogen.PkgImports
+		OutputFileName string
 	}
 }
 
@@ -127,10 +125,5 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 			}
 		}
 	}
-	return
-}
-
-func (this *Pkg) I(pkgImportPath string) (pkgImportName string) {
-	pkgImportName = this.CodeGen.PkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
 	return
 }

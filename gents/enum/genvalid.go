@@ -19,7 +19,7 @@ type GentIsValidMethod struct {
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
-func (this *GentIsValidMethod) GenerateTopLevelDecls(t *gent.Type) (decls Syns) {
+func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if (!this.Disabled) && t.SeemsEnumish() {
 		firstinvalid, firstname, lastname, firsthint, lasthint :=
 			this.IsFirstInvalid, t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive"

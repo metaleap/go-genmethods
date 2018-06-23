@@ -11,8 +11,8 @@ import (
 )
 
 func init() {
-	// gent.OptEmitNoOpFuncBodies = true
-	// gent.OptGoFmt = false
+	// gent.Defaults.Ctx.Opt.EmitNoOpFuncBodies = true
+	// gent.Defaults.Ctx.Opt.NoGoFmt = true
 }
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		return true
 	}
 
-	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(gents...)
+	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(nil, gents...)
 	fmt.Println("total time taken for all parallel runs and incl. gofmt + file I/O :\n\t\t" + timetotal.String())
 	for pkg, timetaken := range timeperpkg {
 		fmt.Println("time taken for " + pkg.ImportPath + " excl. gofmt & file I/O:\n\t\t" + timetaken.String())

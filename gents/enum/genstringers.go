@@ -29,14 +29,14 @@ type Stringer struct {
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (decls Syns) {
+func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if (!this.Disabled) && len(this.Stringers) > 0 && t.SeemsEnumish() {
 		decls = make(Syns, 0, 2+len(t.Enumish.ConstNames)*3*len(this.Stringers))
 		for i := range this.Stringers {
 			if !this.Stringers[i].Disabled {
-				decls.Add(this.genStringer(i, t))
+				decls.Add(this.genStringer(i, ctx, t))
 				if this.Stringers[i].ParseFuncName != "" {
-					decls.Add(this.genParser(i, t)...)
+					decls.Add(this.genParser(i, ctx, t)...)
 				}
 			}
 		}
@@ -44,8 +44,8 @@ func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (decls Syns) 
 	return
 }
 
-func (this *GentStringMethods) genStringer(idx int, t *gent.Type) (method *SynFunc) {
-	self, caseof, pkgstrconv := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames)), N(t.Pkg.I("strconv"))
+func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type) (method *SynFunc) {
+	self, caseof, pkgstrconv := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames)), N(ctx.I("strconv"))
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := enumerant; enumerant != "_" {
 			if rename := self.EnumerantRename; rename != nil {
@@ -73,8 +73,8 @@ func (this *GentStringMethods) genStringer(idx int, t *gent.Type) (method *SynFu
 	return
 }
 
-func (this *GentStringMethods) genParser(idx int, t *gent.Type) (synFuncs Syns) {
-	self, s, caseof, pkgstrconv := &this.Stringers[idx], N("s"), Switch(nil, len(t.Enumish.ConstNames)), N(t.Pkg.I("strconv"))
+func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (synFuncs Syns) {
+	self, s, caseof, pkgstrconv := &this.Stringers[idx], N("s"), Switch(nil, len(t.Enumish.ConstNames)), N(ctx.I("strconv"))
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := L(enumerant); enumerant != "_" {
 			if rename := self.EnumerantRename; rename != nil {
@@ -82,7 +82,7 @@ func (this *GentStringMethods) genParser(idx int, t *gent.Type) (synFuncs Syns) 
 			}
 			var cmp ISyn = Eq(s, renamed)
 			if self.ParseAddIgnoreCaseCmp {
-				cmp = Or(cmp, Call(D(N(t.Pkg.I("strings")), N("EqualFold")), s, renamed))
+				cmp = Or(cmp, Call(D(N(ctx.I("strings")), N("EqualFold")), s, renamed))
 			}
 			caseof.Cases.Add(cmp, Set(V.This, N(enumerant)))
 		}

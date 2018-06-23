@@ -17,22 +17,22 @@ var (
 	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
-	// Can be overridden by env-var `GOGENT_GOFMT`, if `strconv.ParseBool`able.
-	OptGoFmt = true
-
-	// Can be overridden by env-var `GOGENT_EMITNOOPS`, if `ParseBool`able.
-	// If `true`, will generate`return`-only bodies for all `func`s with
-	// only named return values (or none at all), such as those generated
-	// by all built-in `IGent`s from `go-gent/gent/...` packages.
-	OptEmitNoOpFuncBodies = false
+	Defaults struct {
+		Ctx Ctx
+	}
 
 	// If set, can be used to prevent running of the given
 	// (or any) `IGent` on the given (or any) `*Type`.
 	MayGentRunForType func(IGent, *Type) bool
 )
 
+func init() {
+	Defaults.Ctx.Opt.EmitNoOpFuncBodies = usys.EnvBool("GOGENT_EMITNOOPS", false)
+	Defaults.Ctx.Opt.NoGoFmt = usys.EnvBool("GOGENT_NOGOFMT", false)
+}
+
 type IGent interface {
-	GenerateTopLevelDecls(*Type) udevgogen.Syns
+	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 
 type Str string
@@ -41,20 +41,52 @@ func (this Str) With(stringsReplaceOldNew ...string) string {
 	return strings.NewReplacer(stringsReplaceOldNew...).Replace(string(this))
 }
 
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
+type Ctx struct {
+	// Opt holds the only user-settable fields (in between runs).
+	// Code-gens only read but don't mutate them.
+	Opt struct {
+		NoGoFmt            bool
+		EmitNoOpFuncBodies bool
+	}
+
+	TimeStarted time.Time
+
+	pkgImportPathsToPkgImportNames udevgogen.PkgImports
+
+	declsGenerated map[struct {
+		g IGent
+		t *Type
+	}]udevgogen.Syns
+}
+
+func (this *Ctx) I(pkgImportPath string) (pkgImportName string) {
+	pkgImportName = this.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
+	return
+}
+
+func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns) {
+	for key, decls := range this.declsGenerated {
+		if (maybeGent == nil || key.g == maybeGent) && (maybeType == nil || key.t == maybeType) {
+			matches = append(matches, decls)
+		}
+	}
+	return
+}
+
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
 	var errs map[*Pkg]error
-	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(gents...)
+	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults, gents...)
 	for _, err := range errs {
 		panic(err)
 	}
 	return
 }
 
-func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
-		src, timetaken, err := pkg.RunGents(gents...)
+		src, timetaken, err := pkg.RunGents(maybeCtxOptDefaults, gents...)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
 		} else {
@@ -78,20 +110,33 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal 
 	return
 }
 
-func (this *Pkg) RunGents(gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
-	dst, codegencommentnotice := udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
-	optnoops, optgofmt := usys.EnvBool("GOGENT_EMITNOOPS", OptEmitNoOpFuncBodies), usys.EnvBool("GOGENT_GOFMT", OptGoFmt)
+func (this *Pkg) RunGents(maybeCtxOptDefaults *Ctx, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
+	dst, codegencommentnotice, ctx :=
+		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName), Ctx{
+			Opt: Defaults.Ctx.Opt, TimeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
+			declsGenerated: map[struct {
+				g IGent
+				t *Type
+			}]udevgogen.Syns{},
+		}
+	if maybeCtxOptDefaults != nil {
+		ctx.Opt = maybeCtxOptDefaults.Opt
+	}
 
-	timestarted := time.Now()
 	for _, t := range this.Types {
 		for _, g := range gents {
 			if MayGentRunForType == nil || MayGentRunForType(g, t) {
-				dst.Body = append(dst.Body, g.GenerateTopLevelDecls(t)...)
+				decls := g.GenerateTopLevelDecls(&ctx, t)
+				ctx.declsGenerated[struct {
+					g IGent
+					t *Type
+				}{g: g, t: t}] = decls
+				dst.Body = append(dst.Body, decls...)
 			}
 		}
 	}
 
-	src, timeTaken, err = dst.CodeGen(codegencommentnotice, this.CodeGen.PkgImportPathsToPkgImportNames, optnoops, optgofmt)
-	timeTaken = time.Since(timestarted) - timeTaken
+	src, timeTaken, err = dst.CodeGen(codegencommentnotice, ctx.pkgImportPathsToPkgImportNames, ctx.Opt.EmitNoOpFuncBodies, !ctx.Opt.NoGoFmt)
+	timeTaken = time.Since(ctx.TimeStarted) - timeTaken
 	return
 }

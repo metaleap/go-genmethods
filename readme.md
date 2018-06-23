@@ -10,14 +10,9 @@ var (
 	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
-	// Can be overridden by env-var `GOGENT_GOFMT`, if `strconv.ParseBool`able.
-	OptGoFmt = true
-
-	// Can be overridden by env-var `GOGENT_EMITNOOPS`, if `ParseBool`able.
-	// If `true`, will generate`return`-only bodies for all `func`s with
-	// only named return values (or none at all), such as those generated
-	// by all built-in `IGent`s from `go-gent/gent/...` packages.
-	OptEmitNoOpFuncBodies = false
+	Defaults struct {
+		Ctx Ctx
+	}
 
 	// If set, can be used to prevent running of the given
 	// (or any) `IGent` on the given (or any) `*Type`.
@@ -25,11 +20,39 @@ var (
 )
 ```
 
+#### type Ctx
+
+```go
+type Ctx struct {
+	// Opt holds the only user-settable fields (in between runs).
+	// Code-gens only read but don't mutate them.
+	Opt struct {
+		NoGoFmt            bool
+		EmitNoOpFuncBodies bool
+	}
+
+	TimeStarted time.Time
+}
+```
+
+
+#### func (*Ctx) DeclsGeneratedSoFar
+
+```go
+func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns)
+```
+
+#### func (*Ctx) I
+
+```go
+func (this *Ctx) I(pkgImportPath string) (pkgImportName string)
+```
+
 #### type IGent
 
 ```go
 type IGent interface {
-	GenerateTopLevelDecls(*Type) udevgogen.Syns
+	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 ```
 
@@ -51,8 +74,7 @@ type Pkg struct {
 	Types Types
 
 	CodeGen struct {
-		OutputFileName                 string
-		PkgImportPathsToPkgImportNames udevgogen.PkgImports
+		OutputFileName string
 	}
 }
 ```
@@ -70,16 +92,10 @@ func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) (this 
 func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *Pkg
 ```
 
-#### func (*Pkg) I
-
-```go
-func (this *Pkg) I(pkgImportPath string) (pkgImportName string)
-```
-
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(gents ...IGent) (src []byte, timeTaken time.Duration, err error)
+func (this *Pkg) RunGents(maybeCtxOptDefaults *Ctx, gents ...IGent) (src []byte, timeTaken time.Duration, err error)
 ```
 
 #### type Pkgs
@@ -104,13 +120,13 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
 ```
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 
 #### type Str

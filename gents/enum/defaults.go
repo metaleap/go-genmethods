@@ -1,6 +1,10 @@
 package gentenum
 
 var (
+	// These `Defaults` are convenience offerings in two ways:
+	// they illustrate usage of this package's individual `IGent`s' fields,
+	// and they allow importers their own "defaults" base with less-noisy tweaks.
+	// They are only initialized by this package, but not otherwise used by it.
 	Defaults struct {
 		IsValid GentIsValidMethod
 		IsFoo   GentIsFooMethods
