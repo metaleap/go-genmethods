@@ -9,6 +9,8 @@ import (
 // in enum type-defs, which equals-compares its receiver to the respective enumerant `Foo`.
 // (A HIGHLY POINTLESS code-gen in real-world terms, except its exemplary simplicity makes
 // it a handy starter-demo-sample-snippet-blueprint for writing new ones from scratch.)
+//
+// An instance with illustrative defaults is in `Defaults.IsFoo`.
 type GentIsFooMethods struct {
 	Disabled   bool
 	DocComment gent.Str
@@ -23,9 +25,9 @@ type GentIsFooMethods struct {
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
-func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
+func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (decls Syns) {
 	if (!this.Disabled) && t.SeemsEnumish() {
-		tlDecls = make(Syns, 0, len(t.Enumish.ConstNames))
+		decls = make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if renamed := enumerant; enumerant != "_" {
 				if this.MethodNameRenameEnumerant != nil {
@@ -39,7 +41,7 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 					"{T}", t.Name,
 					"{e}", enumerant,
 				))
-				tlDecls.Add(method)
+				decls.Add(method)
 			}
 		}
 	}

@@ -11,6 +11,8 @@ import (
 // GentListEnumerantsFunc generates a
 // `func WellknownFoos() ([]string, []Foo)`
 // for each enum type-def `Foo`.
+//
+// An instance with illustrative defaults is in `Defaults.List`.
 type GentListEnumerantsFunc struct {
 	Disabled   bool
 	DocComment gent.Str
@@ -21,7 +23,7 @@ type GentListEnumerantsFunc struct {
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
+func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(t *gent.Type) (decls Syns) {
 	if (!this.Disabled) && t.SeemsEnumish() {
 		num, names, values := 0, make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
@@ -41,7 +43,7 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(t *gent.Type) (tlDecls
 			Set(C(N("names"), N("values")), C(L(names), L(values))),
 		)
 		fn.Doc.Add(this.DocComment.With("{N}", fn.Name, "{T}", t.Name, "{n}", strconv.Itoa(num)))
-		tlDecls.Add(fn)
+		decls.Add(fn)
 	}
 	return
 }
