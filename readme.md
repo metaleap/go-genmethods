@@ -110,6 +110,19 @@ func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTo
 func (this Pkgs) RunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 
+#### type Str
+
+```go
+type Str string
+```
+
+
+#### func (Str) With
+
+```go
+func (this Str) With(stringsReplaceOldNew ...string) string
+```
+
 #### type Type
 
 ```go
@@ -133,7 +146,9 @@ type Type struct {
 	}
 
 	Enumish struct {
-		BaseType   string
+		// expected to be builtin prim-type such as uint8, int64, int --- cases of additional indirections to be handled when they occur in practice
+		BaseType string
+
 		ConstNames []string
 	}
 

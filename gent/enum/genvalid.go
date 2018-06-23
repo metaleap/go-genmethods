@@ -1,8 +1,6 @@
 package gentenum
 
 import (
-	"strings"
-
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
 )
@@ -13,7 +11,7 @@ import (
 // are ordered in the source such that the numerically smallest values appear
 // first, the largest ones last, with all enumerant `const`s appearing together.
 type GentValidMethod struct {
-	DocComment     string
+	DocComment     gent.Str
 	MethodName     string
 	IsFirstInvalid bool
 	IsLastInvalid  bool
@@ -40,14 +38,14 @@ func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) 
 		method := Fn(t.CodeGen.ThisVal, this.MethodName, &Sigs.NoneToBool,
 			Set(V.Ret, And(firstoperator, lastoperator)),
 		)
-		method.Doc.Add(strings.NewReplacer(
+		method.Doc.Add(this.DocComment.With(
 			"{N}", this.MethodName,
 			"{T}", t.Name,
 			"{fn}", firstname,
 			"{fh}", firsthint,
 			"{ln}", lastname,
 			"{lh}", lasthint,
-		).Replace(this.DocComment))
+		))
 		tlDecls = Syns{method}
 	}
 	return

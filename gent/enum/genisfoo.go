@@ -1,8 +1,6 @@
 package gentenum
 
 import (
-	"strings"
-
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
 )
@@ -12,7 +10,7 @@ import (
 // (A highly pointless code-gen in real-world terms, except its exemplary simplicity
 // makes it a handy starter demo sample snippet for writing new ones from scratch.)
 type GentIsFooMethods struct {
-	DocComment       string
+	DocComment       gent.Str
 	MethodNamePrefix string
 	RenameEnumerant  func(string) string
 }
@@ -31,11 +29,11 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 				method := Fn(t.CodeGen.ThisVal, this.MethodNamePrefix+ren, &Sigs.NoneToBool,
 					Set(V.Ret, Eq(V.This, N(enumerant))),
 				)
-				method.Doc.Add(strings.NewReplacer(
+				method.Doc.Add(this.DocComment.With(
 					"{N}", method.Name,
 					"{T}", t.Name,
 					"{e}", enumerant,
-				).Replace(this.DocComment))
+				))
 				tlDecls.Add(method)
 			}
 		}

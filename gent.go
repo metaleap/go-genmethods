@@ -3,6 +3,7 @@ package gent
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,6 +16,12 @@ var MayGentRunForType func(IGent, *Type) bool
 
 type IGent interface {
 	GenerateTopLevelDecls(*Type) udevgogen.Syns
+}
+
+type Str string
+
+func (this Str) With(stringsReplaceOldNew ...string) string {
+	return strings.NewReplacer(stringsReplaceOldNew...).Replace(string(this))
 }
 
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {

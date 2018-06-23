@@ -1,8 +1,6 @@
 package gentenum
 
 import (
-	"strings"
-
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
 )
@@ -13,11 +11,11 @@ type GentStringMethods struct {
 }
 
 type Stringer struct {
-	Name                   string
-	EnumerantRename        func(string) string
-	ParseFuncName          string
-	ParseAddIgnoreCaseCmp  bool
-	ParseAddErrlessVariant string
+	Name                             string
+	EnumerantRename                  func(string) string
+	ParseFuncName                    gent.Str
+	ParseAddIgnoreCaseCmp            bool
+	ParseAddErrlessVariantWithSuffix string
 }
 
 func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
@@ -91,11 +89,11 @@ func (this *GentStringMethods) genParser(idx int, t *gent.Type) (synFuncs Syns) 
 		adddefault(T.Int64, "ParseInt", L(10), L(enumbasetype.SafeBitSizeIfBuiltInNumberType()))
 	}
 
-	fname := strings.NewReplacer("{T}", t.Name, "{s}", this.Stringers[idx].Name).Replace(this.Stringers[idx].ParseFuncName)
+	fname := this.Stringers[idx].ParseFuncName.With("{T}", t.Name, "{s}", this.Stringers[idx].Name)
 	synFuncs = Syns{Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.CodeGen.ThisVal, V.Err),
 		caseof,
 	)}
-	if fnamesuffix := this.Stringers[idx].ParseAddErrlessVariant; fnamesuffix != "" {
+	if fnamesuffix := this.Stringers[idx].ParseAddErrlessVariantWithSuffix; fnamesuffix != "" {
 		maybe := N("maybe" + t.Name)
 		synFuncs = append(synFuncs, Fn(NoMethodRecv, fname+fnamesuffix, TdFunc(NTs(s.Name, T.String, "fallback", t.CodeGen.ThisVal.Type), t.CodeGen.ThisVal),
 			Decl(C(maybe, V.Err.Named), Call(N(fname), s)),

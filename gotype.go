@@ -49,7 +49,9 @@ type Type struct {
 	}
 
 	Enumish struct {
-		BaseType   string
+		// expected to be builtin prim-type such as uint8, int64, int --- cases of additional indirections to be handled when they occur in practice
+		BaseType string
+
 		ConstNames []string
 	}
 

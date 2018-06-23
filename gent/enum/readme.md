@@ -11,6 +11,7 @@ var (
 		Valid  GentValidMethod
 		IsFoo  GentIsFooMethods
 		String GentStringMethods
+		Iters  GentIterateFuncs
 	}
 )
 ```
@@ -19,7 +20,7 @@ var (
 
 ```go
 type GentIsFooMethods struct {
-	DocComment       string
+	DocComment       gent.Str
 	MethodNamePrefix string
 	RenameEnumerant  func(string) string
 }
@@ -40,21 +41,22 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
 enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 
-#### type GentIterateFunc
+#### type GentIterateFuncs
 
 ```go
-type GentIterateFunc struct {
-	FuncName       string
-	EnumerantName  bool
-	EnumerantValue bool
+type GentIterateFuncs struct {
+	EnumerantsFuncName            gent.Str
+	IterWithCallbackFuncName      gent.Str
+	NoEnumerantNameArgInCallback  bool
+	NoEnumerantValueArgInCallback bool
 }
 ```
 
 
-#### func (*GentIterateFunc) GenerateTopLevelDecls
+#### func (*GentIterateFuncs) GenerateTopLevelDecls
 
 ```go
-func (this *GentIterateFunc) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
+func (this *GentIterateFuncs) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -78,7 +80,7 @@ func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns
 
 ```go
 type GentValidMethod struct {
-	DocComment     string
+	DocComment     gent.Str
 	MethodName     string
 	IsFirstInvalid bool
 	IsLastInvalid  bool
@@ -103,10 +105,10 @@ at most one method if `t` is a suitable enum type-def.
 
 ```go
 type Stringer struct {
-	Name                   string
-	EnumerantRename        func(string) string
-	ParseFuncName          string
-	ParseAddIgnoreCaseCmp  bool
-	ParseAddErrlessVariant string
+	Name                             string
+	EnumerantRename                  func(string) string
+	ParseFuncName                    gent.Str
+	ParseAddIgnoreCaseCmp            bool
+	ParseAddErrlessVariantWithSuffix string
 }
 ```
