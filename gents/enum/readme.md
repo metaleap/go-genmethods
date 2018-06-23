@@ -20,18 +20,22 @@ var (
 
 ```go
 type GentIsFooMethods struct {
-	Disabled         bool
-	DocComment       gent.Str
-	MethodNamePrefix string
-	RenameEnumerant  func(string) string
+	Disabled   bool
+	DocComment gent.Str
+
+	// eg `Is{e}` -> `IsMyOne`, `IsMyTwo`, etc.
+	MethodName gent.Str
+
+	// if set, renames the enumerant used for {e} in `MethodName`
+	MethodNameRenameEnumerant func(string) string
 }
 ```
 
 GentIsFooMethods generates methods `YourEnumType.IsFoo() bool` for each
 enumerant `Foo` in enum type-defs, which equals-compares its receiver to the
-respective enumerant `Foo`. (A highly pointless code-gen in real-world terms,
-except its exemplary simplicity makes it a handy starter demo sample snippet for
-writing new ones from scratch.)
+respective enumerant `Foo`. (A HIGHLY POINTLESS code-gen in real-world terms,
+except its exemplary simplicity makes it a handy
+starter-demo-sample-snippet-blueprint for writing new ones from scratch.)
 
 #### func (*GentIsFooMethods) GenerateTopLevelDecls
 
@@ -74,10 +78,15 @@ at most one method if `t` is a suitable enum type-def.
 type GentListEnumerantsFunc struct {
 	Disabled   bool
 	DocComment gent.Str
-	FuncName   gent.Str
+
+	// eg. "Wellknown{T}{s}" with `{T}` for type name and
+	// `{s}` for pluralization suffix (either "s" or "es")
+	FuncName gent.Str
 }
 ```
 
+GentListEnumerantsFunc generates a `func WellknownFoos() ([]string, []Foo)` for
+each enum type-def `Foo`.
 
 #### func (*GentListEnumerantsFunc) GenerateTopLevelDecls
 

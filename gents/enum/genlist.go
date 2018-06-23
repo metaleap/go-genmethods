@@ -8,10 +8,16 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+// GentListEnumerantsFunc generates a
+// `func WellknownFoos() ([]string, []Foo)`
+// for each enum type-def `Foo`.
 type GentListEnumerantsFunc struct {
 	Disabled   bool
 	DocComment gent.Str
-	FuncName   gent.Str
+
+	// eg. "Wellknown{T}{s}" with `{T}` for type name and
+	// `{s}` for pluralization suffix (either "s" or "es")
+	FuncName gent.Str
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.

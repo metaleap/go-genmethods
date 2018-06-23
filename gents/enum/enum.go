@@ -14,7 +14,7 @@ func init() {
 	Defaults.IsValid.MethodName = "Valid"
 
 	Defaults.IsFoo.DocComment = "{N} returns whether the value of this `{T}` equals `{e}`."
-	Defaults.IsFoo.MethodNamePrefix = "Is"
+	Defaults.IsFoo.MethodName = "Is{e}"
 
 	Defaults.String.Stringers = []Stringer{
 		{DocComment: "{N} implements the `fmt.Stringer` interface.", Name: "String",
