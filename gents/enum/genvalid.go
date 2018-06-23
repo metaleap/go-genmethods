@@ -5,12 +5,13 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
-// GentValidMethod generates a `Valid` method for enum type-defs, which
+// GentIsValidMethod generates a `Valid` method for enum type-defs, which
 // checks whether the receiver value seems to be within the range of the
 // known enumerants. It is only correct for enum type-defs whose enumerants
 // are ordered in the source such that the numerically smallest values appear
 // first, the largest ones last, with all enumerant `const`s appearing together.
-type GentValidMethod struct {
+type GentIsValidMethod struct {
+	Disabled       bool
 	DocComment     gent.Str
 	MethodName     string
 	IsFirstInvalid bool
@@ -19,8 +20,8 @@ type GentValidMethod struct {
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
-func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
-	if t.SeemsEnumish() {
+func (this *GentIsValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
+	if (!this.Disabled) && t.SeemsEnumish() {
 		firstinvalid, firstname, lastname, firsthint, lasthint :=
 			this.IsFirstInvalid, t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive"
 		if firstname == "_" {

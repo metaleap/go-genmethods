@@ -23,10 +23,10 @@ func main() {
 	})
 
 	gents := []gent.IGent{
-		&gentenum.Defaults.Valid,
+		&gentenum.Defaults.IsValid,
 		// &gentenum.Defaults.IsFoo, // useless & noisy, disabled by default, just a nice simply starting point for custom/new gents
 		&gentenum.Defaults.String,
-		&gentenum.Defaults.Iters,
+		&gentenum.Defaults.List,
 	}
 
 	gent.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {

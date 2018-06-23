@@ -8,10 +8,10 @@
 ```go
 var (
 	Defaults struct {
-		Valid  GentValidMethod
-		IsFoo  GentIsFooMethods
-		String GentStringMethods
-		Iters  GentIterateFuncs
+		IsValid GentIsValidMethod
+		IsFoo   GentIsFooMethods
+		String  GentStringMethods
+		List    GentListEnumerantsFunc
 	}
 )
 ```
@@ -20,6 +20,7 @@ var (
 
 ```go
 type GentIsFooMethods struct {
+	Disabled         bool
 	DocComment       gent.Str
 	MethodNamePrefix string
 	RenameEnumerant  func(string) string
@@ -41,22 +42,47 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
 enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 
-#### type GentIterateFuncs
+#### type GentIsValidMethod
 
 ```go
-type GentIterateFuncs struct {
-	EnumerantsFuncName          gent.Str
-	IterWithCallbackFuncName    gent.Str
-	EnumerantNameArgInCallback  bool
-	EnumerantValueArgInCallback bool
+type GentIsValidMethod struct {
+	Disabled       bool
+	DocComment     gent.Str
+	MethodName     string
+	IsFirstInvalid bool
+	IsLastInvalid  bool
+}
+```
+
+GentIsValidMethod generates a `Valid` method for enum type-defs, which checks
+whether the receiver value seems to be within the range of the known enumerants.
+It is only correct for enum type-defs whose enumerants are ordered in the source
+such that the numerically smallest values appear first, the largest ones last,
+with all enumerant `const`s appearing together.
+
+#### func (*GentIsValidMethod) GenerateTopLevelDecls
+
+```go
+func (this *GentIsValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
+```
+GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
+at most one method if `t` is a suitable enum type-def.
+
+#### type GentListEnumerantsFunc
+
+```go
+type GentListEnumerantsFunc struct {
+	Disabled   bool
+	DocComment gent.Str
+	FuncName   gent.Str
 }
 ```
 
 
-#### func (*GentIterateFuncs) GenerateTopLevelDecls
+#### func (*GentListEnumerantsFunc) GenerateTopLevelDecls
 
 ```go
-func (this *GentIterateFuncs) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
+func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -64,8 +90,12 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
 ```go
 type GentStringMethods struct {
-	DocComment string
-	Stringers  []Stringer
+	Disabled    bool
+	Stringers   []Stringer
+	DocComments struct {
+		Parsers               gent.Str
+		ParsersErrlessVariant gent.Str
+	}
 }
 ```
 
@@ -76,35 +106,12 @@ type GentStringMethods struct {
 func (this *GentStringMethods) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
 ```
 
-#### type GentValidMethod
-
-```go
-type GentValidMethod struct {
-	DocComment     gent.Str
-	MethodName     string
-	IsFirstInvalid bool
-	IsLastInvalid  bool
-}
-```
-
-GentValidMethod generates a `Valid` method for enum type-defs, which checks
-whether the receiver value seems to be within the range of the known enumerants.
-It is only correct for enum type-defs whose enumerants are ordered in the source
-such that the numerically smallest values appear first, the largest ones last,
-with all enumerant `const`s appearing together.
-
-#### func (*GentValidMethod) GenerateTopLevelDecls
-
-```go
-func (this *GentValidMethod) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns)
-```
-GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
-at most one method if `t` is a suitable enum type-def.
-
 #### type Stringer
 
 ```go
 type Stringer struct {
+	Disabled                         bool
+	DocComment                       gent.Str
 	Name                             string
 	EnumerantRename                  func(string) string
 	ParseFuncName                    gent.Str
