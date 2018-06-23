@@ -15,5 +15,5 @@ func init() {
 	Defaults.String.Stringers = []Stringer{
 		{Name: "String", EnumerantRename: nil, ParseFuncName: "{T}From{s}", ParseAddErrlessVariantWithSuffix: "Or"},
 	}
-	Defaults.Iters.IterWithCallbackFuncName = "ForEachWellknown{T}Enumerant"
+	Defaults.Iters.IterWithCallbackFuncName, Defaults.Iters.EnumerantsFuncName = "ForEachWellknown{T}", "Wellknown{T}s"
 }
