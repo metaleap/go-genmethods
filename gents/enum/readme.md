@@ -45,10 +45,10 @@ enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 
 ```go
 type GentIterateFuncs struct {
-	EnumerantsFuncName            gent.Str
-	IterWithCallbackFuncName      gent.Str
-	NoEnumerantNameArgInCallback  bool
-	NoEnumerantValueArgInCallback bool
+	EnumerantsFuncName          gent.Str
+	IterWithCallbackFuncName    gent.Str
+	EnumerantNameArgInCallback  bool
+	EnumerantValueArgInCallback bool
 }
 ```
 

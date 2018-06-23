@@ -1,22 +1,24 @@
 package gentenum
 
 import (
+	"strings"
+
 	. "github.com/go-leap/dev/go/gen"
 	"github.com/metaleap/go-gent"
 )
 
 type GentIterateFuncs struct {
-	EnumerantsFuncName            gent.Str
-	IterWithCallbackFuncName      gent.Str
-	NoEnumerantNameArgInCallback  bool
-	NoEnumerantValueArgInCallback bool
+	EnumerantsFuncName          gent.Str
+	IterWithCallbackFuncName    gent.Str
+	EnumerantNameArgInCallback  bool
+	EnumerantValueArgInCallback bool
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentIterateFuncs) GenerateTopLevelDecls(t *gent.Type) (tlDecls Syns) {
 	if t.SeemsEnumish() {
-		if withnamearg, withvalarg := !this.NoEnumerantNameArgInCallback, !this.NoEnumerantValueArgInCallback; this.IterWithCallbackFuncName != "" && (withnamearg || withvalarg) {
-			tlDecls.Add(this.genIterWithCallback(t, withnamearg, withvalarg))
+		if this.IterWithCallbackFuncName != "" && (this.EnumerantNameArgInCallback || this.EnumerantValueArgInCallback) {
+			tlDecls.Add(this.genIterWithCallback(t, this.EnumerantNameArgInCallback, this.EnumerantValueArgInCallback))
 		}
 		if this.EnumerantsFuncName != "" {
 			tlDecls.Add(this.genIterEnumerants(t))
@@ -32,8 +34,15 @@ func (this *GentIterateFuncs) genIterEnumerants(t *gent.Type) *SynFunc {
 			names, values = append(names, L(enumerant)), append(values, NT(enumerant, t.CodeGen.Ref))
 		}
 	}
-
-	fn := Fn(NoMethodRecv, this.EnumerantsFuncName.With("{T}", t.Name), TdFunc(nil, NT("names", T.Sl.Strings), NT("values", TrSlice(t.CodeGen.Ref))),
+	pluralsuffix := "s"
+	if strings.HasSuffix(t.Name, "s") {
+		pluralsuffix = "es"
+	}
+	fname := this.EnumerantsFuncName.With("{T}", t.Name, "{s}", pluralsuffix)
+	if strings.HasSuffix(fname, "ys") {
+		fname = fname[:len(fname)-2] + "ies"
+	}
+	fn := Fn(NoMethodRecv, fname, TdFunc(nil, NT("names", T.Sl.Strings), NT("values", TrSlice(t.CodeGen.Ref))),
 		Set(C(N("names"), N("values")), C(L(names), L(values))),
 	)
 	return fn
