@@ -13,7 +13,11 @@ var (
 	Defaults struct {
 		Ctx Ctx
 	}
+)
+```
 
+```go
+var (
 	// If set, can be used to prevent running of the given
 	// (or any) `IGent` on the given (or any) `*Type`.
 	MayGentRunForType func(IGent, *Type) bool
