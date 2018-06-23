@@ -1,6 +1,6 @@
 # gentenum
 --
-    import "github.com/metaleap/go-gent/gent/enum"
+    import "github.com/metaleap/go-gent/gents/enum"
 
 
 ## Usage

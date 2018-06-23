@@ -2,6 +2,7 @@ package gent
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -12,7 +13,23 @@ import (
 	"github.com/go-leap/sys"
 )
 
-var MayGentRunForType func(IGent, *Type) bool
+var (
+	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
+	CodeGenCommentProgName = filepath.Base(os.Args[0])
+
+	// Can be overridden by env-var `GOGENT_GOFMT`, if `strconv.ParseBool`able.
+	OptGoFmt = true
+
+	// Can be overridden by env-var `GOGENT_EMITNOOPS`, if `ParseBool`able.
+	// If `true`, will generate`return`-only bodies for all `func`s with
+	// only named return values (or none at all), such as those generated
+	// by all built-in `IGent`s from `go-gent/gent/...` packages.
+	OptEmitNoOpFuncBodies = false
+
+	// If set, can be used to prevent running of the given
+	// (or any) `IGent` on the given (or any) `*Type`.
+	MayGentRunForType func(IGent, *Type) bool
+)
 
 type IGent interface {
 	GenerateTopLevelDecls(*Type) udevgogen.Syns

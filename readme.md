@@ -10,16 +10,19 @@ var (
 	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
-	// overridden by env-var GOGENT_EMITNOOPS, if set to `strconv.ParseBool`able value
+	// Can be overridden by env-var `GOGENT_GOFMT`, if `strconv.ParseBool`able.
+	OptGoFmt = true
+
+	// Can be overridden by env-var `GOGENT_EMITNOOPS`, if `ParseBool`able.
+	// If `true`, will generate`return`-only bodies for all `func`s with
+	// only named return values (or none at all), such as those generated
+	// by all built-in `IGent`s from `go-gent/gent/...` packages.
 	OptEmitNoOpFuncBodies = false
 
-	// overridden by env-var GOGENT_GOFMT, if set to `strconv.ParseBool`able value
-	OptGoFmt = true
+	// If set, can be used to prevent running of the given
+	// (or any) `IGent` on the given (or any) `*Type`.
+	MayGentRunForType func(IGent, *Type) bool
 )
-```
-
-```go
-var MayGentRunForType func(IGent, *Type) bool
 ```
 
 #### type IGent

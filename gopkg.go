@@ -2,25 +2,13 @@ package gent
 
 import (
 	"errors"
-	"golang.org/x/tools/go/loader"
-	"os"
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
 	"github.com/go-leap/dev/go/gen"
 	"github.com/go-leap/fs"
 	"github.com/go-leap/str"
-)
-
-var (
-	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
-	CodeGenCommentProgName = filepath.Base(os.Args[0])
-
-	// overridden by env-var GOGENT_EMITNOOPS, if set to `strconv.ParseBool`able value
-	OptEmitNoOpFuncBodies = false
-
-	// overridden by env-var GOGENT_GOFMT, if set to `strconv.ParseBool`able value
-	OptGoFmt = true
+	"golang.org/x/tools/go/loader"
 )
 
 type Pkgs map[string]*Pkg

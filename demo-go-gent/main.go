@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/metaleap/go-gent"
-	// "github.com/metaleap/go-gent/gent/json"
-	// "github.com/metaleap/go-gent/gent/maps"
-	// "github.com/metaleap/go-gent/gent/trav"
-	"github.com/metaleap/go-gent/gent/enum"
+	// "github.com/metaleap/go-gent/gents/json"
+	// "github.com/metaleap/go-gent/gents/maps"
+	// "github.com/metaleap/go-gent/gents/trav"
+	"github.com/metaleap/go-gent/gents/enum"
 )
 
 func init() {
