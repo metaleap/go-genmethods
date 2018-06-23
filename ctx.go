@@ -8,8 +8,13 @@ import (
 )
 
 func init() {
-	Defaults.Ctx.Opt.EmitNoOpFuncBodies = usys.EnvBool("GOGENT_EMITNOOPS", false)
-	Defaults.Ctx.Opt.NoGoFmt = usys.EnvBool("GOGENT_NOGOFMT", false)
+	Defaults.CtxOpt.EmitNoOpFuncBodies = usys.EnvBool("GOGENT_EMITNOOPS", false)
+	Defaults.CtxOpt.NoGoFmt = usys.EnvBool("GOGENT_NOGOFMT", false)
+}
+
+type Opts struct {
+	NoGoFmt            bool
+	EmitNoOpFuncBodies bool
 }
 
 type ctxDeclKey struct {
@@ -18,12 +23,7 @@ type ctxDeclKey struct {
 }
 
 type Ctx struct {
-	// Opt holds the only user-settable fields (in between runs).
-	// Code-gens only read but don't mutate them.
-	Opt struct {
-		NoGoFmt            bool
-		EmitNoOpFuncBodies bool
-	}
+	Opt Opts
 
 	TimeStarted time.Time
 
@@ -32,12 +32,12 @@ type Ctx struct {
 	declsGenerated map[ctxDeclKey]udevgogen.Syns
 }
 
-func (this *Ctx) anew() *Ctx {
+func (this *Opts) newCtx() *Ctx {
 	if this == nil {
-		this = &Defaults.Ctx
+		this = &Defaults.CtxOpt
 	}
 	return &Ctx{
-		Opt: this.Opt, TimeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
+		Opt: *this, TimeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
 		declsGenerated: map[ctxDeclKey]udevgogen.Syns{},
 	}
 }
@@ -48,16 +48,16 @@ func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) 
 	return
 }
 
-func (this *Ctx) I(pkgImportPath string) (pkgImportName string) {
-	pkgImportName = this.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
-	return
-}
-
 func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns) {
 	for key, decls := range this.declsGenerated {
 		if (maybeGent == nil || key.g == maybeGent) && (maybeType == nil || key.t == maybeType) {
 			matches = append(matches, decls)
 		}
 	}
+	return
+}
+
+func (this *Ctx) I(pkgImportPath string) (pkgImportName string) {
+	pkgImportName = this.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
 	return
 }

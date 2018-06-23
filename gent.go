@@ -20,20 +20,20 @@ type IGent interface {
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
 	var errs map[*Pkg]error
-	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults, gents...)
+	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpt, gents...)
 	for _, err := range errs {
 		panic(err)
 	}
 	return
 }
 
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
-		src, timetaken, err := pkg.RunGents(maybeCtxOptDefaults, gents...)
+		src, timetaken, err := pkg.RunGents(maybeCtxOpt, gents...)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
 		} else {
@@ -57,9 +57,9 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents 
 	return
 }
 
-func (this *Pkg) RunGents(maybeCtxOptDefaults *Ctx, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
+func (this *Pkg) RunGents(maybeCtxOpt *Opts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
 	dst, codegencommentnotice, ctx :=
-		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName), maybeCtxOptDefaults.anew()
+		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName), maybeCtxOpt.newCtx()
 
 	for _, t := range this.Types {
 		for _, g := range gents {

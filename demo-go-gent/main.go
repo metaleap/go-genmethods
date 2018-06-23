@@ -11,8 +11,8 @@ import (
 )
 
 func init() {
-	// gent.Defaults.Ctx.Opt.EmitNoOpFuncBodies = true
-	// gent.Defaults.Ctx.Opt.NoGoFmt = true
+	// gent.Defaults.CtxOpt.EmitNoOpFuncBodies = true
+	// gent.Defaults.CtxOpt.NoGoFmt = true
 }
 
 func main() {

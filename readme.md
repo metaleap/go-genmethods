@@ -2,6 +2,12 @@
 --
     import "github.com/metaleap/go-gent"
 
+Package gent offers a **Golang code-gen** toolkit; philosophy being:
+
+- _"your package's type-defs. your pluggable custom code-gen logics (+ many
+built-in ones), tuned via your struct-field tags. one `go generate` call."_
+
+Very WIP: more comprehensive readme / package docs to come.
 
 ## Usage
 
@@ -11,7 +17,7 @@ var (
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	Defaults struct {
-		Ctx Ctx
+		CtxOpt Opts
 	}
 )
 ```
@@ -28,12 +34,7 @@ var (
 
 ```go
 type Ctx struct {
-	// Opt holds the only user-settable fields (in between runs).
-	// Code-gens only read but don't mutate them.
-	Opt struct {
-		NoGoFmt            bool
-		EmitNoOpFuncBodies bool
-	}
+	Opt Opts
 
 	TimeStarted time.Time
 }
@@ -57,6 +58,16 @@ func (this *Ctx) I(pkgImportPath string) (pkgImportName string)
 ```go
 type IGent interface {
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
+}
+```
+
+
+#### type Opts
+
+```go
+type Opts struct {
+	NoGoFmt            bool
+	EmitNoOpFuncBodies bool
 }
 ```
 
@@ -99,7 +110,7 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(maybeCtxOptDefaults *Ctx, gents ...IGent) (src []byte, timeTaken time.Duration, err error)
+func (this *Pkg) RunGents(maybeCtxOpt *Opts, gents ...IGent) (src []byte, timeTaken time.Duration, err error)
 ```
 
 #### type Pkgs
@@ -124,13 +135,13 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
 ```
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOptDefaults *Ctx, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 
 #### type Str
