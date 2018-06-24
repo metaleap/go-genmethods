@@ -24,7 +24,7 @@ type GentListEnumerantsFunc struct {
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if t.SeemsEnumish() {
+	if t.IsEnumish() {
 		num, names, values := 0, make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {

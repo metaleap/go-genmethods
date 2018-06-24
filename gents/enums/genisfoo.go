@@ -26,7 +26,7 @@ type GentIsFooMethods struct {
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if t.SeemsEnumish() {
+	if t.IsEnumish() {
 		decls = make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if renamed := enumerant; enumerant != "_" {

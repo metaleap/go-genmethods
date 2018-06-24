@@ -222,26 +222,32 @@ type Type struct {
 		TStruct    *ast.StructType
 	}
 
+	CodeGen struct {
+		ThisVal udevgogen.NamedTyped
+		ThisPtr udevgogen.NamedTyped
+		Ref     *udevgogen.TypeRef
+	}
+
 	Enumish struct {
 		// expected to be builtin prim-type such as uint8, int64, int --- cases of additional indirections to be handled when they occur in practice
 		BaseType string
 
 		ConstNames []string
 	}
-
-	CodeGen struct {
-		ThisVal udevgogen.NamedTyped
-		ThisPtr udevgogen.NamedTyped
-		Ref     *udevgogen.TypeRef
-	}
 }
 ```
 
 
-#### func (*Type) SeemsEnumish
+#### func (*Type) IsEnumish
 
 ```go
-func (this *Type) SeemsEnumish() bool
+func (this *Type) IsEnumish() bool
+```
+
+#### func (*Type) IsSliceOrArray
+
+```go
+func (this *Type) IsSliceOrArray() bool
 ```
 
 #### type Types

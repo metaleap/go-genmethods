@@ -17,10 +17,10 @@ var (
 	// they allow importers their own "defaults" base for less-noisy tweaking.
 	// They are only initialized by this package, but not otherwise used by it.
 	Defaults struct {
-		IsValid GentIsValidMethod
 		IsFoo   GentIsFooMethods
-		String  GentStringMethods
+		IsValid GentIsValidMethod
 		List    GentListEnumerantsFunc
+		String  GentStringMethods
 
 		// contains pointers to all the above fields, in order
 		All []gent.IGent

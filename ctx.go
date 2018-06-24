@@ -50,7 +50,7 @@ func (this *CtxOpts) newCtx() *Ctx {
 }
 
 func (this *Ctx) shouldThisGentRunNowFor(g IGent, t *Type) bool {
-	return (!g.Opt().Disabled) &&
+	return (!g.Opt().Disabled) && (!t.Alias) &&
 		(this.Opt.MayGentRunForType == nil || this.Opt.MayGentRunForType(g, t))
 }
 
