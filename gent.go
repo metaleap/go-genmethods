@@ -10,16 +10,19 @@ import (
 	"github.com/go-leap/fs"
 )
 
+type IGent interface {
+	// must never be `nil` (to implement, just embed `Opts`)
+	Opt() *Opts
+
+	// may read from but never mutate its args
+	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
+}
+
 type Opts struct {
 	Disabled bool
 }
 
 func (this *Opts) Opt() *Opts { return this }
-
-type IGent interface {
-	Opt() *Opts
-	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
-}
 
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
 	var errs map[*Pkg]error

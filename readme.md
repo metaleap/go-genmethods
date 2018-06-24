@@ -88,7 +88,10 @@ type CtxOpts struct {
 
 ```go
 type IGent interface {
+	// must never be `nil` (to implement, just embed `Opts`)
 	Opt() *Opts
+
+	// may read from but never mutate its args
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 ```
