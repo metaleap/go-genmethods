@@ -2,10 +2,14 @@
 --
     import "github.com/metaleap/go-gent"
 
-Package gent offers a **Golang code-gen** toolkit; philosophy being:
+Package gent offers a _Golang code-**gen t**oolkit_; philosophy being:
 
 - _"your package's type-defs. your pluggable custom code-gen logics (+ many
 built-in ones), tuned via your struct-field tags. one `go generate` call."_
+
+The design idea is that your codegen programs remains your own `main` packages
+written by you, but importing `gent` keeps them short and high-level: fast and
+simple to write, iterate, maintain over time.
 
 Very WIP: more comprehensive readme / package docs to come.
 
@@ -13,7 +17,7 @@ Very WIP: more comprehensive readme / package docs to come.
 
 ```go
 var (
-	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
+	CodeGenCommentNotice   = "DO NOT EDIT: code generated with `%s` using `github.com/metaleap/go-gent`"
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	Defaults struct {
@@ -22,21 +26,11 @@ var (
 )
 ```
 
-```go
-var (
-	// If set, can be used to prevent running of the given
-	// (or any) `IGent` on the given (or any) `*Type`.
-	MayGentRunForType func(IGent, *Type) bool
-)
-```
-
 #### type Ctx
 
 ```go
 type Ctx struct {
 	Opt Opts
-
-	TimeStarted time.Time
 }
 ```
 
@@ -66,8 +60,17 @@ type IGent interface {
 
 ```go
 type Opts struct {
-	NoGoFmt            bool
+	// For Defaults.CtxOpt, initialized from env-var
+	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
+	NoGoFmt bool
+
+	// For Defaults.CtxOpt, initialized from env-var
+	// `GOGENT_EMITNOOPS` if `strconv.ParseBool`able.
 	EmitNoOpFuncBodies bool
+
+	// If set, can be used to prevent running of the given
+	// (or any) `IGent` on the given (or any) `*Type`.
+	MayGentRunForType func(IGent, *Type) bool
 }
 ```
 

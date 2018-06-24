@@ -10,12 +10,6 @@ import (
 	"github.com/go-leap/fs"
 )
 
-var (
-	// If set, can be used to prevent running of the given
-	// (or any) `IGent` on the given (or any) `*Type`.
-	MayGentRunForType func(IGent, *Type) bool
-)
-
 type IGent interface {
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
@@ -63,13 +57,13 @@ func (this *Pkg) RunGents(maybeCtxOpt *Opts, gents ...IGent) (src []byte, timeTa
 
 	for _, t := range this.Types {
 		for _, g := range gents {
-			if MayGentRunForType == nil || MayGentRunForType(g, t) {
+			if ctx.Opt.MayGentRunForType == nil || ctx.Opt.MayGentRunForType(g, t) {
 				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
 			}
 		}
 	}
 
 	src, timeTaken, err = dst.CodeGen(codegencommentnotice, ctx.pkgImportPathsToPkgImportNames, ctx.Opt.EmitNoOpFuncBodies, !ctx.Opt.NoGoFmt)
-	timeTaken = time.Since(ctx.TimeStarted) - timeTaken
+	timeTaken = time.Since(ctx.timeStarted) - timeTaken
 	return
 }

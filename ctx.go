@@ -13,8 +13,17 @@ func init() {
 }
 
 type Opts struct {
-	NoGoFmt            bool
+	// For Defaults.CtxOpt, initialized from env-var
+	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
+	NoGoFmt bool
+
+	// For Defaults.CtxOpt, initialized from env-var
+	// `GOGENT_EMITNOOPS` if `strconv.ParseBool`able.
 	EmitNoOpFuncBodies bool
+
+	// If set, can be used to prevent running of the given
+	// (or any) `IGent` on the given (or any) `*Type`.
+	MayGentRunForType func(IGent, *Type) bool
 }
 
 type ctxDeclKey struct {
@@ -25,11 +34,9 @@ type ctxDeclKey struct {
 type Ctx struct {
 	Opt Opts
 
-	TimeStarted time.Time
-
+	timeStarted                    time.Time
+	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
-
-	declsGenerated map[ctxDeclKey]udevgogen.Syns
 }
 
 func (this *Opts) newCtx() *Ctx {
@@ -37,7 +44,7 @@ func (this *Opts) newCtx() *Ctx {
 		this = &Defaults.CtxOpt
 	}
 	return &Ctx{
-		Opt: *this, TimeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
+		Opt: *this, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
 		declsGenerated: map[ctxDeclKey]udevgogen.Syns{},
 	}
 }

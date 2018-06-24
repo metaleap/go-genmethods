@@ -7,13 +7,17 @@ import (
 )
 
 var (
-	CodeGenCommentNotice   = "DO NOT EDIT: code generated with %s using github.com/metaleap/go-gent"
+	CodeGenCommentNotice   = "DO NOT EDIT: code generated with `%s` using `github.com/metaleap/go-gent`"
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	Defaults struct {
 		CtxOpt Opts
 	}
 )
+
+func init() {
+	CodeGenCommentProgName = strings.TrimPrefix(CodeGenCommentProgName, "zentient-dbg-vsc-go-")
+}
 
 type Str string
 
