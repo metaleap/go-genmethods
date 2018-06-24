@@ -210,22 +210,18 @@ type Type struct {
 	Decl  *ast.TypeSpec
 	Alias bool
 
-	Ast struct {
-		Named      *ast.Ident
-		Imported   *ast.SelectorExpr
-		Ptr        *ast.StarExpr
-		TArrOrSl   *ast.ArrayType
-		TChan      *ast.ChanType
-		TFunc      *ast.FuncType
-		TInterface *ast.InterfaceType
-		TMap       *ast.MapType
-		TStruct    *ast.StructType
+	Underlying struct {
+		AstExpr ast.Expr
+		GenRef  *udevgogen.TypeRef
+		Local   *Type
 	}
 
 	CodeGen struct {
 		ThisVal udevgogen.NamedTyped
 		ThisPtr udevgogen.NamedTyped
 		Ref     *udevgogen.TypeRef
+		EltKey  *udevgogen.TypeRef
+		EltVal  *udevgogen.TypeRef
 	}
 
 	Enumish struct {
@@ -267,10 +263,4 @@ func (this *Types) Add(t *Type)
 
 ```go
 func (this Types) Named(name string) *Type
-```
-
-#### func (Types) Struct
-
-```go
-func (this Types) Struct(name string) *Type
 ```

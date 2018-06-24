@@ -5,26 +5,55 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
-type GentIndexOfMethods struct {
+type GentIndexMethods struct {
 	gent.Opts
 
-	IndexMethod     IndexOfMethod
-	LastIndexMethod IndexOfMethod
-	IndexAnyMethod  IndexOfMethod
-	IndicesMethod   IndexOfMethod
+	IndexOf   IndexMethod
+	IndexLast IndexMethod
+	IndicesOf IndexMethod
 }
 
-type IndexOfMethod struct {
-	Disabled          bool
-	DocComment        gent.Str
-	Name              string
-	FuncVariationName string
+type IndexMethod struct {
+	Disabled           bool
+	DocComment         gent.Str
+	Name               string
+	VariadicAny        bool
+	PredicateVariation struct {
+		Disabled bool
+		Name     string
+	}
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentIndexOfMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if t.Ast.TArrOrSl != nil {
-		println("NOICE")
+func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
+	if t.IsSliceOrArray() {
+		if !this.IndexOf.Disabled {
+			decls.Add(this.genIndexOfMethod(t, &this.IndexOf)...)
+		}
+		if !this.IndexLast.Disabled {
+			decls.Add(this.genIndexOfMethod(t, &this.IndexLast)...)
+		}
+		if !this.IndicesOf.Disabled {
+			decls.Add(this.genIndicesMethod(t)...)
+		}
+	}
+	return
+}
+
+func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, self *IndexMethod) (decls Syns) {
+	if !self.PredicateVariation.Disabled {
+
+	}
+	return
+}
+
+func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
+	self := &this.IndicesOf
+	if !self.PredicateVariation.Disabled {
+		fn := Fn(t.CodeGen.ThisVal, self.Name, TdFunc(NTs("predicate", TrFunc(TdFunc(NTs("", t.CodeGen.Ref), NT("", T.Bool))))),
+			K.Ret,
+		)
+		decls = append(decls, fn)
 	}
 	return
 }

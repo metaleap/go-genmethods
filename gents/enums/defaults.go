@@ -33,7 +33,7 @@ func init() {
 	Defaults.List.FuncName = "Wellknown{T}{s}"
 
 	defstr := &Defaults.String
-	defstr.Stringers = []Stringer{
+	defstr.Stringers = []StringMethod{
 		{DocComment: "{N} implements the `fmt.Stringer` interface.", Name: "String",
 			EnumerantRename: nil, ParseFuncName: "{T}From{str}", ParseAddErrlessVariantWithSuffix: "Or"},
 		{DocComment: "{N} implements the `fmt.GoStringer` interface.", Name: "GoString",

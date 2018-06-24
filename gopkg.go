@@ -124,6 +124,7 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 				this.load_Types(gofile)
 			}
 		}
+		this.load_PopulateTypes()
 	}
 	return
 }

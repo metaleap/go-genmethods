@@ -10,7 +10,7 @@ var (
 	// they allow importers their own "defaults" base for less-noisy tweaking.
 	// They are only initialized by this package, but not otherwise used by it.
 	Defaults struct {
-		IndexOf GentIndexOfMethods
+		IndexOf GentIndexMethods
 
 		// contains pointers to all the above fields, in order
 		All []gent.IGent
@@ -21,6 +21,8 @@ func init() {
 	Defaults.All = []gent.IGent{&Defaults.IndexOf}
 
 	defidx := &Defaults.IndexOf
-	defidx.IndexMethod.Name, defidx.IndicesMethod.Name, defidx.LastIndexMethod.Name, defidx.IndexAnyMethod.Name = "Index", "Indices", "LastIndex", "IndexAny"
-	defidx.IndexMethod.FuncVariationName, defidx.IndicesMethod.FuncVariationName, defidx.LastIndexMethod.FuncVariationName = "IndexFunc", "IndicesFunc", "LastIndexFunc"
+	defidx.IndexOf.Name, defidx.IndicesOf.Name, defidx.IndexLast.Name =
+		"Index", "Indices", "LastIndex"
+	defidx.IndexOf.PredicateVariation.Name, defidx.IndicesOf.PredicateVariation.Name, defidx.IndexLast.PredicateVariation.Name =
+		"IndexFunc", "IndicesFunc", "LastIndexFunc"
 }

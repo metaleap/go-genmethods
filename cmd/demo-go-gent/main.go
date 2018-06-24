@@ -4,10 +4,8 @@ import (
 	"fmt"
 
 	"github.com/metaleap/go-gent"
-	// "github.com/metaleap/go-gent/gents/json"
-	// "github.com/metaleap/go-gent/gents/maps"
-	// "github.com/metaleap/go-gent/gents/trav"
 	"github.com/metaleap/go-gent/gents/enums"
+	"github.com/metaleap/go-gent/gents/slices"
 )
 
 func init() {
@@ -27,6 +25,8 @@ func main() {
 		// &gentenums.Defaults.IsFoo, // useless & noisy, just a nice simple starting point for custom/new gents
 		&gentenums.Defaults.String,
 		&gentenums.Defaults.List,
+
+		&gentslices.Defaults.IndexOf,
 	}
 
 	gent.Defaults.CtxOpt.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {

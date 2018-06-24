@@ -117,7 +117,7 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 type GentStringMethods struct {
 	gent.Opts
 
-	Stringers   []Stringer
+	Stringers   []StringMethod
 	DocComments struct {
 		Parsers               gent.Str
 		ParsersErrlessVariant gent.Str
@@ -137,10 +137,10 @@ func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
-#### type Stringer
+#### type StringMethod
 
 ```go
-type Stringer struct {
+type StringMethod struct {
 	Disabled                         bool
 	DocComment                       gent.Str
 	Name                             string

@@ -22,13 +22,6 @@ func (this Types) Named(name string) *Type {
 	return nil
 }
 
-func (this Types) Struct(name string) *Type {
-	if t := this.Named(name); t != nil && t.Ast.TStruct != nil {
-		return t
-	}
-	return nil
-}
-
 type Type struct {
 	Pkg *Pkg
 
@@ -36,22 +29,18 @@ type Type struct {
 	Decl  *ast.TypeSpec
 	Alias bool
 
-	Ast struct {
-		Named      *ast.Ident
-		Imported   *ast.SelectorExpr
-		Ptr        *ast.StarExpr
-		TArrOrSl   *ast.ArrayType
-		TChan      *ast.ChanType
-		TFunc      *ast.FuncType
-		TInterface *ast.InterfaceType
-		TMap       *ast.MapType
-		TStruct    *ast.StructType
+	Underlying struct {
+		AstExpr ast.Expr
+		GenRef  *udevgogen.TypeRef
+		Local   *Type
 	}
 
 	CodeGen struct {
 		ThisVal udevgogen.NamedTyped
 		ThisPtr udevgogen.NamedTyped
 		Ref     *udevgogen.TypeRef
+		EltKey  *udevgogen.TypeRef
+		EltVal  *udevgogen.TypeRef
 	}
 
 	Enumish struct {
@@ -68,39 +57,16 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			var curvaltident *ast.Ident
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
-					tdx, t := goAstTypeExprSansParens(tdecl.Type), &Type{Pkg: this, Name: tdecl.Name.Name, Decl: tdecl, Alias: tdecl.Assign.IsValid()}
-					t.CodeGen.Ref = udevgogen.TrNamed("", t.Name)
+					t := &Type{Pkg: this, Name: tdecl.Name.Name, Decl: tdecl, Alias: tdecl.Assign.IsValid()}
+					t.CodeGen.Ref, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
 					t.CodeGen.ThisVal, t.CodeGen.ThisPtr = udevgogen.V.This.Typed(t.CodeGen.Ref), udevgogen.V.This.Typed(udevgogen.TrPtr(t.CodeGen.Ref))
 					this.Types.Add(t)
-					switch tdeclt := tdx.(type) {
-					case *ast.Ident:
-						t.Ast.Named = tdeclt
-						t.setPotentiallyEnumish()
-					case *ast.StarExpr:
-						t.Ast.Ptr = tdeclt
-					case *ast.SelectorExpr:
-						t.Ast.Imported = tdeclt
-					case *ast.ArrayType:
-						t.Ast.TArrOrSl = tdeclt
-					case *ast.ChanType:
-						t.Ast.TChan = tdeclt
-					case *ast.FuncType:
-						t.Ast.TFunc = tdeclt
-					case *ast.InterfaceType:
-						t.Ast.TInterface = tdeclt
-					case *ast.MapType:
-						t.Ast.TMap = tdeclt
-					case *ast.StructType:
-						t.Ast.TStruct = tdeclt
-					default:
-						panic(tdeclt)
-					}
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {
 						curvaltident, _ = cdecl.Type.(*ast.Ident)
 					}
 					if curvaltident != nil {
-						if tnamed := this.Types.Named(curvaltident.Name); tnamed != nil && tnamed.Enumish.BaseType != "" {
+						if tnamed := this.Types.Named(curvaltident.Name); tnamed != nil {
 							tnamed.Enumish.ConstNames = append(tnamed.Enumish.ConstNames, cdecl.Names[0].Name)
 						}
 					}
@@ -110,12 +76,26 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 	}
 }
 
-func (this *Type) setPotentiallyEnumish() {
-	if this.Enumish.BaseType = ""; this.Ast.Named != nil && !this.Ast.Named.IsExported() {
-		switch this.Ast.Named.Name {
-		case "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
-			this.Enumish.BaseType = this.Ast.Named.Name
+func (this *Pkg) load_PopulateTypes() {
+	for _, t := range this.Types {
+		if t.Underlying.GenRef = goAstTypeExprToGenTypeRef(t.Underlying.AstExpr); t.Underlying.GenRef == nil {
+			panic(t.Underlying.AstExpr)
 		}
+	}
+	for _, t := range this.Types {
+		t.setPotentiallyEnumish()
+	}
+}
+
+func (this *Type) setPotentiallyEnumish() {
+	if this.Enumish.BaseType = ""; this.Underlying.GenRef.Named.PkgName == "" && len(this.Enumish.ConstNames) > 0 {
+		switch this.Underlying.GenRef.Named.TypeName {
+		case "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
+			this.Enumish.BaseType = this.Underlying.GenRef.Named.TypeName
+		}
+	}
+	if this.Enumish.BaseType == "" {
+		this.Enumish.ConstNames = nil
 	}
 }
 
@@ -124,5 +104,5 @@ func (this *Type) IsEnumish() bool {
 }
 
 func (this *Type) IsSliceOrArray() bool {
-	return this.Ast.TArrOrSl != nil
+	return this.Underlying.GenRef.ArrOrSliceOf != nil
 }
