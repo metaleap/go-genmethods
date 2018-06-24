@@ -9,7 +9,7 @@
 var (
 	// These "default `IGent`s" are convenience offerings in two ways:
 	// they illustrate usage of this package's individual `IGent` implementers' fields,
-	// and they allow importers their own "defaults" base for less-noisy tweaking.
+	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
 		IndexOf GentIndexMethods

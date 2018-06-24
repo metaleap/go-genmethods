@@ -4,8 +4,8 @@
 
 Package gentenums provides `gent.IGent` code-gens of `func`s related to
 "enum-ish type-defs". Most of them expect and assume enum type-defs whose
-enumerants are ordered in the source such that the numerically smallest values
-appear first, the largest ones last, with all enumerant `const`s appearing next
+enumerants are ordered in the source such that the numerically smallest value
+appears first, the largest one last, with all enumerant `const`s appearing next
 to each other.
 
 ## Usage
@@ -14,7 +14,7 @@ to each other.
 var (
 	// These "default `IGent`s" are convenience offerings in two ways:
 	// they illustrate usage of this package's individual `IGent` implementers' fields,
-	// and they allow importers their own "defaults" base for less-noisy tweaking.
+	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
 		IsFoo   GentIsFooMethods
