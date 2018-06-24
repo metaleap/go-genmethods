@@ -61,8 +61,8 @@ func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) 
 }
 
 func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns) {
-	for key, decls := range this.declsGenerated {
-		if (maybeGent == nil || key.g == maybeGent) && (maybeType == nil || key.t == maybeType) {
+	for gt, decls := range this.declsGenerated {
+		if (maybeGent == nil || gt.g == maybeGent) && (maybeType == nil || gt.t == maybeType) {
 			matches = append(matches, decls)
 		}
 	}

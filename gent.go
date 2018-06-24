@@ -27,6 +27,22 @@ type Opts struct {
 // Opt implements `IGent.Opt()` for `Opts` embedders.
 func (this *Opts) Opt() *Opts { return this }
 
+func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
+	dst, ctx, codegencommentnotice :=
+		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
+	for _, t := range this.Types {
+		for _, g := range gents {
+			if ctx.shouldThisGentRunNowFor(g, t) {
+				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
+			}
+		}
+	}
+
+	src, timeTaken, err = dst.CodeGen(codegencommentnotice, ctx.pkgImportPathsToPkgImportNames, ctx.Opt.EmitNoOpFuncBodies, !ctx.Opt.NoGoFmt)
+	timeTaken = time.Since(ctx.timeStarted) - timeTaken
+	return
+}
+
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
 	var errs map[*Pkg]error
 	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpt, gents...)
@@ -61,21 +77,5 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...I
 	}
 	runs.Wait()
 	timeTakenTotal = time.Since(starttime)
-	return
-}
-
-func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
-	dst, ctx, codegencommentnotice :=
-		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
-	for _, t := range this.Types {
-		for _, g := range gents {
-			if ctx.shouldThisGentRunNowFor(g, t) {
-				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
-			}
-		}
-	}
-
-	src, timeTaken, err = dst.CodeGen(codegencommentnotice, ctx.pkgImportPathsToPkgImportNames, ctx.Opt.EmitNoOpFuncBodies, !ctx.Opt.NoGoFmt)
-	timeTaken = time.Since(ctx.timeStarted) - timeTaken
 	return
 }
