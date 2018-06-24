@@ -1,4 +1,8 @@
-package gentenum
+package gentenums
+
+import (
+	"github.com/metaleap/go-gent"
+)
 
 var (
 	// These `Defaults` are convenience offerings in two ways:
@@ -10,10 +14,15 @@ var (
 		IsFoo   GentIsFooMethods
 		String  GentStringMethods
 		List    GentListEnumerantsFunc
+
+		// contains pointers to all the above fields, in order
+		All []gent.IGent
 	}
 )
 
 func init() {
+	Defaults.All = []gent.IGent{&Defaults.IsFoo, &Defaults.IsValid, &Defaults.List, &Defaults.String}
+
 	Defaults.IsValid.DocComment = "{N} returns whether the value of this `{T}` is between `{fn}` ({fh}) and `{ln}` ({lh})."
 	Defaults.IsValid.MethodName = "Valid"
 

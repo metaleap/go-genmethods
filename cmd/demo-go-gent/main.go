@@ -7,7 +7,7 @@ import (
 	// "github.com/metaleap/go-gent/gents/json"
 	// "github.com/metaleap/go-gent/gents/maps"
 	// "github.com/metaleap/go-gent/gents/trav"
-	"github.com/metaleap/go-gent/gents/enum"
+	"github.com/metaleap/go-gent/gents/enums"
 )
 
 func init() {
@@ -23,14 +23,14 @@ func main() {
 	})
 
 	gents := []gent.IGent{
-		&gentenum.Defaults.IsValid,
-		// &gentenum.Defaults.IsFoo, // useless & noisy, just a nice simple starting point for custom/new gents
-		&gentenum.Defaults.String,
-		&gentenum.Defaults.List,
+		&gentenums.Defaults.IsValid,
+		// &gentenums.Defaults.IsFoo, // useless & noisy, just a nice simple starting point for custom/new gents
+		&gentenums.Defaults.String,
+		&gentenums.Defaults.List,
 	}
 
 	gent.Defaults.CtxOpt.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {
-		if g == &gentenum.Defaults.String {
+		if g == &gentenums.Defaults.String {
 			return !(t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
 		}
 		return true

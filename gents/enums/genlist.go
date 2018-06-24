@@ -1,4 +1,4 @@
-package gentenum
+package gentenums
 
 import (
 	"strconv"

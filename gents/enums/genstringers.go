@@ -1,4 +1,4 @@
-package gentenum
+package gentenums
 
 import (
 	. "github.com/go-leap/dev/go/gen"

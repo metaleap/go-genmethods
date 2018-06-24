@@ -1,11 +1,12 @@
-# gentenum
+# gentenums
 --
-    import "github.com/metaleap/go-gent/gents/enum"
+    import "github.com/metaleap/go-gent/gents/enums"
 
-Package gentenum provides `gent.IGent` code-gens of `func`s related to "enum-ish
-type-defs". Most of them expect and assume enum type-defs whose enumerants are
-ordered in the source such that the numerically smallest values appear first,
-the largest ones last, with all enumerant `const`s appearing next to each other.
+Package gentenums provides `gent.IGent` code-gens of `func`s related to
+"enum-ish type-defs". Most of them expect and assume enum type-defs whose
+enumerants are ordered in the source such that the numerically smallest values
+appear first, the largest ones last, with all enumerant `const`s appearing next
+to each other.
 
 ## Usage
 
@@ -20,6 +21,9 @@ var (
 		IsFoo   GentIsFooMethods
 		String  GentStringMethods
 		List    GentListEnumerantsFunc
+
+		// contains pointers to all the above fields, in order
+		All []gent.IGent
 	}
 )
 ```
