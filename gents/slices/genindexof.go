@@ -20,7 +20,7 @@ type IndexMethod struct {
 	Disabled           bool
 	DocComment         gent.Str
 	Name               string
-	VariadicAny        bool
+	Variadic           bool
 	PredicateVariation struct {
 		Disabled bool
 		Name     string
@@ -46,26 +46,32 @@ func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, self *IndexMethod) (decls Syns) {
 	islast := (self == &this.IndexLast)
 	ret := V.R.Typed(T.Int)
-	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
+
+	gen := func(name string, arg NamedTyped, stmt ISyn) *SynFunc {
 		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(NamedsTypeds{arg}, ret))
 		var loop *StmtFor
 		if !islast {
-			loop = ForRange(V.I, None, V.This)
+			loop = ForRange(V.I, None, V.This, stmt)
 		} else {
-			loop = ForLoop(Decl(V.I, Sub(Call(B.Len, V.This), L(1))), Geq(V.I, L(0)), Set(V.I, Sub(V.I, L(1))))
+			loop = ForLoop(Decl(V.I, Sub(Call(B.Len, V.This), L(1))), Geq(V.I, L(0)), Set(V.I, Sub(V.I, L(1))), stmt)
 		}
-		loop.Add(If(predicate, Set(V.R, V.I), K.Ret))
 		fn.Add(loop, Set(V.R, L(-1)))
 		return fn
 	}
 
-	fni := gen(self.Name, NT("eq", t.Underlying.GenRef.ArrOrSliceOf.Val),
-		Eq(I(V.This, V.I), N("eq")))
+	arg := NT("eq", t.Underlying.GenRef.ArrOrSliceOf.Val)
+	var stmt ISyn = If(Eq(I(V.This, V.I), N("eq")), Set(V.R, V.I), K.Ret)
+	if self.Variadic {
+		arg.Type = TrSlice(arg.Type)
+		arg.Type.ArrOrSliceOf.IsEllipsis = true
+		stmt = ForRange(V.J, None, arg, If(Eq(I(V.This, V.I), I(N("eq"), V.J)), Set(V.R, V.I), K.Ret))
+	}
+	fni := gen(self.Name, arg, stmt)
 	decls = append(decls, fni)
 
 	if !self.PredicateVariation.Disabled {
 		fnp := gen(self.PredicateVariation.Name, this.predicateArg(t),
-			Call(V.Ok, I(V.This, V.I)))
+			If(Call(V.Ok, I(V.This, V.I)), Set(V.R, V.I), K.Ret))
 		decls = append(decls, fnp)
 	}
 	return
