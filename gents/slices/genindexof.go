@@ -44,8 +44,29 @@ func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 }
 
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, self *IndexMethod) (decls Syns) {
-	if !self.PredicateVariation.Disabled {
+	islast := (self == &this.IndexLast)
+	ret := V.R.Typed(T.Int)
+	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
+		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(NamedsTypeds{arg}, ret))
+		var loop *StmtFor
+		if !islast {
+			loop = ForRange(V.I, None, V.This)
+		} else {
+			loop = ForLoop(Decl(V.I, Sub(Call(B.Len, V.This), L(1))), Geq(V.I, L(0)), Set(V.I, Sub(V.I, L(1))))
+		}
+		loop.Add(If(predicate, Set(V.R, V.I), K.Ret))
+		fn.Add(loop, Set(V.R, L(-1)))
+		return fn
+	}
 
+	fni := gen(self.Name, NT("eq", t.Underlying.GenRef.ArrOrSliceOf.Val),
+		Eq(I(V.This, V.I), N("eq")))
+	decls = append(decls, fni)
+
+	if !self.PredicateVariation.Disabled {
+		fnp := gen(self.PredicateVariation.Name, this.predicateArg(t),
+			Call(V.Ok, I(V.This, V.I)))
+		decls = append(decls, fnp)
 	}
 	return
 }
@@ -53,8 +74,8 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, self *IndexMethod) 
 func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 	self, ret := &this.IndicesOf, V.R.Typed(T.Sl.Ints)
 
-	gen := func(name string, args NamedsTypeds, predicate ISyn) *SynFunc {
-		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(args, ret))
+	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
+		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(NamedsTypeds{arg}, ret))
 		if self.ResultsCapFactor > 0 {
 			fn.Add(Set(V.R, Call(B.Make, ret.Type, L(0), Div(Call(B.Len, V.This), L(self.ResultsCapFactor)))))
 		}
@@ -64,14 +85,18 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 		return fn
 	}
 
-	fni := gen(self.Name, NTs("eq", t.Underlying.GenRef.ArrOrSliceOf.Val),
+	fni := gen(self.Name, NT("eq", t.Underlying.GenRef.ArrOrSliceOf.Val),
 		Eq(I(V.This, V.I), N("eq")))
 	decls = append(decls, fni)
 
 	if !self.PredicateVariation.Disabled {
-		fnp := gen(self.PredicateVariation.Name, NTs(V.Ok.Name, TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool)))),
+		fnp := gen(self.PredicateVariation.Name, this.predicateArg(t),
 			Call(V.Ok, I(V.This, V.I)))
 		decls = append(decls, fnp)
 	}
 	return
+}
+
+func (*GentIndexMethods) predicateArg(t *gent.Type) NamedTyped {
+	return V.Ok.Typed(TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool))))
 }

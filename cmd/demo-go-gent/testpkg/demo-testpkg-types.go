@@ -116,4 +116,6 @@ type fixedSize struct {
 	sixt2  [6][7]complex384
 }
 
-type complex384 [3]complex128
+const three = 3
+
+type complex384 [three]complex128
