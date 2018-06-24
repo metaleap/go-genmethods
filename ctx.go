@@ -34,23 +34,25 @@ type ctxDeclKey struct {
 type Ctx struct {
 	Opt CtxOpts
 
+	pkg                            *Pkg
+	gents                          []IGent
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
 }
 
-func (this *CtxOpts) newCtx() *Ctx {
+func (this *CtxOpts) newCtx(pkg *Pkg, gents []IGent) *Ctx {
 	if this == nil {
 		this = &Defaults.CtxOpt
 	}
 	return &Ctx{
 		Opt: *this, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
-		declsGenerated: map[ctxDeclKey]udevgogen.Syns{},
+		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, gents: gents, pkg: pkg,
 	}
 }
 
-func (this *Ctx) shouldThisGentRunNowFor(g IGent, t *Type) bool {
-	return (!g.Opt().Disabled) && (!t.Alias) &&
+func (this *Ctx) mayGentRunForType(g IGent, t *Type) bool {
+	return g.Opt().mayRunForType(t) &&
 		(this.Opt.MayGentRunForType == nil || this.Opt.MayGentRunForType(g, t))
 }
 

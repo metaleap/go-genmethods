@@ -21,7 +21,36 @@ type IGent interface {
 
 // Opts related to a single `IGent`, and designed for embedding.
 type Opts struct {
-	Disabled bool
+	Disabled              bool
+	Name                  string
+	RunNeverForTypesNamed []string
+	RunOnlyForTypesNamed  []string
+	MayRunForType         func(*Type) bool
+}
+
+func (this *Opts) mayRunForType(t *Type) bool {
+	if (!t.Alias) && (!this.Disabled) {
+		if len(this.RunNeverForTypesNamed) > 0 {
+			for _, tname := range this.RunNeverForTypesNamed {
+				if tname == t.Name {
+					return false
+				}
+			}
+		}
+		if len(this.RunOnlyForTypesNamed) > 0 {
+			for _, tname := range this.RunOnlyForTypesNamed {
+				if tname == t.Name {
+					return true
+				}
+			}
+			return false
+		}
+		if this.MayRunForType != nil {
+			return this.MayRunForType(t)
+		}
+		return true
+	}
+	return false
 }
 
 // Opt implements `IGent.Opt()` for `Opts` embedders.
@@ -29,10 +58,10 @@ func (this *Opts) Opt() *Opts { return this }
 
 func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
 	dst, ctx, codegencommentnotice :=
-		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
+		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(this, gents), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
 	for _, t := range this.Types {
 		for _, g := range gents {
-			if ctx.shouldThisGentRunNowFor(g, t) {
+			if ctx.mayGentRunForType(g, t) {
 				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
 			}
 		}

@@ -102,7 +102,11 @@ IGent is the interface implemented by individual code-gens.
 
 ```go
 type Opts struct {
-	Disabled bool
+	Disabled              bool
+	Name                  string
+	RunNeverForTypesNamed []string
+	RunOnlyForTypesNamed  []string
+	MayRunForType         func(*Type) bool
 }
 ```
 
