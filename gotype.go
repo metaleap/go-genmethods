@@ -26,21 +26,17 @@ type Type struct {
 	Pkg *Pkg
 
 	Name  string
-	Decl  *ast.TypeSpec
 	Alias bool
 
 	Underlying struct {
 		AstExpr ast.Expr
 		GenRef  *udevgogen.TypeRef
-		Local   *Type
 	}
 
 	CodeGen struct {
 		ThisVal udevgogen.NamedTyped
 		ThisPtr udevgogen.NamedTyped
 		Ref     *udevgogen.TypeRef
-		EltKey  *udevgogen.TypeRef
-		EltVal  *udevgogen.TypeRef
 	}
 
 	Enumish struct {
@@ -57,7 +53,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			var curvaltident *ast.Ident
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
-					t := &Type{Pkg: this, Name: tdecl.Name.Name, Decl: tdecl, Alias: tdecl.Assign.IsValid()}
+					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
 					t.CodeGen.Ref, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
 					t.CodeGen.ThisVal, t.CodeGen.ThisPtr = udevgogen.V.This.Typed(t.CodeGen.Ref), udevgogen.V.This.Typed(udevgogen.TrPtr(t.CodeGen.Ref))
 					this.Types.Add(t)

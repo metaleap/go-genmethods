@@ -211,21 +211,17 @@ type Type struct {
 	Pkg *Pkg
 
 	Name  string
-	Decl  *ast.TypeSpec
 	Alias bool
 
 	Underlying struct {
 		AstExpr ast.Expr
 		GenRef  *udevgogen.TypeRef
-		Local   *Type
 	}
 
 	CodeGen struct {
 		ThisVal udevgogen.NamedTyped
 		ThisPtr udevgogen.NamedTyped
 		Ref     *udevgogen.TypeRef
-		EltKey  *udevgogen.TypeRef
-		EltVal  *udevgogen.TypeRef
 	}
 
 	Enumish struct {
