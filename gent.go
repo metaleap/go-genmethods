@@ -10,6 +10,7 @@ import (
 	"github.com/go-leap/fs"
 )
 
+// IGent is the interface implemented by individual code-gens.
 type IGent interface {
 	// must never be `nil` (to implement, just embed `Opts`)
 	Opt() *Opts
@@ -18,10 +19,12 @@ type IGent interface {
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 
+// Opts related to a single `IGent`, and designed for embedding.
 type Opts struct {
 	Disabled bool
 }
 
+// Opt implements `IGent.Opt()` for `Opts` embedders.
 func (this *Opts) Opt() *Opts { return this }
 
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {

@@ -96,6 +96,7 @@ type IGent interface {
 }
 ```
 
+IGent is the interface implemented by individual code-gens.
 
 #### type Opts
 
@@ -105,12 +106,14 @@ type Opts struct {
 }
 ```
 
+Opts related to a single `IGent`, and designed for embedding.
 
 #### func (*Opts) Opt
 
 ```go
 func (this *Opts) Opt() *Opts
 ```
+Opt implements `IGent.Opt()` for `Opts` embedders.
 
 #### type Pkg
 
