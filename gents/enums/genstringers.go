@@ -52,17 +52,17 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 			if rename := self.EnumerantRename; rename != nil {
 				renamed = rename(renamed)
 			}
-			caseof.Cases.Add(N(enumerant), Set(V.Ret, L(renamed)))
+			caseof.Cases.Add(N(enumerant), Set(V.R, L(renamed)))
 		}
 	}
 
 	switch t.Enumish.BaseType {
 	case "int":
-		caseof.Default.Add(Set(V.Ret, Call(D(pkgstrconv, N("Itoa")), Call(N("int"), V.This))))
+		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("Itoa")), Call(N("int"), V.This))))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		caseof.Default.Add(Set(V.Ret, Call(D(pkgstrconv, N("FormatUint")), Call(N("uint64"), V.This), L(10))))
+		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("FormatUint")), Call(N("uint64"), V.This), L(10))))
 	default:
-		caseof.Default.Add(Set(V.Ret, Call(D(pkgstrconv, N("FormatInt")), Call(N("int64"), V.This), L(10))))
+		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("FormatInt")), Call(N("int64"), V.This), L(10))))
 	}
 
 	method = Fn(t.CodeGen.ThisVal, self.Name, &Sigs.NoneToString,

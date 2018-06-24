@@ -10,7 +10,10 @@ type GentIndexMethods struct {
 
 	IndexOf   IndexMethod
 	IndexLast IndexMethod
-	IndicesOf IndexMethod
+	IndicesOf struct {
+		IndexMethod
+		ResultsCapFactor uint
+	}
 }
 
 type IndexMethod struct {
@@ -48,12 +51,27 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, self *IndexMethod) 
 }
 
 func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
-	self := &this.IndicesOf
+	self, ret := &this.IndicesOf, V.R.Typed(T.Sl.Ints)
+
+	gen := func(name string, args NamedsTypeds, predicate ISyn) *SynFunc {
+		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(args, ret))
+		if self.ResultsCapFactor > 0 {
+			fn.Add(Set(V.R, Call(B.Make, ret.Type, L(0), Div(Call(B.Len, V.This), L(self.ResultsCapFactor)))))
+		}
+		fn.Add(ForRange(V.I, None, V.This,
+			If(predicate, Set(V.R, Call(B.Append, V.R, V.I))),
+		))
+		return fn
+	}
+
+	fni := gen(self.Name, NTs("eq", t.Underlying.GenRef.ArrOrSliceOf.Val),
+		Eq(I(V.This, V.I), N("eq")))
+	decls = append(decls, fni)
+
 	if !self.PredicateVariation.Disabled {
-		fn := Fn(t.CodeGen.ThisVal, self.Name, TdFunc(NTs("predicate", TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool)))), V.Ret.Typed(T.Sl.Ints)),
-			K.Ret,
-		)
-		decls = append(decls, fn)
+		fnp := gen(self.PredicateVariation.Name, NTs(V.Ok.Name, TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool)))),
+			Call(V.Ok, I(V.This, V.I)))
+		decls = append(decls, fnp)
 	}
 	return
 }

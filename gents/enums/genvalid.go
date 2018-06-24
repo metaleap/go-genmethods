@@ -37,7 +37,7 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 		}
 
 		method := Fn(t.CodeGen.ThisVal, this.MethodName, &Sigs.NoneToBool,
-			Set(V.Ret, And(firstoperator, lastoperator)),
+			Set(V.R, And(firstoperator, lastoperator)),
 		)
 		method.Doc.Add(this.DocComment.With(
 			"{N}", this.MethodName,
