@@ -14,9 +14,9 @@ import (
 //
 // An instance with illustrative defaults is in `Defaults.List`.
 type GentListEnumerantsFunc struct {
-	Disabled   bool
-	DocComment gent.Str
+	gent.Opts
 
+	DocComment gent.Str
 	// eg. "Wellknown{T}{s}" with `{T}` for type name and
 	// `{s}` for pluralization suffix (either "s" or "es")
 	FuncName gent.Str
@@ -24,7 +24,7 @@ type GentListEnumerantsFunc struct {
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if (!this.Disabled) && t.SeemsEnumish() {
+	if t.SeemsEnumish() {
 		num, names, values := 0, make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {

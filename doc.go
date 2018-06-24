@@ -8,7 +8,7 @@
 // Furthermore (unlike unwieldy config-file-formats or 100s-of-cmd-args)
 // this approach grants Turing-complete control over fine-tuning the code-gen
 // flow to only generate what's truly needed, rather than "every possible func
-// for every possible type-def", to minimize both code-gen and compilation times.
+// for every possible type-def", to minimize both codegen and your compilation times.
 //
 // Focus at the beginning is strictly on generating `func`s and methods for a
 // package's _existing type-defs_, **not** generating type-defs such as `struct`s.
@@ -17,7 +17,7 @@
 //
 // - `gent` relies on my `github.com/go-leap/dev/go/gen` package
 //
-// - and so do the built-in code-gens under `github.com/metaleap/go-gent/gents/...`,
+// - and so do the built-in code-gens under `github.com/metaleap/go-gent/gents/*`,
 //
 // - but your custom `gent.IGent` implementers are free to prefer other
 // approaches (such as `text/template` or `github.com/dave/jennifer` or

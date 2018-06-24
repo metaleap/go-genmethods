@@ -10,7 +10,8 @@ import (
 //
 // An instance with illustrative defaults is in `Defaults.String`.
 type GentStringMethods struct {
-	Disabled    bool
+	gent.Opts
+
 	Stringers   []Stringer
 	DocComments struct {
 		Parsers               gent.Str
@@ -30,7 +31,7 @@ type Stringer struct {
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if (!this.Disabled) && len(this.Stringers) > 0 && t.SeemsEnumish() {
+	if len(this.Stringers) > 0 && t.SeemsEnumish() {
 		decls = make(Syns, 0, 2+len(t.Enumish.ConstNames)*3*len(this.Stringers))
 		for i := range this.Stringers {
 			if !this.Stringers[i].Disabled {

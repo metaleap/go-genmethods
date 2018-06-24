@@ -11,7 +11,7 @@ var (
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	Defaults struct {
-		CtxOpt Opts
+		CtxOpt CtxOpts
 	}
 )
 

@@ -28,9 +28,9 @@ var (
 
 ```go
 type GentIsFooMethods struct {
-	Disabled   bool
-	DocComment gent.Str
+	gent.Opts
 
+	DocComment gent.Str
 	// eg `Is{e}` -> `IsMyOne`, `IsMyTwo`, etc.
 	MethodName gent.Str
 
@@ -60,7 +60,8 @@ enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 
 ```go
 type GentIsValidMethod struct {
-	Disabled       bool
+	gent.Opts
+
 	DocComment     gent.Str
 	MethodName     string
 	IsFirstInvalid bool
@@ -85,9 +86,9 @@ at most one method if `t` is a suitable enum type-def.
 
 ```go
 type GentListEnumerantsFunc struct {
-	Disabled   bool
-	DocComment gent.Str
+	gent.Opts
 
+	DocComment gent.Str
 	// eg. "Wellknown{T}{s}" with `{T}` for type name and
 	// `{s}` for pluralization suffix (either "s" or "es")
 	FuncName gent.Str
@@ -110,7 +111,8 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
 ```go
 type GentStringMethods struct {
-	Disabled    bool
+	gent.Opts
+
 	Stringers   []Stringer
 	DocComments struct {
 		Parsers               gent.Str

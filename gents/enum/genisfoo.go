@@ -12,9 +12,9 @@ import (
 //
 // An instance with illustrative defaults is in `Defaults.IsFoo`.
 type GentIsFooMethods struct {
-	Disabled   bool
-	DocComment gent.Str
+	gent.Opts
 
+	DocComment gent.Str
 	// eg `Is{e}` -> `IsMyOne`, `IsMyTwo`, etc.
 	MethodName gent.Str
 
@@ -26,7 +26,7 @@ type GentIsFooMethods struct {
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
 func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if (!this.Disabled) && t.SeemsEnumish() {
+	if t.SeemsEnumish() {
 		decls = make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if renamed := enumerant; enumerant != "_" {

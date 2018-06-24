@@ -13,7 +13,7 @@ simple to write, iterate, maintain over time. Furthermore (unlike unwieldy
 config-file-formats or 100s-of-cmd-args) this approach grants Turing-complete
 control over fine-tuning the code-gen flow to only generate what's truly needed,
 rather than "every possible func for every possible type-def", to minimize both
-code-gen and compilation times.
+codegen and your compilation times.
 
 Focus at the beginning is strictly on generating `func`s and methods for a
 package's _existing type-defs_, **not** generating type-defs such as `struct`s.
@@ -22,8 +22,7 @@ For building the AST of the to-be-emitted Go source file:
 
 - `gent` relies on my `github.com/go-leap/dev/go/gen` package
 
-- and so do the built-in code-gens under
-`github.com/metaleap/go-gent/gents/...`,
+- and so do the built-in code-gens under `github.com/metaleap/go-gent/gents/*`,
 
 - but your custom `gent.IGent` implementers are free to prefer other approaches
 (such as `text/template` or `github.com/dave/jennifer` or hard-coded
@@ -40,7 +39,7 @@ var (
 	CodeGenCommentProgName = filepath.Base(os.Args[0])
 
 	Defaults struct {
-		CtxOpt Opts
+		CtxOpt CtxOpts
 	}
 )
 ```
@@ -49,7 +48,7 @@ var (
 
 ```go
 type Ctx struct {
-	Opt Opts
+	Opt CtxOpts
 }
 ```
 
@@ -66,19 +65,10 @@ func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches 
 func (this *Ctx) I(pkgImportPath string) (pkgImportName string)
 ```
 
-#### type IGent
+#### type CtxOpts
 
 ```go
-type IGent interface {
-	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
-}
-```
-
-
-#### type Opts
-
-```go
-type Opts struct {
+type CtxOpts struct {
 	// For Defaults.CtxOpt, initialized from env-var
 	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
 	NoGoFmt bool
@@ -93,6 +83,31 @@ type Opts struct {
 }
 ```
 
+
+#### type IGent
+
+```go
+type IGent interface {
+	Opt() *Opts
+	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
+}
+```
+
+
+#### type Opts
+
+```go
+type Opts struct {
+	Disabled bool
+}
+```
+
+
+#### func (*Opts) Opt
+
+```go
+func (this *Opts) Opt() *Opts
+```
 
 #### type Pkg
 
@@ -132,7 +147,7 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(maybeCtxOpt *Opts, gents ...IGent) (src []byte, timeTaken time.Duration, err error)
+func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error)
 ```
 
 #### type Pkgs
@@ -157,13 +172,13 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
 ```
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 
 #### type Str

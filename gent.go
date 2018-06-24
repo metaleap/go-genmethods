@@ -10,11 +10,18 @@ import (
 	"github.com/go-leap/fs"
 )
 
+type Opts struct {
+	Disabled bool
+}
+
+func (this *Opts) Opt() *Opts { return this }
+
 type IGent interface {
+	Opt() *Opts
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
 	var errs map[*Pkg]error
 	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpt, gents...)
 	for _, err := range errs {
@@ -23,7 +30,7 @@ func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...
 	return
 }
 
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
@@ -51,13 +58,12 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *Opts, gents ...IGen
 	return
 }
 
-func (this *Pkg) RunGents(maybeCtxOpt *Opts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
-	dst, codegencommentnotice, ctx :=
-		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName), maybeCtxOpt.newCtx()
-
+func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
+	dst, ctx, codegencommentnotice :=
+		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
 	for _, t := range this.Types {
 		for _, g := range gents {
-			if ctx.Opt.MayGentRunForType == nil || ctx.Opt.MayGentRunForType(g, t) {
+			if ctx.shouldThisGentRunNowFor(g, t) {
 				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
 			}
 		}

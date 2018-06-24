@@ -12,7 +12,7 @@ func init() {
 	Defaults.CtxOpt.NoGoFmt = usys.EnvBool("GOGENT_NOGOFMT", false)
 }
 
-type Opts struct {
+type CtxOpts struct {
 	// For Defaults.CtxOpt, initialized from env-var
 	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
 	NoGoFmt bool
@@ -32,14 +32,14 @@ type ctxDeclKey struct {
 }
 
 type Ctx struct {
-	Opt Opts
+	Opt CtxOpts
 
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
 }
 
-func (this *Opts) newCtx() *Ctx {
+func (this *CtxOpts) newCtx() *Ctx {
 	if this == nil {
 		this = &Defaults.CtxOpt
 	}
@@ -47,6 +47,11 @@ func (this *Opts) newCtx() *Ctx {
 		Opt: *this, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
 		declsGenerated: map[ctxDeclKey]udevgogen.Syns{},
 	}
+}
+
+func (this *Ctx) shouldThisGentRunNowFor(g IGent, t *Type) bool {
+	return (!g.Opt().Disabled) &&
+		(this.Opt.MayGentRunForType == nil || this.Opt.MayGentRunForType(g, t))
 }
 
 func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) {
