@@ -24,3 +24,10 @@ type Str string
 func (this Str) With(stringsReplaceOldNew ...string) string {
 	return strings.NewReplacer(stringsReplaceOldNew...).Replace(string(this))
 }
+
+type Variadic bool
+
+type Variant struct {
+	Add          bool
+	NameOrSuffix string
+}

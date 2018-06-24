@@ -268,3 +268,19 @@ func (this *Types) Add(t *Type)
 ```go
 func (this Types) Named(name string) *Type
 ```
+
+#### type Variadic
+
+```go
+type Variadic bool
+```
+
+
+#### type Variant
+
+```go
+type Variant struct {
+	Add          bool
+	NameOrSuffix string
+}
+```

@@ -5,11 +5,11 @@ import (
 )
 
 var (
-	// These `Defaults` are convenience offerings in two ways:
-	// they illustrate usage of this package's individual `IGent`s' fields, and
-	// they allow importers their own "defaults" base for less-noisy tweaking.
-	// They are only initialized by this package, but not otherwise used by it.
-	Defaults struct {
+	// These "default `IGent`s" are convenience offerings in two ways:
+	// they illustrate usage of this package's individual `IGent` implementers' fields,
+	// and they allow importers their own "defaults" base for less-noisy tweaking.
+	// They are only _initialized_ by this package, but not otherwise _used_ by it.
+	Gents struct {
 		IsFoo   GentIsFooMethods
 		IsValid GentIsValidMethod
 		List    GentListEnumerantsFunc
@@ -21,23 +21,23 @@ var (
 )
 
 func init() {
-	Defaults.All = []gent.IGent{&Defaults.IsFoo, &Defaults.IsValid, &Defaults.List, &Defaults.String}
+	Gents.All = []gent.IGent{&Gents.IsFoo, &Gents.IsValid, &Gents.List, &Gents.String}
 
-	Defaults.IsFoo.DocComment = "{N} returns whether the value of this `{T}` equals `{e}`."
-	Defaults.IsFoo.MethodName = "Is{e}"
+	Gents.IsFoo.DocComment = "{N} returns whether the value of this `{T}` equals `{e}`."
+	Gents.IsFoo.MethodName = "Is{e}"
 
-	Defaults.IsValid.DocComment = "{N} returns whether the value of this `{T}` is between `{fn}` ({fh}) and `{ln}` ({lh})."
-	Defaults.IsValid.MethodName = "Valid"
+	Gents.IsValid.DocComment = "{N} returns whether the value of this `{T}` is between `{fn}` ({fh}) and `{ln}` ({lh})."
+	Gents.IsValid.MethodName = "Valid"
 
-	Defaults.List.DocComment = "{N} returns the `names` and `values` of all {n} well-known `{T}` enumerants."
-	Defaults.List.FuncName = "Wellknown{T}{s}"
+	Gents.List.DocComment = "{N} returns the `names` and `values` of all {n} well-known `{T}` enumerants."
+	Gents.List.FuncName = "Wellknown{T}{s}"
 
-	defstr := &Defaults.String
-	defstr.Stringers = []StringMethod{
+	defstr := &Gents.String
+	defstr.Stringers = []StringMethodOpts{
 		{DocComment: "{N} implements the `fmt.Stringer` interface.", Name: "String",
-			EnumerantRename: nil, ParseFuncName: "{T}From{str}", ParseAddErrlessVariantWithSuffix: "Or"},
+			EnumerantRename: nil, ParseFuncName: "{T}From{str}", ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
 		{DocComment: "{N} implements the `fmt.GoStringer` interface.", Name: "GoString",
-			Disabled: true, ParseFuncName: "{T}From{str}", ParseAddErrlessVariantWithSuffix: "Or"},
+			Disabled: true, ParseFuncName: "{T}From{str}", ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
 	}
 	defstr.DocComments.Parsers = "{N} returns the `{T}` represented by `{s}` (as returned by `{str}`, {caseSensitivity}), or an `error` if none exists."
 	defstr.DocComments.ParsersErrlessVariant = "{N} is like `{p}` but returns `{fallback}` for bad inputs."

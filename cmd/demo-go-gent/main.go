@@ -21,16 +21,16 @@ func main() {
 	})
 
 	gents := []gent.IGent{
-		&gentenums.Defaults.IsValid,
+		&gentenums.Gents.IsValid,
 		// &gentenums.Defaults.IsFoo, // useless & noisy, just a nice simple starting point for custom/new gents
-		&gentenums.Defaults.String,
-		&gentenums.Defaults.List,
+		&gentenums.Gents.String,
+		&gentenums.Gents.List,
 
-		&gentslices.Defaults.IndexOf,
+		&gentslices.Gents.IndexOf,
 	}
 
 	gent.Defaults.CtxOpt.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {
-		if g == &gentenums.Defaults.String {
+		if g == &gentenums.Gents.String {
 			return !(t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
 		}
 		return true

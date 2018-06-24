@@ -12,11 +12,11 @@ to each other.
 
 ```go
 var (
-	// These `Defaults` are convenience offerings in two ways:
-	// they illustrate usage of this package's individual `IGent`s' fields, and
-	// they allow importers their own "defaults" base for less-noisy tweaking.
-	// They are only initialized by this package, but not otherwise used by it.
-	Defaults struct {
+	// These "default `IGent`s" are convenience offerings in two ways:
+	// they illustrate usage of this package's individual `IGent` implementers' fields,
+	// and they allow importers their own "defaults" base for less-noisy tweaking.
+	// They are only _initialized_ by this package, but not otherwise _used_ by it.
+	Gents struct {
 		IsFoo   GentIsFooMethods
 		IsValid GentIsValidMethod
 		List    GentListEnumerantsFunc
@@ -117,7 +117,7 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 type GentStringMethods struct {
 	gent.Opts
 
-	Stringers   []StringMethod
+	Stringers   []StringMethodOpts
 	DocComments struct {
 		Parsers               gent.Str
 		ParsersErrlessVariant gent.Str
@@ -137,16 +137,16 @@ func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
-#### type StringMethod
+#### type StringMethodOpts
 
 ```go
-type StringMethod struct {
-	Disabled                         bool
-	DocComment                       gent.Str
-	Name                             string
-	EnumerantRename                  func(string) string
-	ParseFuncName                    gent.Str
-	ParseAddIgnoreCaseCmp            bool
-	ParseAddErrlessVariantWithSuffix string
+type StringMethodOpts struct {
+	Disabled              bool
+	DocComment            gent.Str
+	Name                  string
+	EnumerantRename       func(string) string
+	ParseFuncName         gent.Str
+	ParseAddIgnoreCaseCmp bool
+	ParseErrless          gent.Variant
 }
 ```

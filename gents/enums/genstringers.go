@@ -12,21 +12,21 @@ import (
 type GentStringMethods struct {
 	gent.Opts
 
-	Stringers   []StringMethod
+	Stringers   []StringMethodOpts
 	DocComments struct {
 		Parsers               gent.Str
 		ParsersErrlessVariant gent.Str
 	}
 }
 
-type StringMethod struct {
-	Disabled                         bool
-	DocComment                       gent.Str
-	Name                             string
-	EnumerantRename                  func(string) string
-	ParseFuncName                    gent.Str
-	ParseAddIgnoreCaseCmp            bool
-	ParseAddErrlessVariantWithSuffix string
+type StringMethodOpts struct {
+	Disabled              bool
+	DocComment            gent.Str
+	Name                  string
+	EnumerantRename       func(string) string
+	ParseFuncName         gent.Str
+	ParseAddIgnoreCaseCmp bool
+	ParseErrless          gent.Variant
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
@@ -117,9 +117,9 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	fnp.Doc.Add(this.DocComments.Parsers.With("{N}", fnp.Name, "{T}", t.Name, "{s}", s.Name, "{str}", self.Name, "{caseSensitivity}", doccs))
 	synFuncs = Syns{fnp}
 
-	if fnvsuff := self.ParseAddErrlessVariantWithSuffix; fnvsuff != "" {
+	if self.ParseErrless.Add {
 		maybe, fallback := N("maybe"+t.Name), N("fallback")
-		fnv := Fn(NoMethodRecv, fname+fnvsuff, TdFunc(NTs(s.Name, T.String, fallback.Name, t.CodeGen.ThisVal.Type), t.CodeGen.ThisVal),
+		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.CodeGen.ThisVal.Type), t.CodeGen.ThisVal),
 			Decl(C(maybe, V.Err.Named), Call(N(fname), s)),
 			Ifs(Eq(V.Err, B.Nil),
 				Block(Set(V.This, maybe)),

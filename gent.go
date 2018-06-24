@@ -29,28 +29,26 @@ type Opts struct {
 }
 
 func (this *Opts) mayRunForType(t *Type) bool {
-	if (!t.Alias) && (!this.Disabled) {
-		if len(this.RunNeverForTypesNamed) > 0 {
-			for _, tname := range this.RunNeverForTypesNamed {
-				if tname == t.Name {
-					return false
-				}
-			}
-		}
-		if len(this.RunOnlyForTypesNamed) > 0 {
-			for _, tname := range this.RunOnlyForTypesNamed {
-				if tname == t.Name {
-					return true
-				}
-			}
-			return false
-		}
-		if this.MayRunForType != nil {
-			return this.MayRunForType(t)
-		}
-		return true
+	if this.Disabled || t.Alias {
+		return false
 	}
-	return false
+	if len(this.RunNeverForTypesNamed) > 0 {
+		for _, tname := range this.RunNeverForTypesNamed {
+			if tname == t.Name {
+				return false
+			}
+		}
+	}
+	if len(this.RunOnlyForTypesNamed) > 0 {
+		for _, tname := range this.RunOnlyForTypesNamed {
+			if tname == t.Name {
+				return true
+			}
+		}
+		return false
+	}
+
+	return this.MayRunForType == nil || this.MayRunForType(t)
 }
 
 // Opt implements `IGent.Opt()` for `Opts` embedders.

@@ -5,11 +5,11 @@ import (
 )
 
 var (
-	// These `Defaults` are convenience offerings in two ways:
-	// they illustrate usage of this package's individual `IGent`s' fields, and
-	// they allow importers their own "defaults" base for less-noisy tweaking.
-	// They are only initialized by this package, but not otherwise used by it.
-	Defaults struct {
+	// These "default `IGent`s" are convenience offerings in two ways:
+	// they illustrate usage of this package's individual `IGent` implementers' fields,
+	// and they allow importers their own "defaults" base for less-noisy tweaking.
+	// They are only _initialized_ by this package, but not otherwise _used_ by it.
+	Gents struct {
 		IndexOf GentIndexMethods
 
 		// contains pointers to all the above fields, in order
@@ -18,11 +18,11 @@ var (
 )
 
 func init() {
-	Defaults.All = []gent.IGent{&Defaults.IndexOf}
+	Gents.All = []gent.IGent{&Gents.IndexOf}
 
-	defidx := &Defaults.IndexOf
-	defidx.IndexOf.Name, defidx.IndicesOf.Name, defidx.IndexLast.Name =
-		"Index", "Indices", "LastIndex"
-	defidx.IndexOf.PredicateVariation.Name, defidx.IndicesOf.PredicateVariation.Name, defidx.IndexLast.PredicateVariation.Name =
-		"IndexFunc", "IndicesFunc", "LastIndexFunc"
+	defidx := &Gents.IndexOf
+	defidx.IndexOf.Name, defidx.IndicesOf.Name, defidx.IndexLast.Name, defidx.IndicesOf.Disabled, defidx.IndexLast.Disabled =
+		"Index", "Indices", "LastIndex", true, true
+	defidx.IndexOf.Predicate.NameOrSuffix, defidx.IndicesOf.Predicate.NameOrSuffix, defidx.IndexLast.Predicate.NameOrSuffix =
+		"Func", "Func", "Func"
 }
