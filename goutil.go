@@ -49,7 +49,7 @@ func goAstTypeExprToGenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 		}
 	case *ast.Ellipsis:
 		sl := udevgogen.TrSlice(goAstTypeExprToGenTypeRef(tx.Elt))
-		sl.ArrOrSliceIsEllipsis = true
+		sl.ArrOrSliceOf.IsEllipsis = true
 		return sl
 	case *ast.MapType:
 		return udevgogen.TrMap(goAstTypeExprToGenTypeRef(tx.Key), goAstTypeExprToGenTypeRef(tx.Value))

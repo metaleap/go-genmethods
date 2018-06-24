@@ -50,7 +50,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, self *IndexMethod) 
 func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 	self := &this.IndicesOf
 	if !self.PredicateVariation.Disabled {
-		fn := Fn(t.CodeGen.ThisVal, self.Name, TdFunc(NTs("predicate", TrFunc(TdFunc(NTs("", t.CodeGen.Ref), NT("", T.Bool))))),
+		fn := Fn(t.CodeGen.ThisVal, self.Name, TdFunc(NTs("predicate", TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool)))), V.Ret.Typed(T.Sl.Ints)),
 			K.Ret,
 		)
 		decls = append(decls, fn)

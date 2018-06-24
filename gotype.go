@@ -104,5 +104,5 @@ func (this *Type) IsEnumish() bool {
 }
 
 func (this *Type) IsSliceOrArray() bool {
-	return this.Underlying.GenRef.ArrOrSliceOf != nil
+	return this.Underlying.GenRef.ArrOrSliceOf.Val != nil
 }
