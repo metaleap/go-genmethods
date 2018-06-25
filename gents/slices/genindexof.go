@@ -64,7 +64,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 		if !isLast {
 			loop = ForRange(V.I, None, V.This, stmt)
 		} else {
-			loop = ForLoop(Decl(V.I, Sub(Call(B.Len, V.This), L(1))), Geq(V.I, L(0)), Set(V.I, Sub(V.I, L(1))), stmt)
+			loop = ForLoop(Decl(V.I, Sub(C.Len(V.This), L(1))), Geq(V.I, L(0)), Set(V.I, Sub(V.I, L(1))), stmt)
 		}
 		fn.Add(loop, Set(V.R, L(-1)))
 		return fn
@@ -92,7 +92,7 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
 		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
 		if self.ResultsCapFactor > 0 {
-			fn.Add(Set(V.R, Call(B.Make, ret.Type, L(0), Div(Call(B.Len, V.This), L(self.ResultsCapFactor)))))
+			fn.Add(Set(V.R, C.Make(ret.Type, L(0), Div(C.Len(V.This), L(self.ResultsCapFactor)))))
 		}
 		fn.Add(ForRange(V.I, None, V.This,
 			If(predicate, Set(V.R, C.Append(V.R, V.I))),
