@@ -33,10 +33,12 @@ type Type struct {
 		GenRef  *udevgogen.TypeRef
 	}
 
-	CodeGen struct {
+	Gen struct {
+		TVal    *udevgogen.TypeRef
+		TPtr    *udevgogen.TypeRef
+		TSl     *udevgogen.TypeRef
 		ThisVal udevgogen.NamedTyped
 		ThisPtr udevgogen.NamedTyped
-		Ref     *udevgogen.TypeRef
 	}
 
 	Enumish struct {
@@ -54,8 +56,9 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
 					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
-					t.CodeGen.Ref, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
-					t.CodeGen.ThisVal, t.CodeGen.ThisPtr = udevgogen.V.This.Typed(t.CodeGen.Ref), udevgogen.V.This.Typed(udevgogen.TrPtr(t.CodeGen.Ref))
+					t.Gen.TVal, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
+					t.Gen.TPtr, t.Gen.TSl = udevgogen.TrPtr(t.Gen.TVal), udevgogen.TrSlice(t.Gen.TVal)
+					t.Gen.ThisVal, t.Gen.ThisPtr = udevgogen.V.This.T(t.Gen.TVal), udevgogen.V.This.T(udevgogen.TrPtr(t.Gen.TVal))
 					this.Types.Add(t)
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {

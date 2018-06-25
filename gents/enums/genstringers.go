@@ -65,7 +65,7 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("FormatInt")), Call(N("int64"), V.This), L(10))))
 	}
 
-	method = Fn(t.CodeGen.ThisVal, self.Name, &Sigs.NoneToString,
+	method = Fn(t.Gen.ThisVal, self.Name, &Sigs.NoneToString,
 		caseof,
 	)
 	if self.DocComment != "" {
@@ -107,7 +107,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	}
 
 	fname := self.ParseFuncName.With("{T}", t.Name, "{str}", self.Name)
-	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.CodeGen.ThisVal, V.Err),
+	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.Gen.ThisVal, V.Err),
 		caseof,
 	)
 	doccs := "and case-sensitively"
@@ -119,7 +119,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 
 	if self.ParseErrless.Add {
 		maybe, fallback := N("maybe"+t.Name), N("fallback")
-		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.CodeGen.ThisVal.Type), t.CodeGen.ThisVal),
+		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.Gen.ThisVal.Type), t.Gen.ThisVal),
 			Decl(C(maybe, V.Err.Named), Call(N(fname), s)),
 			Ifs(Eq(V.Err, B.Nil),
 				Block(Set(V.This, maybe)),

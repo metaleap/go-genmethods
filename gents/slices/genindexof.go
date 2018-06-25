@@ -46,25 +46,20 @@ func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 			decls.Add(this.genIndicesMethod(t)...)
 		}
 		if !this.Contains.Disabled {
-			useindexof := (!this.IndexOf.Disabled) && (this.IndexOf.Variadic == this.Contains.Variadic)
-			useindexlast := (!this.IndexLast.Disabled) && (this.IndexLast.Variadic == this.Contains.Variadic)
-			useindicesof := (!this.IndicesOf.Disabled)
-			if useindexof || useindexlast || useindicesof {
-				decls.Add(this.genContainsMethod(t, useindexof, useindexlast, useindicesof)...)
-			}
+			decls.Add(this.genContainsMethods(t)...)
 		}
 	}
 	return
 }
 
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls Syns) {
-	self, ret := &this.IndexOf, V.R.Typed(T.Int)
+	self, ret := &this.IndexOf, V.R.T(T.Int)
 	if isLast {
 		self = &this.IndexLast
 	}
 
 	gen := func(name string, arg NamedTyped, stmt ISyn) *SynFunc {
-		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(Args(arg), ret))
+		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
 		var loop *StmtFor
 		if !isLast {
 			loop = ForRange(V.I, None, V.This, stmt)
@@ -92,10 +87,10 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 }
 
 func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
-	self, ret := &this.IndicesOf, V.R.Typed(T.Sl.Ints)
+	self, ret := &this.IndicesOf, V.R.T(T.Sl.Ints)
 
 	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
-		fn := Fn(t.CodeGen.ThisVal, name, TdFunc(Args(arg), ret))
+		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
 		if self.ResultsCapFactor > 0 {
 			fn.Add(Set(V.R, Call(B.Make, ret.Type, L(0), Div(Call(B.Len, V.This), L(self.ResultsCapFactor)))))
 		}
@@ -117,10 +112,10 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 	return
 }
 
-func (this *GentIndexMethods) genContainsMethod(t *gent.Type, reuseIndexOf bool, reuseIndexLast bool, reuseIndicesOf bool) (decls Syns) {
+func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 	self := &this.Contains
-	arg := this.funcArg(t, self.Variadic)
-	fn := Fn(t.CodeGen.ThisVal, this.Contains.Name, TdFunc(Args(arg), V.R.Typed(T.Bool)))
+	arg := this.funcArg(t, self != nil)
+	fn := Fn(t.Gen.ThisVal, this.Contains.Name, TdFunc(Args(arg), V.R.T(T.Bool)))
 	decls = append(decls, fn)
 	return
 }
@@ -135,5 +130,5 @@ func (*GentIndexMethods) funcArg(t *gent.Type, variadic gent.Variadic) NamedType
 }
 
 func (*GentIndexMethods) funcArgPredicate(t *gent.Type) NamedTyped {
-	return V.Ok.Typed(TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool))))
+	return V.Ok.T(TrFunc(TdFunc(NTs("", t.Underlying.GenRef.ArrOrSliceOf.Val), NT("", T.Bool))))
 }

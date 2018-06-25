@@ -218,10 +218,12 @@ type Type struct {
 		GenRef  *udevgogen.TypeRef
 	}
 
-	CodeGen struct {
+	Gen struct {
+		TVal    *udevgogen.TypeRef
+		TPtr    *udevgogen.TypeRef
+		TSl     *udevgogen.TypeRef
 		ThisVal udevgogen.NamedTyped
 		ThisPtr udevgogen.NamedTyped
-		Ref     *udevgogen.TypeRef
 	}
 
 	Enumish struct {

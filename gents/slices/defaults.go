@@ -25,4 +25,5 @@ func init() {
 		"Index", "Indices", "LastIndex", "Contains", true, true, false
 	defidx.IndexOf.Predicate.NameOrSuffix, defidx.IndicesOf.Predicate.NameOrSuffix, defidx.IndexLast.Predicate.NameOrSuffix =
 		"Func", "Func", "Func"
+	defidx.Contains.Predicate.Add, defidx.Contains.Predicate.NameOrSuffix = true, "Func"
 }
