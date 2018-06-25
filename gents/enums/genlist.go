@@ -40,7 +40,7 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 			fname = fname[:len(fname)-2] + "ies"
 		}
 		fn := Fn(NoMethodRecv, fname, TdFunc(nil, NT("names", T.Sl.Strings), NT("values", TrSlice(t.Gen.TVal))),
-			Set(C(N("names"), N("values")), C(L(names), L(values))),
+			Set(Tup(N("names"), N("values")), Tup(L(names), L(values))),
 		)
 		fn.Doc.Add(this.DocComment.With("{N}", fn.Name, "{T}", t.Name, "{n}", strconv.Itoa(num)))
 		decls.Add(fn)

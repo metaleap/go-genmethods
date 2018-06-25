@@ -93,7 +93,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	adddefault := func(tref *TypeRef, callName string, callArgs ...ISyn) {
 		caseof.Default.Add(
 			Var(vn.Name, tref, nil),
-			Set(C(vn, V.Err), Call(D(pkgstrconv, N(callName)), append(Syns{s}, callArgs...)...)),
+			Set(Tup(vn, V.Err), Call(D(pkgstrconv, N(callName)), append(Syns{s}, callArgs...)...)),
 			If(Eq(V.Err, B.Nil), Set(V.This, Call(N(t.Name), vn))),
 		)
 	}
@@ -120,7 +120,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	if self.ParseErrless.Add {
 		maybe, fallback := N("maybe"+t.Name), N("fallback")
 		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.Gen.ThisVal.Type), t.Gen.ThisVal),
-			Decl(C(maybe, V.Err.Named), Call(N(fname), s)),
+			Decl(Tup(maybe, V.Err.Named), Call(N(fname), s)),
 			Ifs(Eq(V.Err, B.Nil),
 				Block(Set(V.This, maybe)),
 				Block(Set(V.This, N("fallback")))),

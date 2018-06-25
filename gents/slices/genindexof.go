@@ -95,7 +95,7 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 			fn.Add(Set(V.R, Call(B.Make, ret.Type, L(0), Div(Call(B.Len, V.This), L(self.ResultsCapFactor)))))
 		}
 		fn.Add(ForRange(V.I, None, V.This,
-			If(predicate, Set(V.R, Call(B.Append, V.R, V.I))),
+			If(predicate, Set(V.R, C.Append(V.R, V.I))),
 		))
 		return fn
 	}
