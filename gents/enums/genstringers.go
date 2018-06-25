@@ -46,7 +46,7 @@ func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 }
 
 func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type) (method *SynFunc) {
-	self, caseof, pkgstrconv := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames)), N(ctx.I("strconv"))
+	self, caseof, pkgstrconv := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames)), ctx.I("strconv")
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := enumerant; enumerant != "_" {
 			if rename := self.EnumerantRename; rename != nil {
@@ -58,11 +58,11 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 
 	switch t.Enumish.BaseType {
 	case "int":
-		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("Itoa")), Call(N("int"), V.This))))
+		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "Itoa", C.N("int", V.This))))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("FormatUint")), Call(N("uint64"), V.This), L(10))))
+		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "FormatUint", C.N("uint64", V.This), L(10))))
 	default:
-		caseof.Default.Add(Set(V.R, Call(D(pkgstrconv, N("FormatInt")), Call(N("int64"), V.This), L(10))))
+		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "FormatInt", C.N("int64", V.This), L(10))))
 	}
 
 	method = Fn(t.Gen.ThisVal, self.Name, &Sigs.NoneToString,
@@ -75,7 +75,7 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 }
 
 func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (synFuncs Syns) {
-	self, s, caseof, pkgstrconv := &this.Stringers[idx], N("s"), Switch(nil, len(t.Enumish.ConstNames)), N(ctx.I("strconv"))
+	self, s, caseof, pkgstrconv := &this.Stringers[idx], N("s"), Switch(nil, len(t.Enumish.ConstNames)), ctx.I("strconv")
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := L(enumerant); enumerant != "_" {
 			if rename := self.EnumerantRename; rename != nil {
@@ -83,7 +83,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 			}
 			var cmp ISyn = Eq(s, renamed)
 			if self.ParseAddIgnoreCaseCmp {
-				cmp = Or(cmp, Call(D(N(ctx.I("strings")), N("EqualFold")), s, renamed))
+				cmp = Or(cmp, C.D(ctx.I("strings"), "EqualFold", s, renamed))
 			}
 			caseof.Cases.Add(cmp, Set(V.This, N(enumerant)))
 		}
@@ -93,8 +93,8 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	adddefault := func(tref *TypeRef, callName string, callArgs ...ISyn) {
 		caseof.Default.Add(
 			Var(vn.Name, tref, nil),
-			Set(Tup(vn, V.Err), Call(D(pkgstrconv, N(callName)), append(Syns{s}, callArgs...)...)),
-			If(Eq(V.Err, B.Nil), Set(V.This, Call(N(t.Name), vn))),
+			Set(Tup(vn, V.Err), C.D(pkgstrconv, callName, append(Syns{s}, callArgs...)...)),
+			If(Eq(V.Err, B.Nil), Set(V.This, C.N(t.Name, vn))),
 		)
 	}
 	switch t.Enumish.BaseType {
@@ -120,7 +120,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	if self.ParseErrless.Add {
 		maybe, fallback := N("maybe"+t.Name), N("fallback")
 		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.Gen.ThisVal.Type), t.Gen.ThisVal),
-			Decl(Tup(maybe, V.Err.Named), Call(N(fname), s)),
+			Decl(Tup(maybe, V.Err.Named), C.N(fname, s)),
 			Ifs(Eq(V.Err, B.Nil),
 				Block(Set(V.This, maybe)),
 				Block(Set(V.This, N("fallback")))),

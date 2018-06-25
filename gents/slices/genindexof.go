@@ -71,16 +71,20 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 	}
 
 	arg := this.funcArg(t, self.Variadic)
-	var stmt ISyn = If(Eq(I(V.This, V.I), N("eq")), Set(V.R, V.I), K.Ret)
+	var stmt ISyn = If(Eq(I(V.This, V.I), N("eq")),
+		Set(V.R, V.I), K.Ret)
 	if self.Variadic {
-		stmt = ForRange(V.J, None, arg, If(Eq(I(V.This, V.I), I(N("eq"), V.J)), Set(V.R, V.I), K.Ret))
+		stmt = ForRange(V.J, None, arg,
+			If(Eq(I(V.This, V.I), I(N("eq"), V.J)),
+				Set(V.R, V.I), K.Ret))
 	}
 	fni := gen(self.Name, arg, stmt)
 	decls = append(decls, fni)
 
 	if self.Predicate.Add {
 		fnp := gen(self.Name+self.Predicate.NameOrSuffix, this.funcArgPredicate(t),
-			If(Call(V.Ok, I(V.This, V.I)), Set(V.R, V.I), K.Ret))
+			If(Call(V.Ok, V.This.At(V.I)),
+				Set(V.R, V.I), K.Ret))
 		decls = append(decls, fnp)
 	}
 	return
@@ -95,7 +99,8 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 			fn.Add(Set(V.R, C.Make(ret.Type, L(0), Div(C.Len(V.This), L(self.ResultsCapFactor)))))
 		}
 		fn.Add(ForRange(V.I, None, V.This,
-			If(predicate, Set(V.R, C.Append(V.R, V.I))),
+			If(predicate,
+				Set(V.R, C.Append(V.R, V.I))),
 		))
 		return fn
 	}
@@ -106,7 +111,7 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 
 	if self.Predicate.Add {
 		fnp := gen(self.Name+self.Predicate.NameOrSuffix, this.funcArgPredicate(t),
-			Call(V.Ok, I(V.This, V.I)))
+			Call(V.Ok, V.This.At(V.I)))
 		decls = append(decls, fnp)
 	}
 	return
