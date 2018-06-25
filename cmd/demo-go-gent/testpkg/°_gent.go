@@ -13,4 +13,4 @@ func (this complex384) Index(eq complex128) (r int) {
 	return
 }
 
-func (this complex384) Contains(eq complex128) (r bool) { return }
+func (this complex384) Contains(eq ...complex128) (r bool) { return }
