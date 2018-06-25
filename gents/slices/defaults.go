@@ -21,8 +21,8 @@ func init() {
 	Gents.All = []gent.IGent{&Gents.IndexOf}
 
 	defidx := &Gents.IndexOf
-	defidx.IndexOf.Name, defidx.IndicesOf.Name, defidx.IndexLast.Name, defidx.IndicesOf.Disabled, defidx.IndexLast.Disabled =
-		"Index", "Indices", "LastIndex", true, true
+	defidx.IndexOf.Name, defidx.IndicesOf.Name, defidx.IndexLast.Name, defidx.Contains.Name, defidx.IndicesOf.Disabled, defidx.IndexLast.Disabled, defidx.Contains.Disabled =
+		"Index", "Indices", "LastIndex", "Contains", true, true, false
 	defidx.IndexOf.Predicate.NameOrSuffix, defidx.IndicesOf.Predicate.NameOrSuffix, defidx.IndexLast.Predicate.NameOrSuffix =
 		"Func", "Func", "Func"
 }

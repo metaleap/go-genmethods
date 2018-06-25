@@ -39,7 +39,7 @@ type GentIndexMethods struct {
 		ResultsCapFactor uint
 	}
 	Contains struct {
-		gent.Variant
+		IndexMethodOpts
 		gent.Variadic
 	}
 }

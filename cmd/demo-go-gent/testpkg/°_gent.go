@@ -12,3 +12,5 @@ func (this complex384) Index(eq complex128) (r int) {
 	r = -1
 	return
 }
+
+func (this complex384) Contains(eq complex128) (r bool) { return }
