@@ -33,10 +33,10 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 				if this.MethodNameRenameEnumerant != nil {
 					renamed = this.MethodNameRenameEnumerant(enumerant)
 				}
-				method := Fn(t.Gen.ThisVal, this.MethodName.With("{T}", t.Name, "{e}", renamed), &Sigs.NoneToBool,
+				method := Fn(t.G.ThisVal, this.MethodName.With("{T}", t.Name, "{e}", renamed), &Sigs.NoneToBool,
 					Set(V.R, Eq(V.This, N(enumerant))),
 				)
-				method.Doc.Add(this.DocComment.With(
+				method.Docs.Add(this.DocComment.With(
 					"{N}", method.Name,
 					"{T}", t.Name,
 					"{e}", enumerant,

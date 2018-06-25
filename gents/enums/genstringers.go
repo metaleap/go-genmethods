@@ -65,11 +65,11 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "FormatInt", C.N("int64", V.This), L(10))))
 	}
 
-	method = Fn(t.Gen.ThisVal, self.Name, &Sigs.NoneToString,
+	method = Fn(t.G.ThisVal, self.Name, &Sigs.NoneToString,
 		caseof,
 	)
 	if self.DocComment != "" {
-		method.Doc.Add(self.DocComment.With("{N}", method.Name, "{T}", t.Name))
+		method.Docs.Add(self.DocComment.With("{N}", method.Name, "{T}", t.Name))
 	}
 	return
 }
@@ -107,25 +107,25 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	}
 
 	fname := self.ParseFuncName.With("{T}", t.Name, "{str}", self.Name)
-	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.Gen.ThisVal, V.Err),
+	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.G.ThisVal, V.Err),
 		caseof,
 	)
 	doccs := "and case-sensitively"
 	if self.ParseAddIgnoreCaseCmp {
 		doccs = "but case-insensitively"
 	}
-	fnp.Doc.Add(this.DocComments.Parsers.With("{N}", fnp.Name, "{T}", t.Name, "{s}", s.Name, "{str}", self.Name, "{caseSensitivity}", doccs))
+	fnp.Docs.Add(this.DocComments.Parsers.With("{N}", fnp.Name, "{T}", t.Name, "{s}", s.Name, "{str}", self.Name, "{caseSensitivity}", doccs))
 	synFuncs = Syns{fnp}
 
 	if self.ParseErrless.Add {
 		maybe, fallback := N("maybe"+t.Name), N("fallback")
-		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.Gen.ThisVal.Type), t.Gen.ThisVal),
+		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.G.ThisVal.Type), t.G.ThisVal),
 			Decl(Tup(maybe, V.Err.Named), C.N(fname, s)),
 			Ifs(Eq(V.Err, B.Nil),
 				Block(Set(V.This, maybe)),
 				Block(Set(V.This, N("fallback")))),
 		)
-		fnv.Doc.Add(this.DocComments.ParsersErrlessVariant.With("{N}", fnv.Name, "{T}", t.Name, "{p}", fnp.Name, "{fallback}", fallback.Name))
+		fnv.Docs.Add(this.DocComments.ParsersErrlessVariant.With("{N}", fnv.Name, "{T}", t.Name, "{p}", fnp.Name, "{fallback}", fallback.Name))
 		synFuncs = append(synFuncs, fnv)
 	}
 	return

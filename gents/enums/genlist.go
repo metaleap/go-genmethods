@@ -28,7 +28,7 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 		num, names, values := 0, make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {
-				num, names, values = num+1, append(names, L(enumerant)), append(values, NT(enumerant, t.Gen.TVal))
+				num, names, values = num+1, append(names, L(enumerant)), append(values, NT(enumerant, t.G.TVal))
 			}
 		}
 		pluralsuffix := "s"
@@ -39,10 +39,10 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 		if strings.HasSuffix(fname, "ys") {
 			fname = fname[:len(fname)-2] + "ies"
 		}
-		fn := Fn(NoMethodRecv, fname, TdFunc(nil, NT("names", T.Sl.Strings), NT("values", TrSlice(t.Gen.TVal))),
+		fn := Fn(NoMethodRecv, fname, TdFunc(nil, NT("names", T.Sl.Strings), NT("values", TrSlice(t.G.TVal))),
 			Set(Tup(N("names"), N("values")), Tup(L(names), L(values))),
 		)
-		fn.Doc.Add(this.DocComment.With("{N}", fn.Name, "{T}", t.Name, "{n}", strconv.Itoa(num)))
+		fn.Docs.Add(this.DocComment.With("{N}", fn.Name, "{T}", t.Name, "{n}", strconv.Itoa(num)))
 		decls.Add(fn)
 	}
 	return

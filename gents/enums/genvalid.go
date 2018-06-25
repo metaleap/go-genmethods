@@ -18,37 +18,40 @@ type GentIsValidMethod struct {
 	IsLastInvalid  bool
 }
 
+func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 ISyn, check2 ISyn, name1 string, hint1 string, name2 string, hint2 string) (method *SynFunc) {
+	method = t.G.ThisVal.Method(this.MethodName).
+		Sig(&Sigs.NoneToBool).
+		Code(
+			Set(V.R, And(check1, check2)),
+		).
+		Doc(this.DocComment.With(
+			"{N}", this.MethodName,
+			"{T}", t.Name,
+			"{fn}", name1,
+			"{fh}", hint1,
+			"{ln}", name2,
+			"{lh}", hint2,
+		))
+	return
+}
+
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
 func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if t.IsEnumish() {
-		makemethod := func(check1, check2 ISyn, name1, hint1, name2, hint2 string) (method *SynFunc) {
-			method = t.Gen.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).B(
-				Set(V.R, And(check1, check2)),
-			).D(this.DocComment.With(
-				"{N}", this.MethodName,
-				"{T}", t.Name,
-				"{fn}", name1,
-				"{fh}", hint1,
-				"{ln}", name2,
-				"{lh}", hint2,
-			))
-			return
+		name1, name2, hint1, hint2, invalid1, invalid2 :=
+			t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive", this.IsFirstInvalid, this.IsLastInvalid
+		if name1 == "_" {
+			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
-
-		firstinvalid, firstname, lastname, firsthint, lasthint :=
-			this.IsFirstInvalid, t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive"
-		if firstname == "_" {
-			firstinvalid, firstname = false, t.Enumish.ConstNames[1]
+		var op1, op2 ISyn = Geq(V.This, N(name1)), Leq(V.This, N(name2))
+		if invalid1 {
+			op1, hint1 = Gt(V.This, N(name1)), "exclusive"
 		}
-		var firstoperator, lastoperator ISyn = Geq(V.This, N(firstname)), Leq(V.This, N(lastname))
-		if firstinvalid {
-			firstoperator, firsthint = Gt(V.This, N(firstname)), "exclusive"
+		if invalid2 {
+			op2, hint2 = Lt(V.This, N(name2)), "exclusive"
 		}
-		if this.IsLastInvalid {
-			lastoperator, lasthint = Lt(V.This, N(lastname)), "exclusive"
-		}
-		decls = Syns{makemethod(firstoperator, lastoperator, firstname, firsthint, lastname, lasthint)}
+		decls = Syns{this.genIsValidMethod(t, op1, op2, name1, hint1, name2, hint2)}
 	}
 	return
 }

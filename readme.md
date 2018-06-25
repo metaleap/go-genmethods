@@ -218,7 +218,7 @@ type Type struct {
 		GenRef  *udevgogen.TypeRef
 	}
 
-	Gen struct {
+	G struct {
 		TVal    *udevgogen.TypeRef
 		TPtr    *udevgogen.TypeRef
 		TSl     *udevgogen.TypeRef
