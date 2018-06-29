@@ -59,7 +59,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 	}
 
 	gen := func(name string, arg NamedTyped, stmt ISyn) *SynFunc {
-		fn := Fn(t.G.ThisVal, name, TdFunc(Args(arg), ret))
+		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
 		var loop *StmtFor
 		if !isLast {
 			loop = ForRange(V.I, None, V.This, stmt)
@@ -94,7 +94,7 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 	self, ret := &this.IndicesOf, V.R.T(T.Sl.Ints)
 
 	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
-		fn := Fn(t.G.ThisVal, name, TdFunc(Args(arg), ret))
+		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
 		if self.ResultsCapFactor > 0 {
 			fn.Add(Set(V.R, C.Make(ret.Type, L(0), Div(C.Len(V.This), L(self.ResultsCapFactor)))))
 		}
@@ -120,7 +120,7 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 	self := &this.Contains
 	arg := this.funcArg(t, self != nil)
-	fn := Fn(t.G.ThisVal, this.Contains.Name, TdFunc(Args(arg), V.R.T(T.Bool)))
+	fn := Fn(t.Gen.ThisVal, this.Contains.Name, TdFunc(Args(arg), V.R.T(T.Bool)))
 	decls = append(decls, fn)
 	return
 }

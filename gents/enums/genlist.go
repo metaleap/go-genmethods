@@ -8,11 +8,20 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+const (
+	DefaultListDocComment = "{N} returns the `names` and `values` of all {n} well-known `{T}` enumerants."
+	DefaultListFuncName   = "Wellknown{T}{s}"
+)
+
+func init() {
+	Gents.List.DocComment, Gents.List.FuncName = DefaultListDocComment, DefaultListFuncName
+}
+
 // GentListEnumerantsFunc generates a
 // `func WellknownFoos() ([]string, []Foo)`
 // for each enum type-def `Foo`.
 //
-// An instance with illustrative defaults is in `Defaults.List`.
+// An instance with illustrative defaults is in `Gents.List`.
 type GentListEnumerantsFunc struct {
 	gent.Opts
 
@@ -22,13 +31,21 @@ type GentListEnumerantsFunc struct {
 	FuncName gent.Str
 }
 
+func (this *GentListEnumerantsFunc) genListEnumerantsFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
+	return Func(funcName).Ret("names", T.Sl.Strings).Ret("values", TrSlice(t.Gen.TVal)).
+		Doc(this.DocComment.With("{N}", funcName, "{T}", t.Name, "{n}", strconv.Itoa(len(enumerantNames)))).
+		Code(
+			Idents("names", "values").SetTo(Lits(enumerantNames, enumerantValues)),
+		)
+}
+
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if t.IsEnumish() {
-		num, names, values := 0, make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
+		names, values := make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {
-				num, names, values = num+1, append(names, L(enumerant)), append(values, NT(enumerant, t.G.TVal))
+				names, values = append(names, L(enumerant)), append(values, NT(enumerant, t.Gen.TVal))
 			}
 		}
 		pluralsuffix := "s"
@@ -39,11 +56,7 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 		if strings.HasSuffix(fname, "ys") {
 			fname = fname[:len(fname)-2] + "ies"
 		}
-		fn := Fn(NoMethodRecv, fname, TdFunc(nil, NT("names", T.Sl.Strings), NT("values", TrSlice(t.G.TVal))),
-			Set(Tup(N("names"), N("values")), Tup(L(names), L(values))),
-		)
-		fn.Docs.Add(this.DocComment.With("{N}", fn.Name, "{T}", t.Name, "{n}", strconv.Itoa(num)))
-		decls.Add(fn)
+		decls.Add(this.genListEnumerantsFunc(t, fname, names, values))
 	}
 	return
 }

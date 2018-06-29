@@ -5,10 +5,26 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+const (
+	DefaultStringDocCommentsParsers               = "{N} returns the `{T}` represented by `{s}` (as returned by `{str}`, {caseSensitivity}), or an `error` if none exists."
+	DefaultStringDocCommentsParsersErrlessVariant = "{N} is like `{p}` but returns `{fallback}` for bad inputs."
+)
+
+func init() {
+	Gents.String.Stringers = []StringMethodOpts{
+		{DocComment: "{N} implements the `fmt.Stringer` interface.", Name: "String",
+			EnumerantRename: nil, ParseFuncName: "{T}From{str}", ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
+		{DocComment: "{N} implements the `fmt.GoStringer` interface.", Name: "GoString",
+			Disabled: true, ParseFuncName: "{T}From{str}", ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
+	}
+	Gents.String.DocComments.Parsers = DefaultStringDocCommentsParsers
+	Gents.String.DocComments.ParsersErrlessVariant = DefaultStringDocCommentsParsersErrlessVariant
+}
+
 // GentStringMethods generates for enum type-defs the specified
 // `string`ifying methods, optionally with corresponding "parsing" funcs.
 //
-// An instance with illustrative defaults is in `Defaults.String`.
+// An instance with illustrative defaults is in `Gents.String`.
 type GentStringMethods struct {
 	gent.Opts
 
@@ -65,7 +81,7 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "FormatInt", C.N("int64", V.This), L(10))))
 	}
 
-	method = Fn(t.G.ThisVal, self.Name, &Sigs.NoneToString,
+	method = Fn(t.Gen.ThisVal, self.Name, &Sigs.NoneToString,
 		caseof,
 	)
 	if self.DocComment != "" {
@@ -107,7 +123,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	}
 
 	fname := self.ParseFuncName.With("{T}", t.Name, "{str}", self.Name)
-	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.G.ThisVal, V.Err),
+	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.Gen.ThisVal, V.Err),
 		caseof,
 	)
 	doccs := "and case-sensitively"
@@ -119,7 +135,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 
 	if self.ParseErrless.Add {
 		maybe, fallback := N("maybe"+t.Name), N("fallback")
-		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.G.ThisVal.Type), t.G.ThisVal),
+		fnv := Fn(NoMethodRecv, fname+self.ParseErrless.NameOrSuffix, TdFunc(NTs(s.Name, T.String, fallback.Name, t.Gen.ThisVal.Type), t.Gen.ThisVal),
 			Decl(Tup(maybe, V.Err.Named), C.N(fname, s)),
 			Ifs(Eq(V.Err, B.Nil),
 				Block(Set(V.This, maybe)),

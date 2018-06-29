@@ -11,6 +11,34 @@ to each other.
 ## Usage
 
 ```go
+const (
+	DefaultIsFooDocComment = "{N} returns whether the value of this `{T}` equals `{e}`."
+	DefaultIsFooMethodName = "Is{e}"
+)
+```
+
+```go
+const (
+	DefaultListDocComment = "{N} returns the `names` and `values` of all {n} well-known `{T}` enumerants."
+	DefaultListFuncName   = "Wellknown{T}{s}"
+)
+```
+
+```go
+const (
+	DefaultStringDocCommentsParsers               = "{N} returns the `{T}` represented by `{s}` (as returned by `{str}`, {caseSensitivity}), or an `error` if none exists."
+	DefaultStringDocCommentsParsersErrlessVariant = "{N} is like `{p}` but returns `{fallback}` for bad inputs."
+)
+```
+
+```go
+const (
+	DefaultIsValidDocComment = "{N} returns whether the value of this `{T}` is between `{fn}` ({fh}) and `{ln}` ({lh})."
+	DefaultIsValidMethodName = "Valid"
+)
+```
+
+```go
 var (
 	// These "default `IGent`s" are convenience offerings in two ways:
 	// they illustrate usage of this package's individual `IGent` implementers' fields,
@@ -49,7 +77,7 @@ respective enumerant `Foo`. (A HIGHLY POINTLESS code-gen in real-world terms,
 except its exemplary simplicity makes it a handy
 starter-demo-sample-snippet-blueprint for writing new ones from scratch.)
 
-An instance with illustrative defaults is in `Defaults.IsFoo`.
+An instance with illustrative defaults is in `Gents.IsFoo`.
 
 #### func (*GentIsFooMethods) GenerateTopLevelDecls
 
@@ -76,7 +104,7 @@ type GentIsValidMethod struct {
 GentIsValidMethod generates a `Valid` method for enum type-defs, which checks
 whether the receiver value seems to be within the range of the known enumerants.
 
-An instance with illustrative defaults is in `Defaults.IsValid`.
+An instance with illustrative defaults is in `Gents.IsValid`.
 
 #### func (*GentIsValidMethod) GenerateTopLevelDecls
 
@@ -102,7 +130,7 @@ type GentListEnumerantsFunc struct {
 GentListEnumerantsFunc generates a `func WellknownFoos() ([]string, []Foo)` for
 each enum type-def `Foo`.
 
-An instance with illustrative defaults is in `Defaults.List`.
+An instance with illustrative defaults is in `Gents.List`.
 
 #### func (*GentListEnumerantsFunc) GenerateTopLevelDecls
 
@@ -128,7 +156,7 @@ type GentStringMethods struct {
 GentStringMethods generates for enum type-defs the specified `string`ifying
 methods, optionally with corresponding "parsing" funcs.
 
-An instance with illustrative defaults is in `Defaults.String`.
+An instance with illustrative defaults is in `Gents.String`.
 
 #### func (*GentStringMethods) GenerateTopLevelDecls
 

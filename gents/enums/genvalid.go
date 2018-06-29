@@ -5,10 +5,19 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+const (
+	DefaultIsValidDocComment = "{N} returns whether the value of this `{T}` is between `{fn}` ({fh}) and `{ln}` ({lh})."
+	DefaultIsValidMethodName = "Valid"
+)
+
+func init() {
+	Gents.IsValid.DocComment, Gents.IsValid.MethodName = DefaultIsValidDocComment, DefaultIsValidMethodName
+}
+
 // GentIsValidMethod generates a `Valid` method for enum type-defs, which checks
 // whether the receiver value seems to be within the range of the known enumerants.
 //
-// An instance with illustrative defaults is in `Defaults.IsValid`.
+// An instance with illustrative defaults is in `Gents.IsValid`.
 type GentIsValidMethod struct {
 	gent.Opts
 
@@ -18,20 +27,15 @@ type GentIsValidMethod struct {
 	IsLastInvalid  bool
 }
 
-func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 ISyn, check2 ISyn, name1 string, hint1 string, name2 string, hint2 string) (method *SynFunc) {
-	method = t.G.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
-		Code(
-			V.R.SetTo(And(check1, check2)),
-		).
+func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 ISynDot, check2 ISynDot, name1 string, hint1 string, name2 string, hint2 string) *SynFunc {
+	return t.Gen.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
 		Doc(this.DocComment.With(
-			"{N}", this.MethodName,
-			"{T}", t.Name,
-			"{fn}", name1,
-			"{fh}", hint1,
-			"{ln}", name2,
-			"{lh}", hint2,
-		))
-	return
+			"{N}", this.MethodName, "{T}", t.Name,
+			"{fn}", name1, "{fh}", hint1, "{ln}", name2, "{lh}", hint2,
+		)).
+		Code(
+			V.R.SetTo(check1.And(check2)),
+		)
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
@@ -44,7 +48,7 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
 
-		var op1, op2 ISyn = V.This.Geq(N(name1)), V.This.Leq(N(name2))
+		var op1, op2 ISynDot = V.This.Geq(N(name1)), V.This.Leq(N(name2))
 		if invalid1 {
 			info1, op1 = "exclusive", V.This.Gt(N(name1))
 		}
