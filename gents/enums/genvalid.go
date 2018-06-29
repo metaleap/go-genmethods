@@ -19,10 +19,9 @@ type GentIsValidMethod struct {
 }
 
 func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 ISyn, check2 ISyn, name1 string, hint1 string, name2 string, hint2 string) (method *SynFunc) {
-	method = t.G.ThisVal.Method(this.MethodName).
-		Sig(&Sigs.NoneToBool).
+	method = t.G.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
 		Code(
-			Set(V.R, And(check1, check2)),
+			V.R.SetTo(And(check1, check2)),
 		).
 		Doc(this.DocComment.With(
 			"{N}", this.MethodName,
@@ -39,19 +38,20 @@ func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 ISyn, check
 // It returns at most one method if `t` is a suitable enum type-def.
 func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if t.IsEnumish() {
-		name1, name2, hint1, hint2, invalid1, invalid2 :=
-			t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1], "inclusive", "inclusive", this.IsFirstInvalid, this.IsLastInvalid
+		invalid1, invalid2, info1, info2, name1, name2 := // 1 refers to enum's first enumerant here, and 2 to last enumerant
+			this.IsFirstInvalid, this.IsLastInvalid, "inclusive", "inclusive", t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1]
 		if name1 == "_" {
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
-		var op1, op2 ISyn = Geq(V.This, N(name1)), Leq(V.This, N(name2))
+
+		var op1, op2 ISyn = V.This.Geq(N(name1)), V.This.Leq(N(name2))
 		if invalid1 {
-			op1, hint1 = Gt(V.This, N(name1)), "exclusive"
+			info1, op1 = "exclusive", V.This.Gt(N(name1))
 		}
 		if invalid2 {
-			op2, hint2 = Lt(V.This, N(name2)), "exclusive"
+			info2, op2 = "exclusive", V.This.Lt(N(name2))
 		}
-		decls = Syns{this.genIsValidMethod(t, op1, op2, name1, hint1, name2, hint2)}
+		decls = Syns{this.genIsValidMethod(t, op1, op2, name1, info1, name2, info2)}
 	}
 	return
 }
