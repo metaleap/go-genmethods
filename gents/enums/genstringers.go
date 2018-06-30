@@ -145,10 +145,10 @@ func (this *StringMethodOpts) genParser(t *gent.Type, docComment gent.Str, pkgst
 		}
 	}
 
-	vtmp, enumbasetype := N(V.This.Name+t.Enumish.BaseType), TrNamed("", t.Enumish.BaseType)
-	defaultcase := func(basetype *TypeRef, strconvparsefuncname string, args ...ISyn) Syns {
-		return Syns{Var(vtmp.Name, basetype, nil),
-			Tup(vtmp, V.Err).SetTo(pkgstrconv.C(strconvparsefuncname, append(Syns{V.S}, args...)...)),
+	enumbasetype, defaultcase := TrNamed("", t.Enumish.BaseType), func(ebt *TypeRef, parse string, args ...ISyn) Syns {
+		vtmp := N(V.This.Name + t.Enumish.BaseType)
+		return Syns{Var(vtmp.Name, ebt, nil),
+			Tup(vtmp, V.Err).SetTo(pkgstrconv.C(parse, append(Syns{V.S}, args...)...)),
 			IfThen(V.Err.Eq(B.Nil),
 				V.This.SetTo(t.G.T.Conv(vtmp)),
 			),
