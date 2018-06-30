@@ -26,8 +26,13 @@ const (
 
 ```go
 const (
-	DefaultStringDocCommentsParsers               = "{N} returns the `{T}` represented by `{s}` (as returned by `{str}`, {caseSensitivity}), or an `error` if none exists."
-	DefaultStringDocCommentsParsersErrlessVariant = "{N} is like `{p}` but returns `{fallback}` for bad inputs."
+	DefaultStringers0DocComments              = "{N} implements the `fmt.Stringer` interface."
+	DefaultStringers0MethodName               = "String"
+	DefaultStringers1DocComments              = "{N} implements the `fmt.GoStringer` interface."
+	DefaultStringers1MethodName               = "GoString"
+	DefaultStringersParsersDocComments        = "{N} returns the `{T}` represented by `{s}` (as returned by `{T}.{str}`, {caseSensitivity}), or an `error` if none exists."
+	DefaultStringersParsersDocCommentsErrless = "{N} is like `{p}` but returns `{fallback}` for unrecognized inputs."
+	DefaultStringersParsersFuncName           = "{T}From{str}"
 )
 ```
 
@@ -40,15 +45,15 @@ const (
 
 ```go
 var (
-	// These "default `IGent`s" are convenience offerings in two ways:
+	// These "default `IGent`s" are a convenience offering in two ways:
 	// they illustrate usage of this package's individual `IGent` implementers' fields,
 	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
-		IsFoo   GentIsFooMethods
-		IsValid GentIsValidMethod
-		List    GentListEnumerantsFunc
-		String  GentStringMethods
+		IsFoo     GentIsFooMethods
+		IsValid   GentIsValidMethod
+		List      GentListEnumerantsFunc
+		Stringers GentStringersMethods
 
 		// contains pointers to all the above fields, in order
 		All []gent.IGent
@@ -139,10 +144,10 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
-#### type GentStringMethods
+#### type GentStringersMethods
 
 ```go
-type GentStringMethods struct {
+type GentStringersMethods struct {
 	gent.Opts
 
 	Stringers   []StringMethodOpts
@@ -153,15 +158,15 @@ type GentStringMethods struct {
 }
 ```
 
-GentStringMethods generates for enum type-defs the specified `string`ifying
+GentStringersMethods generates for enum type-defs the specified `string`ifying
 methods, optionally with corresponding "parsing" funcs.
 
 An instance with illustrative defaults is in `Gents.String`.
 
-#### func (*GentStringMethods) GenerateTopLevelDecls
+#### func (*GentStringersMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
+func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 

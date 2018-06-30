@@ -33,9 +33,9 @@ type GentListEnumerantsFunc struct {
 
 func (this *GentListEnumerantsFunc) genListEnumerantsFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
 	return Func(funcName).Ret("names", T.Sl.Strings).Ret("values", TrSlice(t.Gen.TVal)).
-		Doc(this.DocComment.With("{N}", funcName, "{T}", t.Name, "{n}", strconv.Itoa(len(enumerantNames)))).
+		Doc(this.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames)))).
 		Code(
-			Idents("names", "values").SetTo(Lits(enumerantNames, enumerantValues)),
+			Names("names", "values").SetTo(Lits(enumerantNames, enumerantValues)),
 		)
 }
 
@@ -52,7 +52,7 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 		if strings.HasSuffix(t.Name, "s") {
 			pluralsuffix = "es"
 		}
-		fname := this.FuncName.With("{T}", t.Name, "{s}", pluralsuffix)
+		fname := this.FuncName.With("T", t.Name, "s", pluralsuffix)
 		if strings.HasSuffix(fname, "ys") {
 			fname = fname[:len(fname)-2] + "ies"
 		}

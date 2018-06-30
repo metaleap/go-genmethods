@@ -30,8 +30,8 @@ type GentIsValidMethod struct {
 func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 ISynDot, check2 ISynDot, name1 string, hint1 string, name2 string, hint2 string) *SynFunc {
 	return t.Gen.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
 		Doc(this.DocComment.With(
-			"{N}", this.MethodName, "{T}", t.Name,
-			"{fn}", name1, "{fh}", hint1, "{ln}", name2, "{lh}", hint2,
+			"N", this.MethodName, "T", t.Name,
+			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
 		)).
 		Code(
 			V.R.SetTo(check1.And(check2)),

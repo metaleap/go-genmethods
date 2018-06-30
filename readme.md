@@ -35,8 +35,8 @@ Very WIP: more comprehensive readme / package docs to come.
 
 ```go
 var (
-	CodeGenCommentNotice   = "DO NOT EDIT: code generated with `%s` using `github.com/metaleap/go-gent`"
-	CodeGenCommentProgName = filepath.Base(os.Args[0])
+	CodeGenCommentNotice   Str = "DO NOT EDIT: code generated with `{progName}` using `github.com/metaleap/go-gent`"
+	CodeGenCommentProgName     = filepath.Base(os.Args[0])
 
 	Defaults struct {
 		CtxOpt CtxOpts
@@ -201,7 +201,7 @@ type Str string
 #### func (Str) With
 
 ```go
-func (this Str) With(stringsReplaceOldNew ...string) string
+func (this Str) With(placeholderNamesAndValues ...string) string
 ```
 
 #### type Type

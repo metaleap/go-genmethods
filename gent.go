@@ -1,7 +1,6 @@
 package gent
 
 import (
-	"fmt"
 	"path/filepath"
 	"sync"
 	"time"
@@ -56,7 +55,7 @@ func (this *Opts) Opt() *Opts { return this }
 
 func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
 	dst, ctx, codegencommentnotice :=
-		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(this, gents), fmt.Sprintf(CodeGenCommentNotice, CodeGenCommentProgName)
+		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(this, gents), CodeGenCommentNotice.With("progName", CodeGenCommentProgName)
 	for _, t := range this.Types {
 		for _, g := range gents {
 			if ctx.mayGentRunForType(g, t) {

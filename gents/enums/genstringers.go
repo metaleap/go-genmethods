@@ -6,26 +6,31 @@ import (
 )
 
 const (
-	DefaultStringDocCommentsParsers               = "{N} returns the `{T}` represented by `{s}` (as returned by `{str}`, {caseSensitivity}), or an `error` if none exists."
-	DefaultStringDocCommentsParsersErrlessVariant = "{N} is like `{p}` but returns `{fallback}` for bad inputs."
+	DefaultStringers0DocComments              = "{N} implements the `fmt.Stringer` interface."
+	DefaultStringers0MethodName               = "String"
+	DefaultStringers1DocComments              = "{N} implements the `fmt.GoStringer` interface."
+	DefaultStringers1MethodName               = "GoString"
+	DefaultStringersParsersDocComments        = "{N} returns the `{T}` represented by `{s}` (as returned by `{T}.{str}`, {caseSensitivity}), or an `error` if none exists."
+	DefaultStringersParsersDocCommentsErrless = "{N} is like `{p}` but returns `{fallback}` for unrecognized inputs."
+	DefaultStringersParsersFuncName           = "{T}From{str}"
 )
 
 func init() {
-	Gents.String.Stringers = []StringMethodOpts{
-		{DocComment: "{N} implements the `fmt.Stringer` interface.", Name: "String",
-			EnumerantRename: nil, ParseFuncName: "{T}From{str}", ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
-		{DocComment: "{N} implements the `fmt.GoStringer` interface.", Name: "GoString",
-			Disabled: true, ParseFuncName: "{T}From{str}", ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
+	Gents.Stringers.Stringers = []StringMethodOpts{
+		{DocComment: DefaultStringers0DocComments, Name: DefaultStringers0MethodName,
+			EnumerantRename: nil, ParseFuncName: DefaultStringersParsersFuncName, ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
+		{DocComment: DefaultStringers1DocComments, Name: DefaultStringers1MethodName,
+			Disabled: true, ParseFuncName: DefaultStringersParsersFuncName, ParseErrless: gent.Variant{Add: false, NameOrSuffix: "Or"}},
 	}
-	Gents.String.DocComments.Parsers = DefaultStringDocCommentsParsers
-	Gents.String.DocComments.ParsersErrlessVariant = DefaultStringDocCommentsParsersErrlessVariant
+	Gents.Stringers.DocComments.Parsers = DefaultStringersParsersDocComments
+	Gents.Stringers.DocComments.ParsersErrlessVariant = DefaultStringersParsersDocCommentsErrless
 }
 
-// GentStringMethods generates for enum type-defs the specified
+// GentStringersMethods generates for enum type-defs the specified
 // `string`ifying methods, optionally with corresponding "parsing" funcs.
 //
 // An instance with illustrative defaults is in `Gents.String`.
-type GentStringMethods struct {
+type GentStringersMethods struct {
 	gent.Opts
 
 	Stringers   []StringMethodOpts
@@ -46,7 +51,7 @@ type StringMethodOpts struct {
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
+func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
 	if len(this.Stringers) > 0 && t.IsEnumish() {
 		decls = make(Syns, 0, 2+len(t.Enumish.ConstNames)*3*len(this.Stringers))
 		for i := range this.Stringers {
@@ -61,7 +66,7 @@ func (this *GentStringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 	return
 }
 
-func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type) (method *SynFunc) {
+func (this *GentStringersMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type) (method *SynFunc) {
 	self, caseof, pkgstrconv := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames)), ctx.I("strconv")
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := enumerant; enumerant != "_" {
@@ -85,12 +90,12 @@ func (this *GentStringMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type)
 		caseof,
 	)
 	if self.DocComment != "" {
-		method.Docs.Add(self.DocComment.With("{N}", method.Name, "{T}", t.Name))
+		method.Docs.Add(self.DocComment.With("N", method.Name, "T", t.Name))
 	}
 	return
 }
 
-func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (synFuncs Syns) {
+func (this *GentStringersMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (synFuncs Syns) {
 	self, s, caseof, pkgstrconv := &this.Stringers[idx], N("s"), Switch(nil, len(t.Enumish.ConstNames)), ctx.I("strconv")
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := L(enumerant); enumerant != "_" {
@@ -122,7 +127,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 		adddefault(T.Int64, "ParseInt", L(10), L(enumbasetype.SafeBitSizeIfBuiltInNumberType()))
 	}
 
-	fname := self.ParseFuncName.With("{T}", t.Name, "{str}", self.Name)
+	fname := self.ParseFuncName.With("T", t.Name, "str", self.Name)
 	fnp := Fn(NoMethodRecv, fname, TdFunc(NTs(s.Name, T.String), t.Gen.ThisVal, V.Err),
 		caseof,
 	)
@@ -130,7 +135,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 	if self.ParseAddIgnoreCaseCmp {
 		doccs = "but case-insensitively"
 	}
-	fnp.Docs.Add(this.DocComments.Parsers.With("{N}", fnp.Name, "{T}", t.Name, "{s}", s.Name, "{str}", self.Name, "{caseSensitivity}", doccs))
+	fnp.Docs.Add(this.DocComments.Parsers.With("N", fnp.Name, "T", t.Name, "s", s.Name, "str", self.Name, "caseSensitivity", doccs))
 	synFuncs = Syns{fnp}
 
 	if self.ParseErrless.Add {
@@ -141,7 +146,7 @@ func (this *GentStringMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type) (
 				Block(Set(V.This, maybe)),
 				Block(Set(V.This, N("fallback")))),
 		)
-		fnv.Docs.Add(this.DocComments.ParsersErrlessVariant.With("{N}", fnv.Name, "{T}", t.Name, "{p}", fnp.Name, "{fallback}", fallback.Name))
+		fnv.Docs.Add(this.DocComments.ParsersErrlessVariant.With("N", fnv.Name, "T", t.Name, "p", fnp.Name, "fallback", fallback.Name))
 		synFuncs = append(synFuncs, fnv)
 	}
 	return

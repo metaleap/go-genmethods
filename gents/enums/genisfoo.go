@@ -33,7 +33,7 @@ type GentIsFooMethods struct {
 
 func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
 	return t.Gen.ThisVal.Method(methodName).Sig(&Sigs.NoneToBool).
-		Doc(this.DocComment.With("{N}", methodName, "{T}", t.Name, "{e}", enumerant)).
+		Doc(this.DocComment.With("N", methodName, "T", t.Name, "e", enumerant)).
 		Code(
 			V.R.SetTo(V.This.Eq(N(enumerant))),
 		)
@@ -50,7 +50,7 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 				if this.MethodNameRenameEnumerant != nil {
 					renamed = this.MethodNameRenameEnumerant(enumerant)
 				}
-				decls.Add(this.genIsFooMethod(t, this.MethodName.With("{T}", t.Name, "{e}", renamed), enumerant))
+				decls.Add(this.genIsFooMethod(t, this.MethodName.With("T", t.Name, "e", renamed), enumerant))
 			}
 		}
 	}
