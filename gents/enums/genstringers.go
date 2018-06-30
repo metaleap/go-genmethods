@@ -57,21 +57,22 @@ func (this *GentStringersMethods) genStringerMethod(idx int, ctx *gent.Ctx, t *g
 			if rename := self.EnumerantRename; rename != nil {
 				renamed = rename(renamed)
 			}
-			switchcase.Cases.Add(N(enumerant),
+			switchcase.Case(N(enumerant),
 				V.R.SetTo(L(renamed)))
 		}
 	}
 
-	var defcase OpSet
 	switch t.Enumish.BaseType {
 	case "int":
-		defcase = V.R.SetTo(pkgstrconv.C("Itoa", T.Int.Conv(V.This)))
+		switchcase.DefaultCase(
+			V.R.SetTo(pkgstrconv.C("Itoa", T.Int.Conv(V.This))))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		defcase = V.R.SetTo(pkgstrconv.C("FormatUint", T.Uint64.Conv(V.This), L(10)))
+		switchcase.DefaultCase(
+			V.R.SetTo(pkgstrconv.C("FormatUint", T.Uint64.Conv(V.This), L(10))))
 	default:
-		defcase = V.R.SetTo(pkgstrconv.C("FormatInt", T.Int64.Conv(V.This), L(10)))
+		switchcase.DefaultCase(
+			V.R.SetTo(pkgstrconv.C("FormatInt", T.Int64.Conv(V.This), L(10))))
 	}
-	switchcase.Default.Add(defcase)
 	return t.Gen.ThisVal.Method(self.Name).Sig(&Sigs.NoneToString).
 		Doc(self.DocComment.With("N", self.Name, "T", t.Name)).
 		Code(switchcase)
@@ -105,7 +106,8 @@ func (this *GentStringersMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type
 			if self.ParseAddIgnoreCaseCmp {
 				cmp = Or(cmp, ctx.I("strings").C("EqualFold", s, renamed))
 			}
-			caseof.Cases.Add(cmp, Set(V.This, N(enumerant)))
+			caseof.Case(cmp,
+				Set(V.This, N(enumerant)))
 		}
 	}
 
