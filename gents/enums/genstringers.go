@@ -90,7 +90,7 @@ func (this *GentStringersMethods) genParseFunc(self *StringMethodOpts, t *gent.T
 				renamed = L(rename(enumerant))
 			}
 
-			var cmp IDotsBoolish = s.Eq(renamed)
+			var cmp IExprBoolish = s.Eq(renamed)
 			if self.ParseAddIgnoreCaseCmp {
 				cmp = cmp.Or(pkgstrings.C("EqualFold", s, renamed))
 			}

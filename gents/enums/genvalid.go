@@ -27,7 +27,7 @@ type GentIsValidMethod struct {
 	IsLastInvalid  bool
 }
 
-func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 IDotsBoolish, check2 IDotsBoolish, name1 string, hint1 string, name2 string, hint2 string) *SynFunc {
+func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 IExprBoolish, check2 IExprBoolish, name1 string, hint1 string, name2 string, hint2 string) *SynFunc {
 	return t.G.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
 		Doc(this.DocComment.With(
 			"N", this.MethodName, "T", t.Name,
@@ -48,7 +48,7 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
 
-		var op1, op2 IDotsBoolish = V.This.Geq(N(name1)), V.This.Leq(N(name2))
+		var op1, op2 IExprBoolish = V.This.Geq(N(name1)), V.This.Leq(N(name2))
 		if invalid1 {
 			info1, op1 = "exclusive", V.This.Gt(N(name1))
 		}
