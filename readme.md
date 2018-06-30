@@ -62,7 +62,7 @@ func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches 
 #### func (*Ctx) I
 
 ```go
-func (this *Ctx) I(pkgImportPath string) (pkgImportName string)
+func (this *Ctx) I(pkgImportPath string) (pkgImportName udevgogen.PkgName)
 ```
 
 #### type CtxOpts

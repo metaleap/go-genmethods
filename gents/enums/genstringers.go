@@ -50,47 +50,46 @@ type StringMethodOpts struct {
 	ParseErrless          gent.Variant
 }
 
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
-	if len(this.Stringers) > 0 && t.IsEnumish() {
-		decls = make(Syns, 0, 2+len(t.Enumish.ConstNames)*3*len(this.Stringers))
-		for i := range this.Stringers {
-			if !this.Stringers[i].Disabled {
-				decls.Add(this.genStringer(i, ctx, t))
-				if this.Stringers[i].ParseFuncName != "" {
-					decls.Add(this.genParser(i, ctx, t)...)
-				}
-			}
-		}
-	}
-	return
-}
-
-func (this *GentStringersMethods) genStringer(idx int, ctx *gent.Ctx, t *gent.Type) (method *SynFunc) {
-	self, caseof, pkgstrconv := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames)), ctx.I("strconv")
+func (this *GentStringersMethods) genStringerMethod(idx int, ctx *gent.Ctx, t *gent.Type, pkgstrconv PkgName) *SynFunc {
+	self, switchcase := &this.Stringers[idx], Switch(V.This, len(t.Enumish.ConstNames))
 	for _, enumerant := range t.Enumish.ConstNames {
 		if renamed := enumerant; enumerant != "_" {
 			if rename := self.EnumerantRename; rename != nil {
 				renamed = rename(renamed)
 			}
-			caseof.Cases.Add(N(enumerant), Set(V.R, L(renamed)))
+			switchcase.Cases.Add(N(enumerant),
+				V.R.SetTo(L(renamed)))
 		}
 	}
 
+	var defcase OpSet
 	switch t.Enumish.BaseType {
 	case "int":
-		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "Itoa", C.N("int", V.This))))
+		defcase = V.R.SetTo(pkgstrconv.C("Itoa", T.Int.Conv(V.This)))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "FormatUint", C.N("uint64", V.This), L(10))))
+		defcase = V.R.SetTo(pkgstrconv.C("FormatUint", T.Uint64.Conv(V.This), L(10)))
 	default:
-		caseof.Default.Add(Set(V.R, C.D(pkgstrconv, "FormatInt", C.N("int64", V.This), L(10))))
+		defcase = V.R.SetTo(pkgstrconv.C("FormatInt", T.Int64.Conv(V.This), L(10)))
 	}
+	switchcase.Default.Add(defcase)
+	return t.Gen.ThisVal.Method(self.Name).Sig(&Sigs.NoneToString).
+		Doc(self.DocComment.With("N", self.Name, "T", t.Name)).
+		Code(switchcase)
+}
 
-	method = Fn(t.Gen.ThisVal, self.Name, &Sigs.NoneToString,
-		caseof,
-	)
-	if self.DocComment != "" {
-		method.Docs.Add(self.DocComment.With("N", method.Name, "T", t.Name))
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
+	if len(this.Stringers) > 0 && t.IsEnumish() {
+		decls = make(Syns, 0, 2+len(t.Enumish.ConstNames)*3*len(this.Stringers))
+		pkgstrconv := ctx.I("strconv")
+		for i := range this.Stringers {
+			if !this.Stringers[i].Disabled {
+				decls.Add(this.genStringerMethod(i, ctx, t, pkgstrconv))
+				if this.Stringers[i].ParseFuncName != "" {
+					decls.Add(this.genParser(i, ctx, t)...)
+				}
+			}
+		}
 	}
 	return
 }
@@ -104,7 +103,7 @@ func (this *GentStringersMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type
 			}
 			var cmp ISyn = Eq(s, renamed)
 			if self.ParseAddIgnoreCaseCmp {
-				cmp = Or(cmp, C.D(ctx.I("strings"), "EqualFold", s, renamed))
+				cmp = Or(cmp, ctx.I("strings").C("EqualFold", s, renamed))
 			}
 			caseof.Cases.Add(cmp, Set(V.This, N(enumerant)))
 		}
@@ -114,7 +113,7 @@ func (this *GentStringersMethods) genParser(idx int, ctx *gent.Ctx, t *gent.Type
 	adddefault := func(tref *TypeRef, callName string, callArgs ...ISyn) {
 		caseof.Default.Add(
 			Var(vn.Name, tref, nil),
-			Set(Tup(vn, V.Err), C.D(pkgstrconv, callName, append(Syns{s}, callArgs...)...)),
+			Set(Tup(vn, V.Err), pkgstrconv.C(callName, append(Syns{s}, callArgs...)...)),
 			If(Eq(V.Err, B.Nil), Set(V.This, C.N(t.Name, vn))),
 		)
 	}

@@ -71,7 +71,7 @@ func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches 
 	return
 }
 
-func (this *Ctx) I(pkgImportPath string) (pkgImportName string) {
+func (this *Ctx) I(pkgImportPath string) (pkgImportName udevgogen.PkgName) {
 	pkgImportName = this.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
 	return
 }
