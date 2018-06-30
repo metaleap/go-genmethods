@@ -59,7 +59,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 	}
 
 	gen := func(name string, arg NamedTyped, stmt ISyn) *SynFunc {
-		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
+		fn := Fn(t.G.ThisVal, name, TdFunc(Args(arg), ret))
 		var loop *StmtFor
 		if !isLast {
 			loop = ForRange(V.I, None, V.This, stmt)
@@ -71,11 +71,11 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 	}
 
 	arg := this.funcArg(t, self.Variadic)
-	var stmt ISyn = If(Eq(I(V.This, V.I), N("eq")),
+	var stmt ISyn = IfThen(Eq(I(V.This, V.I), N("eq")),
 		Set(V.R, V.I), K.Ret)
 	if self.Variadic {
 		stmt = ForRange(V.J, None, arg,
-			If(Eq(I(V.This, V.I), I(N("eq"), V.J)),
+			IfThen(Eq(I(V.This, V.I), I(N("eq"), V.J)),
 				Set(V.R, V.I), K.Ret))
 	}
 	fni := gen(self.Name, arg, stmt)
@@ -83,7 +83,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 
 	if self.Predicate.Add {
 		fnp := gen(self.Name+self.Predicate.NameOrSuffix, this.funcArgPredicate(t),
-			If(Call(V.Ok, V.This.At(V.I)),
+			IfThen(Call(V.Ok, V.This.At(V.I)),
 				Set(V.R, V.I), K.Ret))
 		decls = append(decls, fnp)
 	}
@@ -94,12 +94,12 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 	self, ret := &this.IndicesOf, V.R.T(T.Sl.Ints)
 
 	gen := func(name string, arg NamedTyped, predicate ISyn) *SynFunc {
-		fn := Fn(t.Gen.ThisVal, name, TdFunc(Args(arg), ret))
+		fn := Fn(t.G.ThisVal, name, TdFunc(Args(arg), ret))
 		if self.ResultsCapFactor > 0 {
 			fn.Add(Set(V.R, C.Make(ret.Type, L(0), Div(C.Len(V.This), L(self.ResultsCapFactor)))))
 		}
 		fn.Add(ForRange(V.I, None, V.This,
-			If(predicate,
+			IfThen(predicate,
 				Set(V.R, C.Append(V.R, V.I))),
 		))
 		return fn
@@ -120,7 +120,7 @@ func (this *GentIndexMethods) genIndicesMethod(t *gent.Type) (decls Syns) {
 func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 	self := &this.Contains
 	arg := this.funcArg(t, self != nil)
-	fn := Fn(t.Gen.ThisVal, this.Contains.Name, TdFunc(Args(arg), V.R.T(T.Bool)))
+	fn := Fn(t.G.ThisVal, this.Contains.Name, TdFunc(Args(arg), V.R.T(T.Bool)))
 	decls = append(decls, fn)
 	return
 }

@@ -218,8 +218,8 @@ type Type struct {
 		GenRef  *udevgogen.TypeRef
 	}
 
-	Gen struct {
-		TVal    *udevgogen.TypeRef
+	G struct {
+		T       *udevgogen.TypeRef
 		TPtr    *udevgogen.TypeRef
 		TSl     *udevgogen.TypeRef
 		ThisVal udevgogen.NamedTyped

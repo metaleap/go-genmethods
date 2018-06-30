@@ -33,8 +33,8 @@ type Type struct {
 		GenRef  *udevgogen.TypeRef
 	}
 
-	Gen struct {
-		TVal    *udevgogen.TypeRef
+	G struct {
+		T       *udevgogen.TypeRef
 		TPtr    *udevgogen.TypeRef
 		TSl     *udevgogen.TypeRef
 		ThisVal udevgogen.NamedTyped
@@ -56,9 +56,9 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
 					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
-					t.Gen.TVal, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
-					t.Gen.TPtr, t.Gen.TSl = udevgogen.TrPtr(t.Gen.TVal), udevgogen.TrSlice(t.Gen.TVal)
-					t.Gen.ThisVal, t.Gen.ThisPtr = udevgogen.V.This.T(t.Gen.TVal), udevgogen.V.This.T(udevgogen.TrPtr(t.Gen.TVal))
+					t.G.T, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
+					t.G.TPtr, t.G.TSl = udevgogen.TrPtr(t.G.T), udevgogen.TrSlice(t.G.T)
+					t.G.ThisVal, t.G.ThisPtr = udevgogen.V.This.T(t.G.T), udevgogen.V.This.T(udevgogen.TrPtr(t.G.T))
 					this.Types.Add(t)
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {
