@@ -39,11 +39,11 @@ type GentIndexMethods struct {
 
 	IndexOf struct {
 		IndexMethodOpts
-		gent.Variadic
+		Variadic bool
 	}
 	IndexLast struct {
 		IndexMethodOpts
-		gent.Variadic
+		Variadic bool
 	}
 	IndicesOf struct {
 		IndexMethodOpts
@@ -51,7 +51,7 @@ type GentIndexMethods struct {
 	}
 	Contains struct {
 		IndexMethodOpts
-		gent.Variadic
+		Variadic bool
 	}
 }
 ```

@@ -28,8 +28,6 @@ func (this Str) With(placeholderNamesAndValues ...string) string {
 
 var strWith = ustr.NamedPlaceholders('{', '}')
 
-type Variadic bool
-
 type Variant struct {
 	Add          bool
 	NameOrSuffix string

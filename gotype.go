@@ -28,9 +28,14 @@ type Type struct {
 	Name  string
 	Alias bool
 
-	Underlying struct {
+	// Expr is whatever underlying-type this type-decl represents, that is:
+	// of the original `type foo bar` or `type foo = bar` declaration,
+	// this `Type` is the `foo` identity and its `Expr` captures the `bar`.
+	Expr struct {
+		// original AST's type-decl's `Expr` (stripped of any&all `ParenExpr`s)
 		AstExpr ast.Expr
-		GenRef  *udevgogen.TypeRef
+		// a code-gen `TypeRef` to this `Type` decl's underlying-type
+		GenRef *udevgogen.TypeRef
 	}
 
 	// code-gen values prepared for this `Type`
@@ -64,7 +69,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
 					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
-					t.G.T, t.Underlying.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
+					t.G.T, t.Expr.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
 					t.G.TPtr, t.G.Ts = udevgogen.TrPtr(t.G.T), udevgogen.TrSlice(t.G.T)
 					t.G.TPtrs, t.G.ThisVal, t.G.ThisPtr = udevgogen.TrSlice(t.G.TPtr), udevgogen.Vars.This.T(t.G.T), udevgogen.Vars.This.T(udevgogen.TrPtr(t.G.T))
 					this.Types.Add(t)
@@ -85,8 +90,8 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 
 func (this *Pkg) load_PopulateTypes() {
 	for _, t := range this.Types {
-		if t.Underlying.GenRef = goAstTypeExprToGenTypeRef(t.Underlying.AstExpr); t.Underlying.GenRef == nil {
-			panic(t.Underlying.AstExpr)
+		if t.Expr.GenRef = goAstTypeExpr2GenTypeRef(t.Expr.AstExpr); t.Expr.GenRef == nil {
+			panic(t.Expr.AstExpr)
 		}
 	}
 	for _, t := range this.Types {
@@ -95,10 +100,10 @@ func (this *Pkg) load_PopulateTypes() {
 }
 
 func (this *Type) setPotentiallyEnumish() {
-	if this.Enumish.BaseType = ""; this.Underlying.GenRef.Named.PkgName == "" && len(this.Enumish.ConstNames) > 0 {
-		switch this.Underlying.GenRef.Named.TypeName {
+	if this.Enumish.BaseType = ""; this.Expr.GenRef.Named.PkgName == "" && len(this.Enumish.ConstNames) > 0 {
+		switch this.Expr.GenRef.Named.TypeName {
 		case "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
-			this.Enumish.BaseType = this.Underlying.GenRef.Named.TypeName
+			this.Enumish.BaseType = this.Expr.GenRef.Named.TypeName
 		}
 	}
 	if this.Enumish.BaseType == "" {
@@ -111,5 +116,5 @@ func (this *Type) IsEnumish() bool {
 }
 
 func (this *Type) IsSliceOrArray() bool {
-	return this.Underlying.GenRef.ArrOrSliceOf.Val != nil
+	return this.Expr.GenRef.ArrOrSliceOf.Val != nil
 }

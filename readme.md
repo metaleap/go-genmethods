@@ -215,9 +215,14 @@ type Type struct {
 	Name  string
 	Alias bool
 
-	Underlying struct {
+	// Expr is whatever underlying-type this type-decl represents, that is:
+	// of the original `type foo bar` or `type foo = bar` declaration,
+	// this `Type` is the `foo` identity and its `Expr` captures the `bar`.
+	Expr struct {
+		// original AST's type-decl's `Expr` (stripped of any&all `ParenExpr`s)
 		AstExpr ast.Expr
-		GenRef  *udevgogen.TypeRef
+		// a code-gen `TypeRef` to this `Type` decl's underlying-type
+		GenRef *udevgogen.TypeRef
 	}
 
 	// code-gen values prepared for this `Type`
@@ -276,13 +281,6 @@ func (this *Types) Add(t *Type)
 ```go
 func (this Types) Named(name string) *Type
 ```
-
-#### type Variadic
-
-```go
-type Variadic bool
-```
-
 
 #### type Variant
 

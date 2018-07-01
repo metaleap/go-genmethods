@@ -28,14 +28,14 @@ func goAstTypeExprSansParens(expr ast.Expr) ast.Expr {
 	return expr
 }
 
-func goAstTypeExprToGenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
+func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 	switch tx := expr.(type) {
 	case *ast.Ident:
 		return udevgogen.TrNamed("", tx.Name)
 	case *ast.SelectorExpr:
 		return udevgogen.TrNamed(tx.Sel.Name, tx.X.(*ast.Ident).Name)
 	case *ast.StarExpr:
-		return udevgogen.TrPtr(goAstTypeExprToGenTypeRef(tx.X))
+		return udevgogen.TrPtr(goAstTypeExpr2GenTypeRef(tx.X))
 	case *ast.ArrayType:
 		switch l := tx.Len.(type) {
 		case *ast.BasicLit:
@@ -43,26 +43,26 @@ func goAstTypeExprToGenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 			if err != nil {
 				panic(err)
 			}
-			return udevgogen.TrArray(fixedlen, goAstTypeExprToGenTypeRef(tx.Elt))
+			return udevgogen.TrArray(fixedlen, goAstTypeExpr2GenTypeRef(tx.Elt))
 		default:
-			return udevgogen.TrSlice(goAstTypeExprToGenTypeRef(tx.Elt))
+			return udevgogen.TrSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
 		}
 	case *ast.Ellipsis:
-		sl := udevgogen.TrSlice(goAstTypeExprToGenTypeRef(tx.Elt))
+		sl := udevgogen.TrSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
 		sl.ArrOrSliceOf.IsEllipsis = true
 		return sl
 	case *ast.MapType:
-		return udevgogen.TrMap(goAstTypeExprToGenTypeRef(tx.Key), goAstTypeExprToGenTypeRef(tx.Value))
+		return udevgogen.TrMap(goAstTypeExpr2GenTypeRef(tx.Key), goAstTypeExpr2GenTypeRef(tx.Value))
 	case *ast.FuncType:
 		var tdfn udevgogen.TypeFunc
 		if tx.Params != nil {
 			for _, fld := range tx.Params.List {
-				tdfn.Args.Add("", goAstTypeExprToGenTypeRef(fld.Type))
+				tdfn.Args.Add("", goAstTypeExpr2GenTypeRef(fld.Type))
 			}
 		}
 		if tx.Results != nil {
 			for _, fld := range tx.Results.List {
-				tdfn.Rets.Add("", goAstTypeExprToGenTypeRef(fld.Type))
+				tdfn.Rets.Add("", goAstTypeExpr2GenTypeRef(fld.Type))
 			}
 		}
 		return udevgogen.TrFunc(&tdfn)
@@ -78,9 +78,9 @@ func goAstTypeExprToGenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 					fldname = fld.Names[0].Name
 				}
 				if len(fld.Names) == 0 {
-					tdi.Embeds = append(tdi.Embeds, goAstTypeExprToGenTypeRef(fld.Type))
+					tdi.Embeds = append(tdi.Embeds, goAstTypeExpr2GenTypeRef(fld.Type))
 				} else {
-					tdi.Methods.Add(fldname, goAstTypeExprToGenTypeRef(fld.Type))
+					tdi.Methods.Add(fldname, goAstTypeExpr2GenTypeRef(fld.Type))
 				}
 			}
 		}
@@ -101,12 +101,12 @@ func goAstTypeExprToGenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 				if fld.Tag != nil && fld.Tag.Kind == token.STRING {
 					fldtag, _ = strconv.Unquote(fld.Tag.Value)
 				}
-				tds.Fields = append(tds.Fields, udevgogen.TdStructFld(fldname, goAstTypeExprToGenTypeRef(fld.Type), goStructFieldTagsTryParse(fldtag)))
+				tds.Fields = append(tds.Fields, udevgogen.TdStructFld(fldname, goAstTypeExpr2GenTypeRef(fld.Type), goStructFieldTagsTryParse(fldtag)))
 			}
 		}
 		return udevgogen.TrStruct(&tds)
 	case *ast.ChanType:
-		return udevgogen.TrChan(tx.Dir == ast.RECV, tx.Dir == ast.SEND, goAstTypeExprToGenTypeRef(tx.Value))
+		return udevgogen.TrChan(tx.Dir == ast.RECV, tx.Dir == ast.SEND, goAstTypeExpr2GenTypeRef(tx.Value))
 	default:
 		panic(tx)
 	}
