@@ -55,11 +55,11 @@ func (*GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, arg
 		Doc().
 		Code(
 			OnlyIf(resultsCapFactor > 0,
-				V.R.SetTo(C.Make(ret.Type, L(0), C.Len(V.This).Div(L(resultsCapFactor)))),
+				ª.R.SetTo(C.Make(ret.Type, L(0), C.Len(ª.This).Div(L(resultsCapFactor)))),
 			),
-			ForRange(V.I, None, V.This,
+			ForRange(ª.I, None, ª.This,
 				IfThen(perItemPredicateExpr,
-					Set(V.R, C.Append(V.R, V.I))),
+					Set(ª.R, C.Append(ª.R, ª.I))),
 			),
 		)
 }
@@ -74,7 +74,7 @@ func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 			decls.Add(this.genIndexOfMethod(t, true)...)
 		}
 		if !this.IndicesOf.Disabled {
-			decls.Add(this.genIndicesOfMethods(t)...)
+			decls.Add(this.genIndicesOfs(t)...)
 		}
 		if !this.Contains.Disabled {
 			decls.Add(this.genContainsMethods(t)...)
@@ -84,7 +84,7 @@ func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 }
 
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls Syns) {
-	self, ret := &this.IndexOf, V.R.T(T.Int)
+	self, ret := &this.IndexOf, ª.R.T(T.Int)
 	if isLast {
 		self = &this.IndexLast
 	}
@@ -93,42 +93,42 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, isLast bool) (decls
 		fn := Fn(t.G.ThisVal, name, TdFn(Args(arg), ret))
 		var loop *StmtFor
 		if !isLast {
-			loop = ForRange(V.I, None, V.This, stmt)
+			loop = ForRange(ª.I, None, ª.This, stmt)
 		} else {
-			loop = ForLoop(Decl(V.I, Sub(C.Len(V.This), L(1))), Geq(V.I, L(0)), Set(V.I, Sub(V.I, L(1))), stmt)
+			loop = ForLoop(Decl(ª.I, Sub(C.Len(ª.This), L(1))), Geq(ª.I, L(0)), Set(ª.I, Sub(ª.I, L(1))), stmt)
 		}
-		fn.Add(loop, Set(V.R, L(-1)))
+		fn.Add(loop, Set(ª.R, L(-1)))
 		return fn
 	}
 
 	arg := this.arg(t, self.Variadic)
-	var stmt ISyn = IfThen(Eq(I(V.This, V.I), V.V),
-		Set(V.R, V.I), K.Ret)
+	var stmt ISyn = IfThen(Eq(I(ª.This, ª.I), ª.V),
+		Set(ª.R, ª.I), K.Return)
 	if self.Variadic {
-		stmt = ForRange(V.J, None, arg,
-			IfThen(Eq(I(V.This, V.I), I(V.V, V.J)),
-				Set(V.R, V.I), K.Ret))
+		stmt = ForRange(ª.J, None, arg,
+			IfThen(Eq(I(ª.This, ª.I), I(ª.V, ª.J)),
+				Set(ª.R, ª.I), K.Return))
 	}
 	fni := gen(self.Name, arg, stmt)
 	decls = append(decls, fni)
 
 	if self.Predicate.Add {
 		fnp := gen(self.Name+self.Predicate.NameOrSuffix, this.argPredicate(t),
-			IfThen(Call(V.Ok, V.This.At(V.I)),
-				Set(V.R, V.I), K.Ret))
+			IfThen(Call(ª.Ok, ª.This.At(ª.I)),
+				Set(ª.R, ª.I), K.Return))
 		decls = append(decls, fnp)
 	}
 	return
 }
 
-func (this *GentIndexMethods) genIndicesOfMethods(t *gent.Type) (decls Syns) {
-	self, r := &this.IndicesOf, V.R.T(T.Sl.Ints)
-	decls.Add(this.genIndicesOfMethod(t, self.Name, V.V.T(t.Underlying.GenRef.ArrOrSliceOf.Val), r, self.ResultsCapFactor,
-		V.This.At(V.I).Eq(V.V),
+func (this *GentIndexMethods) genIndicesOfs(t *gent.Type) (decls Syns) {
+	self, r := &this.IndicesOf, ª.R.T(T.Sl.Ints)
+	decls.Add(this.genIndicesOfMethod(t, self.Name, ª.V.T(t.Underlying.GenRef.ArrOrSliceOf.Val), r, self.ResultsCapFactor,
+		ª.This.At(ª.I).Eq(ª.V),
 	))
 	if self.Predicate.Add {
 		decls.Add(this.genIndicesOfMethod(t, self.Name+self.Predicate.NameOrSuffix, this.argPredicate(t), r, self.ResultsCapFactor,
-			Call(V.Ok, V.This.At(V.I)),
+			Call(ª.Ok, ª.This.At(ª.I)),
 		))
 	}
 	return
@@ -139,7 +139,7 @@ func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 }
 
 func (*GentIndexMethods) arg(t *gent.Type, variadic gent.Variadic) NamedTyped {
-	arg := V.V.T(t.Underlying.GenRef.ArrOrSliceOf.Val)
+	arg := ª.V.T(t.Underlying.GenRef.ArrOrSliceOf.Val)
 	if variadic {
 		arg.Type = TrSlice(arg.Type)
 		arg.Type.ArrOrSliceOf.IsEllipsis = true
@@ -148,5 +148,5 @@ func (*GentIndexMethods) arg(t *gent.Type, variadic gent.Variadic) NamedTyped {
 }
 
 func (*GentIndexMethods) argPredicate(t *gent.Type) NamedTyped {
-	return V.Ok.T(TdFunc().Arg("", t.Underlying.GenRef.ArrOrSliceOf.Val).Ret("", T.Bool).Ref())
+	return ª.Ok.T(TdFunc().Arg("", t.Underlying.GenRef.ArrOrSliceOf.Val).Ret("", T.Bool).Ref())
 }

@@ -45,6 +45,7 @@ const (
 
 ```go
 var (
+
 	// These "default `IGent`s" are a convenience offering in two ways:
 	// they illustrate usage of this package's individual `IGent` implementers' fields,
 	// and they allow importers their own "sane defaults" base for less-noisy tweaking.

@@ -34,7 +34,7 @@ func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 IExprBoolis
 			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
 		)).
 		Code(
-			V.R.SetTo(check1.And(check2)),
+			ª.R.SetTo(check1.And(check2)),
 		)
 }
 
@@ -48,12 +48,12 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
 
-		var op1, op2 IExprBoolish = V.This.Geq(N(name1)), V.This.Leq(N(name2))
+		var op1, op2 IExprBoolish = ª.This.Geq(N(name1)), ª.This.Leq(N(name2))
 		if invalid1 {
-			info1, op1 = "exclusive", V.This.Gt(N(name1))
+			info1, op1 = "exclusive", ª.This.Gt(N(name1))
 		}
 		if invalid2 {
-			info2, op2 = "exclusive", V.This.Lt(N(name2))
+			info2, op2 = "exclusive", ª.This.Lt(N(name2))
 		}
 		decls = Syns{this.genIsValidMethod(t, op1, op2, name1, info1, name2, info2)}
 	}

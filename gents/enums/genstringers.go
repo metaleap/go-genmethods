@@ -57,7 +57,7 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, switchCases SynCon
 			this.DocComment.With("N", this.Name, "T", t.Name),
 		).
 		Code(
-			Switch(V.This, len(switchCases)+1).
+			Switch(ª.This, len(switchCases)+1).
 				CasesOf(switchCases...).
 				DefaultCase(defCase...),
 		)
@@ -68,13 +68,13 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, mi
 	if this.ParseAddIgnoreCaseCmp {
 		casehint = "but case-insensitively"
 	}
-	var earlycheck IExprBoolish = C.Len(V.S).Lt(L(minLen))
+	var earlycheck IExprBoolish = C.Len(ª.S).Lt(L(minLen))
 	if maybeCommonPrefix != "" {
-		earlycheck = earlycheck.Or(Neq(V.S.At(Sl(L(0), L(len(maybeCommonPrefix)))), L(maybeCommonPrefix)))
+		earlycheck = earlycheck.Or(Neq(ª.S.At(Sl(L(0), L(len(maybeCommonPrefix)))), L(maybeCommonPrefix)))
 	}
-	return Func(funcname).Args(V.S.T(T.String)).Rets(t.G.ThisVal, V.Err).
+	return Func(funcname).Args(ª.S.T(T.String)).Rets(t.G.ThisVal, ª.Err).
 		Doc(
-			docComment.With("N", funcname, "T", t.Name, "s", V.S.Name, "str", this.Name, "caseSensitivity", casehint),
+			docComment.With("N", funcname, "T", t.Name, "s", ª.S.Name, "str", this.Name, "caseSensitivity", casehint),
 		).
 		Code(
 			IfThen(earlycheck,
@@ -82,22 +82,22 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, mi
 			Switch(nil, len(switchCases)+1).
 				CasesOf(switchCases...).
 				DefaultCase(GoTo("tryParseNum")),
-			K.Ret,
+			K.Return,
 			Label("tryParseNum", defCase...),
 		)
 }
 
 func (this *GentStringersMethods) genParseErrlessFunc(t *gent.Type, funcName string, parseFuncName string) *SynFunc {
 	maybe, fallback := N("maybe"+t.Name), N("fallback")
-	return Func(funcName).Arg(V.S.Name, T.String).Arg(fallback.Name, t.G.ThisVal.Type).Rets(t.G.ThisVal).
+	return Func(funcName).Arg(ª.S.Name, T.String).Arg(fallback.Name, t.G.ThisVal.Type).Rets(t.G.ThisVal).
 		Doc(
 			this.DocComments.ParsersErrlessVariant.With("N", funcName, "T", t.Name, "p", parseFuncName, "fallback", fallback.Name),
 		).
 		Code(
-			Tup(maybe, V.Err).Decl(C.Named(parseFuncName, V.S)),
-			If(V.Err.Eq(B.Nil),
-				Then(V.This.SetTo(maybe)),
-				Else(V.This.SetTo(fallback))),
+			Tup(maybe, ª.Err).Decl(C.Named(parseFuncName, ª.S)),
+			If(ª.Err.Eq(B.Nil),
+				Then(ª.This.SetTo(maybe)),
+				Else(ª.This.SetTo(fallback))),
 		)
 }
 
@@ -109,18 +109,18 @@ func (this *StringMethodOpts) genStringer(t *gent.Type, pkgstrconv PkgName) *Syn
 				renamed = rename(renamed)
 			}
 			switchcases.Add(N(enumerant),
-				V.R.SetTo(L(renamed)))
+				ª.R.SetTo(L(renamed)))
 		}
 	}
 
 	var switchdefault ISyn
 	switch t.Enumish.BaseType {
 	case "int":
-		switchdefault = V.R.SetTo(pkgstrconv.C("Itoa", T.Int.Conv(V.This)))
+		switchdefault = ª.R.SetTo(pkgstrconv.C("Itoa", T.Int.Conv(ª.This)))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		switchdefault = V.R.SetTo(pkgstrconv.C("FormatUint", T.Uint64.Conv(V.This), L(10)))
+		switchdefault = ª.R.SetTo(pkgstrconv.C("FormatUint", T.Uint64.Conv(ª.This), L(10)))
 	default:
-		switchdefault = V.R.SetTo(pkgstrconv.C("FormatInt", T.Int64.Conv(V.This), L(10)))
+		switchdefault = ª.R.SetTo(pkgstrconv.C("FormatInt", T.Int64.Conv(ª.This), L(10)))
 	}
 
 	return this.genStringerMethod(t, switchcases, switchdefault)
@@ -135,22 +135,22 @@ func (this *StringMethodOpts) genParser(t *gent.Type, docComment gent.Str, pkgst
 			}
 			enstrs = append(enstrs, enstr)
 			enlit := L(enstr)
-			var cmp IExprBoolish = V.S.Eq(enlit)
+			var cmp IExprBoolish = ª.S.Eq(enlit)
 			if this.ParseAddIgnoreCaseCmp {
-				cmp = cmp.Or(pkgstrings.C("EqualFold", V.S, enlit))
+				cmp = cmp.Or(pkgstrings.C("EqualFold", ª.S, enlit))
 			}
 			switchcases.Add(cmp,
-				V.This.SetTo(N(enumerant)),
+				ª.This.SetTo(N(enumerant)),
 			)
 		}
 	}
 
 	enumbasetype, defaultcase := TrNamed("", t.Enumish.BaseType), func(ebt *TypeRef, parse string, args ...ISyn) Syns {
-		vtmp := N(V.This.Name + t.Enumish.BaseType)
+		vtmp := N(ª.This.Name + t.Enumish.BaseType)
 		return Syns{Var(vtmp.Name, ebt, nil),
-			Tup(vtmp, V.Err).SetTo(pkgstrconv.C(parse, append(Syns{V.S}, args...)...)),
-			IfThen(V.Err.Eq(B.Nil),
-				V.This.SetTo(t.G.T.Conv(vtmp)),
+			Tup(vtmp, ª.Err).SetTo(pkgstrconv.C(parse, append(Syns{ª.S}, args...)...)),
+			IfThen(ª.Err.Eq(B.Nil),
+				ª.This.SetTo(t.G.T.Conv(vtmp)),
 			),
 		}
 	}

@@ -33,9 +33,11 @@ type GentIsFooMethods struct {
 
 func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
 	return t.G.ThisVal.Method(methodName).Sig(&Sigs.NoneToBool).
-		Doc(this.DocComment.With("N", methodName, "T", t.Name, "e", enumerant)).
+		Doc(
+			this.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
+		).
 		Code(
-			V.R.SetTo(V.This.Eq(N(enumerant))),
+			ª.R.SetTo(ª.This.Eq(N(enumerant))),
 		)
 }
 

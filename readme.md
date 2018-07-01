@@ -88,10 +88,12 @@ type CtxOpts struct {
 
 ```go
 type IGent interface {
-	// must never be `nil` (to implement, just embed `Opts`)
+	// must never return `nil` (easiest impl is to embed `Opts`)
 	Opt() *Opts
 
-	// may read from but never mutate its args
+	// may read from but never mutate its args.
+	// expected to generate preferentially funcs / methods
+	// instead of top-level const / var / type decls
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
 }
 ```
@@ -218,11 +220,19 @@ type Type struct {
 		GenRef  *udevgogen.TypeRef
 	}
 
+	// code-gen values prepared for this `Type`
 	G struct {
-		T       *udevgogen.TypeRef
-		TPtr    *udevgogen.TypeRef
-		TSl     *udevgogen.TypeRef
+		// a type-ref to this `Type`
+		T *udevgogen.TypeRef
+		// a type-ref to pointer-to-`Type`
+		TPtr *udevgogen.TypeRef
+		// a type-ref to slice-of-`Type`
+		Ts *udevgogen.TypeRef
+		// a type-ref to slice-of-pointers-to-`Type`
+		TPtrs *udevgogen.TypeRef
+		// Name="this" and Type=T.G.T
 		ThisVal udevgogen.NamedTyped
+		// Name="this" and Type=T.G.TPtr
 		ThisPtr udevgogen.NamedTyped
 	}
 
