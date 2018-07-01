@@ -51,7 +51,8 @@ type GentIndexMethods struct {
 	}
 	Contains struct {
 		IndexMethodOpts
-		Variadic bool
+		VariadicAny bool
+		VariadicAll bool
 	}
 }
 ```
