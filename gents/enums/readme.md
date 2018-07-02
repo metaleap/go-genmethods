@@ -88,7 +88,7 @@ An instance with illustrative defaults is in `Gents.IsFoo`.
 #### func (*GentIsFooMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
+func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
@@ -115,7 +115,7 @@ An instance with illustrative defaults is in `Gents.IsValid`.
 #### func (*GentIsValidMethod) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
+func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
 at most one method if `t` is a suitable enum type-def.

@@ -35,7 +35,7 @@ func (this *GentListEnumerantsFunc) genListEnumerantsFunc(t *gent.Type, funcName
 	return Func(funcName).Ret("names", T.Sl.Strings).Ret("values", TrSlice(t.G.T)).
 		Doc(this.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames)))).
 		Code(
-			Names("names", "values").SetTo(Lits(enumerantNames, enumerantValues)),
+			Names("names", "values").Set(Lits(enumerantNames, enumerantValues)),
 		)
 }
 

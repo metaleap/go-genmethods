@@ -27,20 +27,22 @@ type GentIsValidMethod struct {
 	IsLastInvalid  bool
 }
 
-func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, check1 IExprBoolish, check2 IExprBoolish, name1 string, hint1 string, name2 string, hint2 string) *SynFunc {
+type comparisonOperator = func(interface{}) IExprBoolish
+
+func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
 	return t.G.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
 		Doc(this.DocComment.With(
 			"N", this.MethodName, "T", t.Name,
 			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
 		)).
 		Code(
-			ª.R.SetTo(check1.And(check2)),
+			ª.R.Set(gtOrGeq(N(name1)).And(ltOrLeq(N(name2)))), // r = (this >? ‹lowestEnumerant›) && (this <? ‹highestEnumerant›)
 		)
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
-func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
+func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
 		invalid1, invalid2, info1, info2, name1, name2 := // 1 refers to enum's first enumerant here, and 2 to last enumerant
 			this.IsFirstInvalid, this.IsLastInvalid, "inclusive", "inclusive", t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1]
@@ -48,14 +50,14 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
 
-		var op1, op2 IExprBoolish = ª.This.Geq(N(name1)), ª.This.Leq(N(name2))
+		var op1, op2 comparisonOperator = ª.This.Geq, ª.This.Leq
 		if invalid1 {
-			info1, op1 = "exclusive", ª.This.Gt(N(name1))
+			info1, op1 = "exclusive", ª.This.Gt
 		}
 		if invalid2 {
-			info2, op2 = "exclusive", ª.This.Lt(N(name2))
+			info2, op2 = "exclusive", ª.This.Lt
 		}
-		decls = Syns{this.genIsValidMethod(t, op1, op2, name1, info1, name2, info2)}
+		yield = Syns{this.genIsValidMethod(t, op1, op2, name1, name2, info1, info2)}
 	}
 	return
 }

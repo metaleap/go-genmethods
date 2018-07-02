@@ -53,48 +53,52 @@ type IndexMethodOpts struct {
 
 func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
 	arg, ret := this.indexMethodArg(t, false, predicate), ª.R.T(T.Sl.Ints)
-	itemcheck := GEN_IF(!predicate, Then(
-		ª.This.At(ª.I).Eq(ª.V),
+	foreachitemcheckcond := GEN_IF(predicate, Then(
+		ª.Ok.Call(ª.This.At(ª.I)), // ok(this[i])
 	), Else(
-		Call(ª.Ok, ª.This.At(ª.I)),
+		ª.This.At(ª.I).Eq(ª.V), // this[i] == v
 	))
+
 	return t.G.ThisVal.Method(methodName, arg).Rets(ret).
 		Doc().
 		Code(
 			GEN_IF(resultsCapFactor > 0,
-				ª.R.SetTo(C.Make(ret.Type, L(0), C.Len(ª.This).Div(L(resultsCapFactor)))),
+				ª.R.Set(C.Make(ret.Type, L(0), C.Len(ª.This).Div(L(resultsCapFactor)))), // r = make([]int, 0, len(this) / ‹resultsCapFactor›)
 			),
-			ForEach(ª.I, None, ª.This,
-				IfThen(itemcheck,
-					Set(ª.R, C.Append(ª.R, ª.I))),
+			ForEach(ª.I, None, ª.This, // for i := range this
+				If(foreachitemcheckcond, Then( // if ‹check› {
+					ª.R.Set(C.Append(ª.R, ª.I)))), // r = append(r, i)
 			),
 		)
 }
 
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, isLast bool, variadic bool, predicate bool) *SynFunc {
 	arg := this.indexMethodArg(t, variadic, predicate)
-	loopbody := GEN_BYCASE(DEFAULT(
-		IfThen(Eq(I(ª.This, ª.I), ª.V),
-			Set(ª.R, ª.I), K.Return),
+	loopbody := GEN_BYCASE(USUALLY(
+		If(ª.This.At(ª.I).Eq(ª.V), Then( // if this[i] == v
+			ª.R.Set(ª.I), // r = i
+			K.Return)),
 	), UNLESS{
-		predicate: IfThen(Call(ª.Ok, ª.This.At(ª.I)),
-			Set(ª.R, ª.I), K.Return),
-		variadic: ForEach(ª.J, None, arg,
-			IfThen(Eq(I(ª.This, ª.I), I(ª.V, ª.J)),
-				Set(ª.R, ª.I), K.Return)),
+		predicate: If(ª.Ok.Call(ª.This.At(ª.I)), Then( // if ok(this[i])
+			ª.R.Set(ª.I), // r = i
+			K.Return)),
+		variadic: ForEach(ª.J, None, arg, // for j := range v
+			If(ª.This.At(ª.I).Eq(ª.V.At(ª.J)), Then( // if this[i] == v[j]
+				ª.R.Set(ª.I), // r = i
+				K.Return))),
 	})
 
 	return t.G.ThisVal.Method(methodName, arg).Rets(ª.R.T(T.Int)).
 		Doc().
 		Code(
 			GEN_IF(isLast, Then(
-				For(ª.I.Decl(C.Len(ª.This).Minus(L(1))), (ª.I.Geq(L(0))), (ª.I.SetTo(ª.I.Minus(L(1)))),
+				For(ª.I.Let(C.Len(ª.This).Minus(L(1))), (ª.I.Geq(L(0))), (ª.I.Decr1()), // for i := len(this)-1; i>=0; i--
 					loopbody),
 			), Else(
-				ForEach(ª.I, None, ª.This,
+				ForEach(ª.I, None, ª.This, // for i := range this
 					loopbody),
 			)),
-			ª.R.SetTo(L(-1)),
+			ª.R.Set(-1), // r = -1
 		)
 }
 
