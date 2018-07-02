@@ -45,7 +45,8 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 		names, values := make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {
-				names, values = append(names, L(enumerant)), append(values, NT(enumerant, t.G.T))
+				names.Add(L(enumerant))
+				values.Add(t.G.T.N(enumerant))
 			}
 		}
 		pluralsuffix := "s"

@@ -49,7 +49,7 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 		}
 	case *ast.Ellipsis:
 		sl := udevgogen.TrSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
-		sl.ArrOrSliceOf.IsEllipsis = true
+		sl.ArrOrSlice.IsEllipsis = true
 		return sl
 	case *ast.MapType:
 		return udevgogen.TrMap(goAstTypeExpr2GenTypeRef(tx.Key), goAstTypeExpr2GenTypeRef(tx.Value))
@@ -106,7 +106,7 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 		}
 		return udevgogen.TrStruct(&tds)
 	case *ast.ChanType:
-		return udevgogen.TrChan(tx.Dir == ast.RECV, tx.Dir == ast.SEND, goAstTypeExpr2GenTypeRef(tx.Value))
+		return udevgogen.TrChan(goAstTypeExpr2GenTypeRef(tx.Value), tx.Dir == ast.RECV, tx.Dir == ast.SEND)
 	default:
 		panic(tx)
 	}

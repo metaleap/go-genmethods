@@ -225,7 +225,7 @@ type Type struct {
 		GenRef *udevgogen.TypeRef
 	}
 
-	// code-gen values prepared for this `Type`
+	// commonly useful code-gen values prepared for this `Type`
 	G struct {
 		// a type-ref to this `Type`
 		T *udevgogen.TypeRef

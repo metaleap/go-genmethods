@@ -148,10 +148,10 @@ func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 
 func (this *GentIndexMethods) indexMethodArg(t *gent.Type, variadic bool, predicate bool) (arg NamedTyped) {
 	if predicate {
-		arg = ª.Ok.T(TdFunc().Arg("", t.Expr.GenRef.ArrOrSliceOf.Val).Ret("", T.Bool).Ref())
-	} else if arg = ª.V.T(t.Expr.GenRef.ArrOrSliceOf.Val); variadic {
+		arg = ª.Ok.T(TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool).Ref())
+	} else if arg = ª.V.T(t.Expr.GenRef.ArrOrSlice.Of); variadic {
 		arg.Type = TrSlice(arg.Type)
-		arg.Type.ArrOrSliceOf.IsEllipsis = true
+		arg.Type.ArrOrSlice.IsEllipsis = true
 	}
 	return
 }
