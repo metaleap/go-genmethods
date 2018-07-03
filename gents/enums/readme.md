@@ -141,7 +141,7 @@ An instance with illustrative defaults is in `Gents.List`.
 #### func (*GentListEnumerantsFunc) GenerateTopLevelDecls
 
 ```go
-func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
+func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 

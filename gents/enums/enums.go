@@ -11,7 +11,7 @@ import (
 
 var (
 	// common var-names such as "i", "ok", "err", "this" etc.
-	ª = udevgogen.Vars
+	ˇ = udevgogen.Vars
 
 	// These "default `IGent`s" are a convenience offering in two ways:
 	// they illustrate usage of this package's individual `IGent` implementers' fields,

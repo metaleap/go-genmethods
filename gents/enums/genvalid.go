@@ -30,13 +30,13 @@ type GentIsValidMethod struct {
 type comparisonOperator = func(interface{}) IExprBoolish
 
 func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
-	return t.G.ThisVal.Method(this.MethodName).Sig(&Sigs.NoneToBool).
+	return t.G.ThisVal.Method(this.MethodName).Rets(ˇ.R.OfType(T.Bool)).
 		Doc(this.DocComment.With(
 			"N", this.MethodName, "T", t.Name,
 			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
 		)).
 		Code(
-			ª.R.Set(gtOrGeq(N(name1)).And(ltOrLeq(N(name2)))), // r = (this >? ‹lowestEnumerant›) && (this <? ‹highestEnumerant›)
+			ˇ.R.Set(gtOrGeq(N(name1)).And(ltOrLeq(N(name2)))), // r = (this >? ‹lowestEnumerant›) && (this <? ‹highestEnumerant›)
 		)
 }
 
@@ -50,12 +50,12 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
 
-		var op1, op2 comparisonOperator = ª.This.Geq, ª.This.Leq
+		var op1, op2 comparisonOperator = ˇ.This.Geq, ˇ.This.Leq
 		if invalid1 {
-			info1, op1 = "exclusive", ª.This.Gt
+			info1, op1 = "exclusive", ˇ.This.Gt
 		}
 		if invalid2 {
-			info2, op2 = "exclusive", ª.This.Lt
+			info2, op2 = "exclusive", ˇ.This.Lt
 		}
 		yield = Syns{this.genIsValidMethod(t, op1, op2, name1, name2, info1, info2)}
 	}

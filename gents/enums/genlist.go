@@ -33,14 +33,16 @@ type GentListEnumerantsFunc struct {
 
 func (this *GentListEnumerantsFunc) genListEnumerantsFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
 	return Func(funcName).Ret("names", T.Sl.Strings).Ret("values", TrSlice(t.G.T)).
-		Doc(this.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames)))).
+		Doc(
+			this.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
+		).
 		Code(
 			Names("names", "values").Set(Lits(enumerantNames, enumerantValues)),
 		)
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns) {
+func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
 		names, values := make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
@@ -57,7 +59,7 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 		if strings.HasSuffix(fname, "ys") {
 			fname = fname[:len(fname)-2] + "ies"
 		}
-		decls.Add(this.genListEnumerantsFunc(t, fname, names, values))
+		yield.Add(this.genListEnumerantsFunc(t, fname, names, values))
 	}
 	return
 }

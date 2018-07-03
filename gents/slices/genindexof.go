@@ -52,22 +52,22 @@ type IndexMethodOpts struct {
 }
 
 func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
-	arg, ret := this.indexMethodArg(t, false, predicate), ª.R.T(T.Sl.Ints)
+	arg, ret := this.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.Sl.Ints)
 	foreachitemcheckcond := GEN_IF(predicate, Then(
-		ª.Ok.Call(ª.This.At(ª.I)), // ok(this[i])
+		ˇ.Ok.Call(ˇ.This.At(ˇ.I)), // ok(this[i])
 	), Else(
-		ª.This.At(ª.I).Eq(ª.V), // this[i] == v
+		ˇ.This.At(ˇ.I).Eq(ˇ.V), // this[i] == v
 	))
 
 	return t.G.ThisVal.Method(methodName, arg).Rets(ret).
 		Doc().
 		Code(
 			GEN_IF(resultsCapFactor > 0,
-				ª.R.Set(C.Make(ret.Type, L(0), C.Len(ª.This).Div(L(resultsCapFactor)))), // r = make([]int, 0, len(this) / ‹resultsCapFactor›)
+				ˇ.R.Set(C.Make(ret.Type, L(0), C.Len(ˇ.This).Div(L(resultsCapFactor)))), // r = make([]int, 0, len(this) / ‹resultsCapFactor›)
 			),
-			ForEach(ª.I, None, ª.This, // for i := range this
+			ForEach(ˇ.I, None, ˇ.This, // for i := range this
 				If(foreachitemcheckcond, Then( // if ‹check› {
-					ª.R.Set(C.Append(ª.R, ª.I)))), // r = append(r, i)
+					ˇ.R.Set(C.Append(ˇ.R, ˇ.I)))), // r = append(r, i)
 			),
 		)
 }
@@ -75,30 +75,30 @@ func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, isLast bool, variadic bool, predicate bool) *SynFunc {
 	arg := this.indexMethodArg(t, variadic, predicate)
 	loopbody := GEN_BYCASE(USUALLY(
-		If(ª.This.At(ª.I).Eq(ª.V), Then( // if this[i] == v
-			ª.R.Set(ª.I), // r = i
+		If(ˇ.This.At(ˇ.I).Eq(ˇ.V), Then( // if this[i] == v
+			ˇ.R.Set(ˇ.I), // r = i
 			K.Return)),
 	), UNLESS{
-		predicate: If(ª.Ok.Call(ª.This.At(ª.I)), Then( // if ok(this[i])
-			ª.R.Set(ª.I), // r = i
+		predicate: If(ˇ.Ok.Call(ˇ.This.At(ˇ.I)), Then( // if ok(this[i])
+			ˇ.R.Set(ˇ.I), // r = i
 			K.Return)),
-		variadic: ForEach(ª.J, None, arg, // for j := range v
-			If(ª.This.At(ª.I).Eq(ª.V.At(ª.J)), Then( // if this[i] == v[j]
-				ª.R.Set(ª.I), // r = i
+		variadic: ForEach(ˇ.J, None, arg, // for j := range v
+			If(ˇ.This.At(ˇ.I).Eq(ˇ.V.At(ˇ.J)), Then( // if this[i] == v[j]
+				ˇ.R.Set(ˇ.I), // r = i
 				K.Return))),
 	})
 
-	return t.G.ThisVal.Method(methodName, arg).Rets(ª.R.T(T.Int)).
+	return t.G.ThisVal.Method(methodName, arg).Rets(ˇ.R.OfType(T.Int)).
 		Doc().
 		Code(
 			GEN_IF(isLast, Then(
-				For(ª.I.Let(C.Len(ª.This).Minus(L(1))), (ª.I.Geq(L(0))), (ª.I.Decr1()), // for i := len(this)-1; i>=0; i--
+				For(ˇ.I.Let(C.Len(ˇ.This).Minus(L(1))), (ˇ.I.Geq(L(0))), (ˇ.I.Decr1()), // for i := len(this)-1; i>=0; i--
 					loopbody),
 			), Else(
-				ForEach(ª.I, None, ª.This, // for i := range this
+				ForEach(ˇ.I, None, ˇ.This, // for i := range this
 					loopbody),
 			)),
-			ª.R.Set(-1), // r = -1
+			ˇ.R.Set(-1), // r = -1
 		)
 }
 
@@ -148,8 +148,8 @@ func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 
 func (this *GentIndexMethods) indexMethodArg(t *gent.Type, variadic bool, predicate bool) (arg NamedTyped) {
 	if predicate {
-		arg = ª.Ok.T(TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool).Ref())
-	} else if arg = ª.V.T(t.Expr.GenRef.ArrOrSlice.Of); variadic {
+		arg = ˇ.Ok.OfType(TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool).Ref())
+	} else if arg = ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of); variadic {
 		arg.Type = TrSlice(arg.Type)
 		arg.Type.ArrOrSlice.IsEllipsis = true
 	}
