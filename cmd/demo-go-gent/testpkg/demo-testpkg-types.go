@@ -116,6 +116,13 @@ type fixedSize struct {
 	sixt2  [6][7]complex384
 }
 
-const three = 3
+type Num int
+
+const (
+	zero Num = iota
+	one
+	two
+	three
+)
 
 type complex384 [three]complex128

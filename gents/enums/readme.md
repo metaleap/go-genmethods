@@ -151,7 +151,7 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 type GentStringersMethods struct {
 	gent.Opts
 
-	Stringers   []StringMethodOpts
+	All         []StringMethodOpts
 	DocComments struct {
 		Parsers               gent.Str
 		ParsersErrlessVariant gent.Str

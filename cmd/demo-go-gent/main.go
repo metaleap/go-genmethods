@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/go-leap/str"
 	"github.com/metaleap/go-gent"
 	"github.com/metaleap/go-gent/gents/enums"
 	"github.com/metaleap/go-gent/gents/slices"
@@ -32,7 +33,8 @@ func main() {
 		gentslices.Gents.All,
 	)
 	gents.EnableOrDisableAllVariantsAndOptionals(true)
-	gentenums.Gents.Stringers.Stringers[0].Parser.WithIgnoreCaseCmp = true
+	gentenums.Gents.Stringers.All[0].Parser.WithIgnoreCaseCmp = true
+	gentenums.Gents.Stringers.All[0].EnumerantRename = func(en string) string { return ustr.CaseSnake(ustr.Replace(en, "_", "·")) }
 
 	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(nil, gents)
 	fmt.Println("total time taken for all parallel runs and INCL. gofmt + file-write :\n\t\t" + timetotal.String())
