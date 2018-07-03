@@ -24,10 +24,10 @@ var (
 		Stringers GentStringersMethods
 
 		// contains pointers to all the above fields, in order
-		All []gent.IGent
+		All gent.Gents
 	}
 )
 
 func init() {
-	Gents.All = []gent.IGent{&Gents.IsFoo, &Gents.IsValid, &Gents.List, &Gents.Stringers}
+	Gents.All = gent.Gents{&Gents.IsFoo, &Gents.IsValid, &Gents.List, &Gents.Stringers}
 }

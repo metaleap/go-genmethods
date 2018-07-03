@@ -26,7 +26,7 @@ var (
 		IndexOf GentIndexMethods
 
 		// contains pointers to all the above fields, in order
-		All []gent.IGent
+		All gent.Gents
 	}
 )
 ```
@@ -41,14 +41,20 @@ type GentIndexMethods struct {
 		IndexMethodOpts
 		Variadic bool
 	}
+
+	// `Disabled` in `Gents.IndexOf` by default
 	IndexLast struct {
 		IndexMethodOpts
 		Variadic bool
 	}
+
+	// `Disabled` in `Gents.IndexOf` by default
 	IndicesOf struct {
 		IndexMethodOpts
 		ResultsCapFactor uint
 	}
+
+	// `Disabled` in `Gents.IndexOf` by default
 	Contains struct {
 		IndexMethodOpts
 		VariadicAny bool
@@ -58,10 +64,18 @@ type GentIndexMethods struct {
 ```
 
 
+#### func (*GentIndexMethods) EnableOrDisableAllVariantsAndOptionals
+
+```go
+func (this *GentIndexMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+```
+EnableOrDisableAllVariantsAndOptionals implements
+`github.com/metaleap/go-gent.IGent`.
+
 #### func (*GentIndexMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
+func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 

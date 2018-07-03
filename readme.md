@@ -84,12 +84,41 @@ type CtxOpts struct {
 ```
 
 
+#### type Gents
+
+```go
+type Gents []IGent
+```
+
+
+#### func (Gents) EnableOrDisableAll
+
+```go
+func (this Gents) EnableOrDisableAll(enabled bool)
+```
+
+#### func (Gents) EnableOrDisableAllVariantsAndOptionals
+
+```go
+func (this Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+```
+
+#### func (Gents) With
+
+```go
+func (this Gents) With(gents ...Gents) (all Gents)
+```
+
 #### type IGent
 
 ```go
 type IGent interface {
 	// must never return `nil` (easiest impl is to embed `Opts`)
 	Opt() *Opts
+
+	// implemented as a no-op by `Opts`, to be
+	// overridden by implementations as desired
+	EnableOrDisableAllVariantsAndOptionals(bool)
 
 	// may read from but never mutate its args.
 	// expected to generate preferentially funcs / methods
@@ -113,6 +142,16 @@ type Opts struct {
 ```
 
 Opts related to a single `IGent`, and designed for embedding.
+
+#### func (*Opts) EnableOrDisableAllVariantsAndOptionals
+
+```go
+func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool)
+```
+EnableOrDisableAllVariantsAndOptionals implements `IGent` but with a no-op, to
+be overridden by `Opts`-embedders as desired.
+
+To disable or enable an `IGent` itself, set `Opts.Disabled`.
 
 #### func (*Opts) Opt
 
@@ -159,7 +198,7 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error)
+func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents Gents) (src []byte, timeTaken time.Duration, err error)
 ```
 
 #### type Pkgs
@@ -184,13 +223,13 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
 ```
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 
 #### type Str
@@ -230,15 +269,15 @@ type Type struct {
 		// a type-ref to this `Type`
 		T *udevgogen.TypeRef
 		// a type-ref to pointer-to-`Type`
-		TPtr *udevgogen.TypeRef
+		Tª *udevgogen.TypeRef
 		// a type-ref to slice-of-`Type`
 		Ts *udevgogen.TypeRef
 		// a type-ref to slice-of-pointers-to-`Type`
-		TPtrs *udevgogen.TypeRef
+		Tªs *udevgogen.TypeRef
 		// Name="this" and Type=T.G.T
-		ThisVal udevgogen.NamedTyped
-		// Name="this" and Type=T.G.TPtr
-		ThisPtr udevgogen.NamedTyped
+		This udevgogen.NamedTyped
+		// Name="this" and Type=T.G.Tª
+		Thisª udevgogen.NamedTyped
 	}
 
 	Enumish struct {

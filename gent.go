@@ -14,10 +14,37 @@ type IGent interface {
 	// must never return `nil` (easiest impl is to embed `Opts`)
 	Opt() *Opts
 
+	// implemented as a no-op by `Opts`, to be
+	// overridden by implementations as desired
+	EnableOrDisableAllVariantsAndOptionals(bool)
+
 	// may read from but never mutate its args.
 	// expected to generate preferentially funcs / methods
 	// instead of top-level const / var / type decls
 	GenerateTopLevelDecls(*Ctx, *Type) udevgogen.Syns
+}
+
+type Gents []IGent
+
+func (this Gents) With(gents ...Gents) (all Gents) {
+	all = append(make(Gents, 0, len(this)+2*len(gents)), this...)
+	for i := range gents {
+		all = append(all, gents[i]...)
+	}
+	return
+}
+
+func (this Gents) EnableOrDisableAll(enabled bool) {
+	disabled := !enabled
+	for i := range this {
+		this[i].Opt().Disabled = disabled
+	}
+}
+
+func (this Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+	for i := range this {
+		this[i].EnableOrDisableAllVariantsAndOptionals(enabled)
+	}
 }
 
 // Opts related to a single `IGent`, and designed for embedding.
@@ -28,6 +55,12 @@ type Opts struct {
 	RunOnlyForTypesNamed  []string
 	MayRunForType         func(*Type) bool
 }
+
+// EnableOrDisableAllVariantsAndOptionals implements `IGent` but
+// with a no-op, to be overridden by `Opts`-embedders as desired.
+//
+// To disable or enable an `IGent` itself, set `Opts.Disabled`.
+func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool) {}
 
 func (this *Opts) mayRunForType(t *Type) bool {
 	if this.Disabled || t.Alias {
@@ -55,7 +88,7 @@ func (this *Opts) mayRunForType(t *Type) bool {
 // Opt implements `IGent.Opt()` for `Opts` embedders.
 func (this *Opts) Opt() *Opts { return this }
 
-func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, timeTaken time.Duration, err error) {
+func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents Gents) (src []byte, timeTaken time.Duration, err error) {
 	dst, ctx, codegencommentnotice :=
 		udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), maybeCtxOpt.newCtx(this, gents), CodeGenCommentNotice.With("progName", CodeGenCommentProgName)
 	for _, t := range this.Types {
@@ -71,20 +104,20 @@ func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents ...IGent) (src []byte, tim
 	return
 }
 
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
 	var errs map[*Pkg]error
-	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpt, gents...)
+	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpt, gents)
 	for _, err := range errs {
 		panic(err)
 	}
 	return
 }
 
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents ...IGent) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
-		src, timetaken, err := pkg.RunGents(maybeCtxOpt, gents...)
+		src, timetaken, err := pkg.RunGents(maybeCtxOpt, gents)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
 		} else {

@@ -25,7 +25,7 @@ func (this complex384) IndexFunc(ok func(complex128) bool) (r int) {
 }
 
 func (this complex384) LastIndex(v complex128) (r int) {
-	for i := len(this) - 1; i >= 0; i-- {
+	for i := len(this) - 1; i > -1; i-- {
 		if this[i] == v {
 			r = i
 			return
@@ -36,7 +36,7 @@ func (this complex384) LastIndex(v complex128) (r int) {
 }
 
 func (this complex384) LastIndexFunc(ok func(complex128) bool) (r int) {
-	for i := len(this) - 1; i >= 0; i-- {
+	for i := len(this) - 1; i > -1; i-- {
 		if ok(this[i]) {
 			r = i
 			return

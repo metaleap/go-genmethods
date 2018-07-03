@@ -35,13 +35,13 @@ type Ctx struct {
 	Opt CtxOpts
 
 	pkg                            *Pkg
-	gents                          []IGent
+	gents                          Gents
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
 }
 
-func (this *CtxOpts) newCtx(pkg *Pkg, gents []IGent) *Ctx {
+func (this *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 	if this == nil {
 		this = &Defaults.CtxOpt
 	}

@@ -27,10 +27,10 @@ type GentIsValidMethod struct {
 	IsLastInvalid  bool
 }
 
-type comparisonOperator = func(interface{}) IExprBoolish
+type comparisonOperator = func(Any) IExprBoolish
 
 func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
-	return t.G.ThisVal.Method(this.MethodName).Rets(ˇ.R.OfType(T.Bool)).
+	return t.G.This.Method(this.MethodName).Rets(ˇ.R.OfType(T.Bool)).
 		Doc(this.DocComment.With(
 			"N", this.MethodName, "T", t.Name,
 			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,

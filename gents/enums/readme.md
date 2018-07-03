@@ -57,7 +57,7 @@ var (
 		Stringers GentStringersMethods
 
 		// contains pointers to all the above fields, in order
-		All []gent.IGent
+		All gent.Gents
 	}
 )
 ```
@@ -164,10 +164,18 @@ methods, optionally with corresponding "parsing" funcs.
 
 An instance with illustrative defaults is in `Gents.String`.
 
+#### func (*GentStringersMethods) EnableOrDisableAllVariantsAndOptionals
+
+```go
+func (this *GentStringersMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+```
+EnableOrDisableAllVariantsAndOptionals implements
+`github.com/metaleap/go-gent.IGent`.
+
 #### func (*GentStringersMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (decls Syns)
+func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -175,12 +183,15 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
 ```go
 type StringMethodOpts struct {
-	Disabled              bool
-	DocComment            gent.Str
-	Name                  string
-	EnumerantRename       func(string) string
-	ParseFuncName         gent.Str
-	ParseAddIgnoreCaseCmp bool
-	ParseErrless          gent.Variant
+	Disabled        bool
+	DocComment      gent.Str
+	Name            string
+	EnumerantRename func(string) string
+	Parser          struct {
+		Add               bool
+		WithIgnoreCaseCmp bool
+		Errless           gent.Variant
+		FuncName          gent.Str
+	}
 }
 ```

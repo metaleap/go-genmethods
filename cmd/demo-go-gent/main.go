@@ -20,15 +20,6 @@ func main() {
 		"github.com/metaleap/zentient/lang/golang":             "°_gent.go",
 	})
 
-	gents := []gent.IGent{
-		&gentenums.Gents.IsValid,
-		// &gentenums.Gents.IsFoo, // useless & noisy, just a nice simple starting point for custom/new gents
-		&gentenums.Gents.Stringers,
-		&gentenums.Gents.List,
-
-		&gentslices.Gents.IndexOf,
-	}
-
 	gent.Defaults.CtxOpt.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {
 		if g == &gentenums.Gents.Stringers {
 			return !(t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
@@ -36,7 +27,14 @@ func main() {
 		return true
 	}
 
-	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(nil, gents...)
+	gents := gent.Gents{}.With(
+		gentenums.Gents.All,
+		gentslices.Gents.All,
+	)
+	gents.EnableOrDisableAllVariantsAndOptionals(true)
+	gentenums.Gents.Stringers.Stringers[0].Parser.WithIgnoreCaseCmp = true
+
+	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(nil, gents)
 	fmt.Println("total time taken for all parallel runs and INCL. gofmt + file-write :\n\t\t" + timetotal.String())
 	for pkg, timetaken := range timeperpkg {
 		fmt.Println("time taken for " + pkg.ImportPath + " EXCL. gofmt & file-write:\n\t\t" + timetaken.String())

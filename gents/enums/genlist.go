@@ -2,9 +2,9 @@ package gentenums
 
 import (
 	"strconv"
-	"strings"
 
 	. "github.com/go-leap/dev/go/gen"
+	"github.com/go-leap/str"
 	"github.com/metaleap/go-gent"
 )
 
@@ -51,14 +51,12 @@ func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent
 				values.Add(t.G.T.N(enumerant))
 			}
 		}
-		pluralsuffix := "s"
-		if strings.HasSuffix(t.Name, "s") {
-			pluralsuffix = "es"
-		}
-		fname := this.FuncName.With("T", t.Name, "s", pluralsuffix)
-		if strings.HasSuffix(fname, "ys") {
+
+		fname := this.FuncName.With("T", t.Name, "s", ustr.If(ustr.Suff(t.Name, "s"), "es", "s"))
+		if ustr.Suff(fname, "ys") {
 			fname = fname[:len(fname)-2] + "ies"
 		}
+
 		yield.Add(this.genListEnumerantsFunc(t, fname, names, values))
 	}
 	return

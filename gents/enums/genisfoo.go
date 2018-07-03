@@ -32,7 +32,7 @@ type GentIsFooMethods struct {
 }
 
 func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
-	return t.G.ThisVal.Method(methodName).Rets(ˇ.R.OfType(T.Bool)).
+	return t.G.This.Method(methodName).Rets(ˇ.R.OfType(T.Bool)).
 		Doc(
 			this.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
 		).
