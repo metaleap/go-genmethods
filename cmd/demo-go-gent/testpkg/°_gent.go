@@ -56,19 +56,22 @@ func NumFromString(s string) (this Num, err error) {
 	if (len(s) < 3) || (len(s) > 5) {
 		goto tryParseNum
 	}
-	switch {
-	case pkg__strings.EqualFold(s, "Zero"):
-		this = zero
-	case pkg__strings.EqualFold(s, "One"):
-		this = one
-	case pkg__strings.EqualFold(s, "Two"):
-		this = two
-	case pkg__strings.EqualFold(s, "Three"):
-		this = three
-	default:
-		goto tryParseNum
+	{
+		t := s
+		switch {
+		case pkg__strings.EqualFold(t, "Zero"):
+			this = zero
+		case pkg__strings.EqualFold(t, "One"):
+			this = one
+		case pkg__strings.EqualFold(t, "Two"):
+			this = two
+		case pkg__strings.EqualFold(t, "Three"):
+			this = three
+		default:
+			goto tryParseNum
+		}
+		return
 	}
-	return
 tryParseNum:
 	var v int
 	v, err = pkg__strconv.Atoi(s)
@@ -117,19 +120,22 @@ func NumFromGoString(s string) (this Num, err error) {
 	if (len(s) < 3) || (len(s) > 5) {
 		goto tryParseNum
 	}
-	switch s {
-	case "zero":
-		this = zero
-	case "one":
-		this = one
-	case "two":
-		this = two
-	case "three":
-		this = three
-	default:
-		goto tryParseNum
+	{
+		t := s
+		switch t {
+		case "zero":
+			this = zero
+		case "one":
+			this = one
+		case "two":
+			this = two
+		case "three":
+			this = three
+		default:
+			goto tryParseNum
+		}
+		return
 	}
-	return
 tryParseNum:
 	var v int
 	v, err = pkg__strconv.Atoi(s)

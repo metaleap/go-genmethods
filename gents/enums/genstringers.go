@@ -69,55 +69,50 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 			this.DocComment.With("N", this.Name, "T", t.Name),
 		).
 		Code(
-			GEN_EITHER(earlycheck == nil, nil, If(earlycheck, Then(GoTo("formatNum")))),
-			Switch(ˇ.This).
-				DefaultCase(GoTo("formatNum")).
-				CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn { // switch this
+			GEN_MAYBE(If(earlycheck, Then(GoTo("formatNum")))), // if ‹earlycheck› { goto formatNum }
+			Switch(ˇ.This). // switch this
+					DefaultCase(GoTo("formatNum")). // default: goto formatNum
+					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
 					return Case(N(names[i]), // case ‹enumerantIdent›:
 						ˇ.R.Set(L(renames[i]))) // r = "‹enumerantNameOrRenamed›"
 				})...),
 			K.Return,
 			Label("formatNum",
 				GEN_BYCASE(USUALLY(ˇ.R.Set( // r =
-					pkgstrconv.C("FormatInt", T.Int64.Conv(ˇ.This), 10)), // pkg__strconv.FormatInt(int64(this), 10)
+					pkgstrconv.Call("FormatInt", T.Int64.Conv(ˇ.This), 10)), // pkg__strconv.FormatInt(int64(this), 10)
 				), UNLESS{
 					ebt == "int": ˇ.R.Set( // r =
-						pkgstrconv.C("Itoa", T.Int.Conv(ˇ.This))), // pkg__strconv.Itoa(int(this))
+						pkgstrconv.Call("Itoa", T.Int.Conv(ˇ.This))), // pkg__strconv.Itoa(int(this))
 					ustr.In(ebt, "uint", "uint8", "uint16", "uint32", "uint64"): ˇ.R.Set( // r =
-						pkgstrconv.C("FormatUint", T.Uint64.Conv(ˇ.This), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
+						pkgstrconv.Call("FormatUint", T.Uint64.Conv(ˇ.This), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
 				}),
 			),
 		)
 }
 
 func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pkgstrconv PkgName, pkgstrings PkgName, names []string, renames []string) *SynFunc {
-	casehint, parsefuncname := "and case-sensitively", this.Parser.FuncName.With("T", t.Name, "str", this.Name)
+	maybecommonprefix, casehint, parsefuncname :=
+		"", "and case-sensitively", this.Parser.FuncName.With("T", t.Name, "str", this.Name)
 	if this.Parser.WithIgnoreCaseCmp {
 		casehint = "but case-insensitively"
 	}
 
 	var earlycheck IExprBoolish
-	if !this.SkipEarlyChecks {
-		minlen, maxlen := ustr.ShortestAndLongest(renames...)
+	if minlen, maxlen := ustr.ShortestAndLongest(renames...); !this.SkipEarlyChecks {
 		earlycheck = B.Len.Of(ˇ.S).Lt(minlen).Or(B.Len.Of(ˇ.S).Gt(maxlen)) // len(s) < ‹minLen› || len(s) > ‹maxLen›
-		if maybecommonprefix := ustr.CommonPrefix(renames...); maybecommonprefix != "" {
+		if maybecommonprefix = ustr.CommonPrefix(renames...); maybecommonprefix != "" {
 			if l := len(maybecommonprefix); !this.Parser.WithIgnoreCaseCmp {
-				earlycheck = earlycheck.Or(ˇ.S.Sl(0, l).Neq(maybecommonprefix)) // || s[0:5] != "PREF_" (for example)
+				earlycheck = earlycheck.Or(ˇ.S.Sl(0, l).Neq(maybecommonprefix)) // || s[0:5] != "PREF_" // (for example)
 			} else {
-				earlycheck = earlycheck.Or(Not(pkgstrings.C("EqualFold", ˇ.S.Sl(0, l), maybecommonprefix)))
+				earlycheck = earlycheck.Or(Not(pkgstrings.Call("EqualFold", ˇ.S.Sl(0, l), maybecommonprefix))) // || !strings.EqualFold(s[0:5], "Pref_") // (for example)
 			}
 		}
 	}
 
-	var scrut ISyn
-	if !this.Parser.WithIgnoreCaseCmp {
-		scrut = ˇ.S
-	}
-
-	ebt, tryparsenumvia := TrNamed("", t.Enumish.BaseType), func(inttype *TypeRef, parsefuncname string, args ...Any) Syns {
+	ebt, tryparseint := TrNamed("", t.Enumish.BaseType), func(inttype *TypeRef, parsefuncname string, args ...Any) Syns {
 		return Syns{
-			Var(ˇ.V.Name, inttype, nil),                                                      // var v ‹inttype›
-			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.C(parsefuncname, append([]Any{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
+			Var(ˇ.V.Name, inttype, nil),                                                         // var v ‹inttype›
+			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.Call(parsefuncname, append([]Any{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
 			If(ˇ.Err.Eq(B.Nil), Then( // if err == nil
 				ˇ.This.Set(t.G.T.Conv(ˇ.V)), // this = ‹enumType›(v)
 			)),
@@ -129,21 +124,24 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 			docComment.With("N", parsefuncname, "T", t.Name, "s", ˇ.S.Name, "str", this.Name, "caseSensitivity", casehint),
 		).
 		Code(
-			GEN_EITHER(earlycheck == nil, nil, If(earlycheck, Then(GoTo("tryParseNum")))),
-			Switch(scrut).
-				DefaultCase(GoTo("tryParseNum")).
-				CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn { // switch this
-					enname, enstrlit := N(names[i]), L(renames[i])
-					return Case(GEN_EITHER(!this.Parser.WithIgnoreCaseCmp, enstrlit, pkgstrings.C("EqualFold", ˇ.S, enstrlit)),
-						ˇ.This.Set(enname))
-				})...),
-			K.Return,
-			Label("tryParseNum", GEN_BYCASE(USUALLY(tryparsenumvia(
+			GEN_MAYBE(If(earlycheck, Then(GoTo("tryParseNum")))), // if ‹earlycheck› { goto tryParseNum }
+			Block(
+				ˇ.T.Let(GEN_EITHER(len(maybecommonprefix) == 0, ˇ.S, ˇ.S.Sl(len(maybecommonprefix), -1))), // t := s   ~|OR|~   t := s[‹lenOfCommonPrefix›:]
+				Switch(GEN_EITHER(this.Parser.WithIgnoreCaseCmp, nil, ˇ.T)).
+					DefaultCase(GoTo("tryParseNum")). // default: goto tryParseNum
+					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
+						enname, enstrlit := N(names[i]), L(renames[i][len(maybecommonprefix):])
+						return Case(GEN_EITHER(!this.Parser.WithIgnoreCaseCmp, enstrlit, pkgstrings.Call("EqualFold", ˇ.T, enstrlit)), // case "‹enumerant›"   ~|OR|~   case strings.EqualFold(t, "‹enumerant›")
+							ˇ.This.Set(enname)) // this = ‹enumerant›
+					})...),
+				K.Return,
+			),
+			Label("tryParseNum", GEN_BYCASE(USUALLY(tryparseint(
 				T.Int, "Atoi"),
 			), UNLESS{
-				ustr.In(t.Enumish.BaseType, "int8", "int16", "int32", "int64", "rune"): tryparsenumvia(
+				ustr.In(t.Enumish.BaseType, "int8", "int16", "int32", "int64", "rune"): tryparseint(
 					T.Int64, "ParseInt", 10, ebt.BitSizeIfBuiltInNumberType()),
-				ustr.In(t.Enumish.BaseType, "uint", "uint8", "uint16", "uint32", "uint64", "byte"): tryparsenumvia(
+				ustr.In(t.Enumish.BaseType, "uint", "uint8", "uint16", "uint32", "uint64", "byte"): tryparseint(
 					T.Uint64, "ParseUint", 10, ebt.BitSizeIfBuiltInNumberType()),
 			})),
 		)
