@@ -30,6 +30,9 @@ func WellknownNums() (names []string, values []Num) {
 
 // String implements the `fmt.Stringer` interface.
 func (this Num) String() (r string) {
+	if (this < zero) || (this > three) {
+		goto formatNum
+	}
 	switch this {
 	case zero:
 		r = "Zero"
@@ -40,34 +43,37 @@ func (this Num) String() (r string) {
 	case three:
 		r = "Three"
 	default:
-		r = pkg__strconv.Itoa((int)(this))
+		goto formatNum
 	}
+	return
+formatNum:
+	r = pkg__strconv.Itoa((int)(this))
 	return
 }
 
 // NumFromString returns the `Num` represented by `s` (as returned by `Num.String`, but case-insensitively), or an `error` if none exists.
 func NumFromString(s string) (this Num, err error) {
-	if len(s) < 3 {
+	if (len(s) < 3) || (len(s) > 5) {
 		goto tryParseNum
 	}
 	switch {
-	case (s == "Zero") || pkg__strings.EqualFold(s, "Zero"):
+	case pkg__strings.EqualFold(s, "Zero"):
 		this = zero
-	case (s == "One") || pkg__strings.EqualFold(s, "One"):
+	case pkg__strings.EqualFold(s, "One"):
 		this = one
-	case (s == "Two") || pkg__strings.EqualFold(s, "Two"):
+	case pkg__strings.EqualFold(s, "Two"):
 		this = two
-	case (s == "Three") || pkg__strings.EqualFold(s, "Three"):
+	case pkg__strings.EqualFold(s, "Three"):
 		this = three
 	default:
 		goto tryParseNum
 	}
 	return
 tryParseNum:
-	var thisint int
-	thisint, err = pkg__strconv.Atoi(s)
+	var v int
+	v, err = pkg__strconv.Atoi(s)
 	if err == nil {
-		this = (Num)(thisint)
+		this = (Num)(v)
 	}
 	return
 }
@@ -85,6 +91,9 @@ func NumFromStringOr(s string, fallback Num) (this Num) {
 
 // GoString implements the `fmt.GoStringer` interface.
 func (this Num) GoString() (r string) {
+	if (this < zero) || (this > three) {
+		goto formatNum
+	}
 	switch this {
 	case zero:
 		r = "zero"
@@ -95,14 +104,17 @@ func (this Num) GoString() (r string) {
 	case three:
 		r = "three"
 	default:
-		r = pkg__strconv.Itoa((int)(this))
+		goto formatNum
 	}
+	return
+formatNum:
+	r = pkg__strconv.Itoa((int)(this))
 	return
 }
 
 // NumFromGoString returns the `Num` represented by `s` (as returned by `Num.GoString`, and case-sensitively), or an `error` if none exists.
 func NumFromGoString(s string) (this Num, err error) {
-	if len(s) < 3 {
+	if (len(s) < 3) || (len(s) > 5) {
 		goto tryParseNum
 	}
 	switch s {
@@ -119,10 +131,10 @@ func NumFromGoString(s string) (this Num, err error) {
 	}
 	return
 tryParseNum:
-	var thisint int
-	thisint, err = pkg__strconv.Atoi(s)
+	var v int
+	v, err = pkg__strconv.Atoi(s)
 	if err == nil {
-		this = (Num)(thisint)
+		this = (Num)(v)
 	}
 	return
 }

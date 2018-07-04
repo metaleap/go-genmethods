@@ -48,6 +48,7 @@ type StringMethodOpts struct {
 	DocComment      gent.Str
 	Name            string
 	EnumerantRename func(string) string
+	SkipEarlyChecks bool
 	Parser          struct {
 		Add               bool
 		WithIgnoreCaseCmp bool
@@ -56,145 +57,140 @@ type StringMethodOpts struct {
 	}
 }
 
-func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName, namesAndRenames []Any) *SynFunc {
+func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName, names []string, renames []string) *SynFunc {
+	var earlycheck IExprBoolish
+	if !this.SkipEarlyChecks {
+		earlycheck = ˇ.This.Lt(N(names[0])).Or(ˇ.This.Gt(N(names[len(names)-1]))) // this < ‹minEnumerant› || this > ‹maxEnumerant›
+	}
+
 	ebt := t.Enumish.BaseType
 	return t.G.This.Method(this.Name).Rets(ˇ.R.OfType(T.String)).
 		Doc(
 			this.DocComment.With("N", this.Name, "T", t.Name),
 		).
 		Code(
-			Switch(ˇ.This).CasesFrom(true, GEN_FOR(namesAndRenames, 2, func(namerename []Any) ISyn { // switch this
-				return Case(N(namerename[0].(string)), // case ‹enumerantIdent›:
-					ˇ.R.Set(L(namerename[1].(string))), // r = "‹enumerantNameOrRenamed›"
-				)
-			})...).DefaultCase( // default:
+			GEN_EITHER(earlycheck == nil, nil, If(earlycheck, Then(GoTo("formatNum")))),
+			Switch(ˇ.This).
+				DefaultCase(GoTo("formatNum")).
+				CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn { // switch this
+					return Case(N(names[i]), // case ‹enumerantIdent›:
+						ˇ.R.Set(L(renames[i]))) // r = "‹enumerantNameOrRenamed›"
+				})...),
+			K.Return,
+			Label("formatNum",
 				GEN_BYCASE(USUALLY(ˇ.R.Set( // r =
-					pkgstrconv.C("FormatInt", T.Int64.Conv(ˇ.This), L(10))), // pkg__strconv.FormatInt(int64(this), 10)
+					pkgstrconv.C("FormatInt", T.Int64.Conv(ˇ.This), 10)), // pkg__strconv.FormatInt(int64(this), 10)
 				), UNLESS{
 					ebt == "int": ˇ.R.Set( // r =
 						pkgstrconv.C("Itoa", T.Int.Conv(ˇ.This))), // pkg__strconv.Itoa(int(this))
 					ustr.In(ebt, "uint", "uint8", "uint16", "uint32", "uint64"): ˇ.R.Set( // r =
-						pkgstrconv.C("FormatUint", T.Uint64.Conv(ˇ.This), L(10))), // pkg__strconv.FormatUint(uint64(this), 10)
+						pkgstrconv.C("FormatUint", T.Uint64.Conv(ˇ.This), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
 				}),
 			),
 		)
 }
 
-func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, minLen int, maybeCommonPrefix string, pkgstrings PkgName, switchCases SynCases, defCase ...ISyn) *SynFunc {
-	casehint, funcname := "and case-sensitively", this.Parser.FuncName.With("T", t.Name, "str", this.Name)
+func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pkgstrconv PkgName, pkgstrings PkgName, names []string, renames []string) *SynFunc {
+	casehint, parsefuncname := "and case-sensitively", this.Parser.FuncName.With("T", t.Name, "str", this.Name)
 	if this.Parser.WithIgnoreCaseCmp {
 		casehint = "but case-insensitively"
 	}
 
-	earlycheck := B.Len.C(ˇ.S).Lt(minLen) // len(s) < ‹minLen›}
-	if l := len(maybeCommonPrefix); l > 0 {
-		if !this.Parser.WithIgnoreCaseCmp {
-			earlycheck = earlycheck.Or(ˇ.S.Sl(0, l).Neq(maybeCommonPrefix)) // || s[0:5] != "PREF_" (for example)
-		} else {
-			earlycheck = earlycheck.Or(Not(pkgstrings.C("EqualFold", ˇ.S.Sl(0, l), maybeCommonPrefix)))
+	var earlycheck IExprBoolish
+	if !this.SkipEarlyChecks {
+		minlen, maxlen := ustr.ShortestAndLongest(renames...)
+		earlycheck = B.Len.Of(ˇ.S).Lt(minlen).Or(B.Len.Of(ˇ.S).Gt(maxlen)) // len(s) < ‹minLen› || len(s) > ‹maxLen›
+		if maybecommonprefix := ustr.CommonPrefix(renames...); maybecommonprefix != "" {
+			if l := len(maybecommonprefix); !this.Parser.WithIgnoreCaseCmp {
+				earlycheck = earlycheck.Or(ˇ.S.Sl(0, l).Neq(maybecommonprefix)) // || s[0:5] != "PREF_" (for example)
+			} else {
+				earlycheck = earlycheck.Or(Not(pkgstrings.C("EqualFold", ˇ.S.Sl(0, l), maybecommonprefix)))
+			}
 		}
 	}
+
 	var scrut ISyn
 	if !this.Parser.WithIgnoreCaseCmp {
 		scrut = ˇ.S
 	}
 
-	return Func(funcname).Args(ˇ.S.OfType(T.String)).Rets(t.G.This, ˇ.Err).
+	ebt, tryparsenumvia := TrNamed("", t.Enumish.BaseType), func(inttype *TypeRef, parsefuncname string, args ...Any) Syns {
+		return Syns{
+			Var(ˇ.V.Name, inttype, nil),                                                      // var v ‹inttype›
+			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.C(parsefuncname, append([]Any{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
+			If(ˇ.Err.Eq(B.Nil), Then( // if err == nil
+				ˇ.This.Set(t.G.T.Conv(ˇ.V)), // this = ‹enumType›(v)
+			)),
+		}
+	}
+
+	return Func(parsefuncname).Args(ˇ.S.OfType(T.String)).Rets(t.G.This, ˇ.Err).
 		Doc(
-			docComment.With("N", funcname, "T", t.Name, "s", ˇ.S.Name, "str", this.Name, "caseSensitivity", casehint),
+			docComment.With("N", parsefuncname, "T", t.Name, "s", ˇ.S.Name, "str", this.Name, "caseSensitivity", casehint),
 		).
 		Code(
-			If(earlycheck, Then(
-				GoTo("tryParseNum"),
-			)),
+			GEN_EITHER(earlycheck == nil, nil, If(earlycheck, Then(GoTo("tryParseNum")))),
 			Switch(scrut).
-				CasesOf(switchCases...).
-				DefaultCase(GoTo("tryParseNum")),
+				DefaultCase(GoTo("tryParseNum")).
+				CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn { // switch this
+					enname, enstrlit := N(names[i]), L(renames[i])
+					return Case(GEN_EITHER(!this.Parser.WithIgnoreCaseCmp, enstrlit, pkgstrings.C("EqualFold", ˇ.S, enstrlit)),
+						ˇ.This.Set(enname))
+				})...),
 			K.Return,
-			Label("tryParseNum", defCase...),
+			Label("tryParseNum", GEN_BYCASE(USUALLY(tryparsenumvia(
+				T.Int, "Atoi"),
+			), UNLESS{
+				ustr.In(t.Enumish.BaseType, "int8", "int16", "int32", "int64", "rune"): tryparsenumvia(
+					T.Int64, "ParseInt", 10, ebt.BitSizeIfBuiltInNumberType()),
+				ustr.In(t.Enumish.BaseType, "uint", "uint8", "uint16", "uint32", "uint64", "byte"): tryparsenumvia(
+					T.Uint64, "ParseUint", 10, ebt.BitSizeIfBuiltInNumberType()),
+			})),
 		)
 }
 
-func (this *GentStringersMethods) genParseErrlessFunc(t *gent.Type, funcName string, parseFuncName string) *SynFunc {
+func (this *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.Str, funcName string, parseFuncName string) *SynFunc {
 	maybe, fallback := N("maybe"+t.Name), N("fallback")
 	return Func(funcName).Args(ˇ.S.OfType(T.String), fallback.OfType(t.G.T)).Rets(t.G.This).
 		Doc(
-			this.DocComments.ParsersErrlessVariant.With("N", funcName, "T", t.Name, "p", parseFuncName, "fallback", fallback.Name),
+			docComment.With("N", funcName, "T", t.Name, "p", parseFuncName, "fallback", fallback.Name),
 		).
 		Code(
-			Tup(maybe, ˇ.Err).Let(N(parseFuncName).C(ˇ.S)), // maybe,err := ‹parseFunc›(s)
+			Tup(maybe, ˇ.Err).Let(C(parseFuncName, ˇ.S)), // maybe,err := ‹parseFunc›(s)
 			If(ˇ.Err.Eq(B.Nil), // if err == nil
 				Then(ˇ.This.Set(maybe)),     // this = maybe
 				Else(ˇ.This.Set(fallback))), // else this = fallback
 		)
 }
 
-func (this *StringMethodOpts) genStringer(t *gent.Type, pkgstrconv PkgName) *SynFunc {
-	ren, namesrenames := this.EnumerantRename != nil, make([]Any, 0, 2*len(t.Enumish.ConstNames))
-	for _, enumerant := range t.Enumish.ConstNames {
-		if renamed := enumerant; enumerant != "_" {
-			if ren {
-				renamed = this.EnumerantRename(enumerant)
-			}
-			namesrenames = append(namesrenames, enumerant, renamed)
-		}
-	}
-
-	return this.genStringerMethod(t, pkgstrconv, namesrenames)
-}
-
-func (this *StringMethodOpts) genParser(t *gent.Type, docComment gent.Str, pkgstrconv PkgName, pkgstrings PkgName) *SynFunc {
-	enstrs, switchcases := make([]string, 0, len(t.Enumish.ConstNames)), make(SynCases, 0, len(t.Enumish.ConstNames))
-	for _, enumerant := range t.Enumish.ConstNames {
-		if enstr := enumerant; enumerant != "_" {
-			if rename := this.EnumerantRename; rename != nil {
-				enstr = rename(enumerant)
-			}
-			enstrs = append(enstrs, enstr)
-			enlit := L(enstr)
-			var cmp IExprBoolish = ˇ.S.Eq(enlit)
-			if this.Parser.WithIgnoreCaseCmp {
-				cmp = cmp.Or(pkgstrings.C("EqualFold", ˇ.S, enlit))
-			}
-			switchcases.Add(GEN_EITHER(this.Parser.WithIgnoreCaseCmp, cmp, enlit),
-				ˇ.This.Set(N(enumerant)),
-			)
-		}
-	}
-
-	enumbasetype, defaultcase := TrNamed("", t.Enumish.BaseType), func(ebt *TypeRef, parse string, args ...Any) Syns {
-		vtmp := N(ˇ.This.Name + t.Enumish.BaseType)
-		return Syns{Var(vtmp.Name, ebt, nil),
-			Tup(vtmp, ˇ.Err).Set(pkgstrconv.C(parse, append([]Any{ˇ.S}, args...)...)),
-			If(ˇ.Err.Eq(B.Nil), Then(
-				ˇ.This.Set(t.G.T.Conv(vtmp)),
-			)),
-		}
-	}
-	var switchdefault Syns
-	switch enumbasetype.Named.TypeName {
-	case "int":
-		switchdefault = defaultcase(T.Int, "Atoi")
-	case "uint", "uint8", "uint16", "uint32", "uint64", "byte":
-		switchdefault = defaultcase(T.Uint64, "ParseUint", 10, enumbasetype.BitSizeIfBuiltInNumberType())
-	case "int8", "int16", "int32", "int64", "rune":
-		switchdefault = defaultcase(T.Int64, "ParseInt", 10, enumbasetype.BitSizeIfBuiltInNumberType())
-	}
-
-	return this.genParseFunc(t, docComment, len(ustr.Shortest(enstrs)), ustr.CommonPrefix(enstrs...), pkgstrings, switchcases, switchdefault...)
-}
-
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if len(this.All) > 0 && t.IsEnumish() {
 		yield = make(Syns, 0, 3*len(this.All))
-		pkgstrconv, pkgstrings := ctx.I("strconv"), ctx.I("strings")
+		pkgstrconv, pkgstrings, names := ctx.I("strconv"), ctx.I("strings"), make([]string, 0, len(t.Enumish.ConstNames))
+		for _, enumerant := range t.Enumish.ConstNames {
+			if enumerant != "_" {
+				names = append(names, enumerant)
+			}
+		}
+		hadrenameslast, renames := true, make([]string, len(names))
+
 		for i := range this.All {
 			if self := &this.All[i]; !self.Disabled {
-				if yield.Add(self.genStringer(t, pkgstrconv)); self.Parser.Add {
-					fnp := self.genParser(t, this.DocComments.Parsers, pkgstrconv, pkgstrings)
+				if self.EnumerantRename != nil {
+					for i := range names {
+						renames[i] = self.EnumerantRename(names[i])
+					}
+					hadrenameslast = true
+				} else if hadrenameslast {
+					copy(renames, names)
+					hadrenameslast = false
+				}
+
+				if yield.Add(self.genStringerMethod(t, pkgstrconv, names, renames)); self.Parser.Add {
+					fnp := self.genParseFunc(t, this.DocComments.Parsers, pkgstrconv, pkgstrings, names, renames)
 					if yield.Add(fnp); self.Parser.Errless.Add {
-						yield.Add(this.genParseErrlessFunc(t, fnp.Name+self.Parser.Errless.NameOrSuffix, fnp.Name))
+						yield.Add(self.genParseErrlessFunc(t, this.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.NameOrSuffix, fnp.Name))
 					}
 				}
 			}

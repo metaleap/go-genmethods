@@ -187,6 +187,7 @@ type StringMethodOpts struct {
 	DocComment      gent.Str
 	Name            string
 	EnumerantRename func(string) string
+	SkipEarlyChecks bool
 	Parser          struct {
 		Add               bool
 		WithIgnoreCaseCmp bool

@@ -59,7 +59,7 @@ type IndexMethodOpts struct {
 func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
 	arg, ret := this.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.Sl.Ints)
 	foreachitemcheckcond := GEN_IF(predicate, Then(
-		ˇ.Ok.C(ˇ.This.At(ˇ.I)), // ok(this[i])
+		ˇ.Ok.Of(ˇ.This.At(ˇ.I)), // ok(this[i])
 	), Else(
 		ˇ.This.At(ˇ.I).Eq(ˇ.V), // this[i] == v
 	))
@@ -68,11 +68,11 @@ func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string
 		Doc().
 		Code(
 			GEN_IF(resultsCapFactor > 0,
-				ˇ.R.Set(B.Make.C(ret.Type, L(0), B.Len.C(ˇ.This).Div(L(resultsCapFactor)))), // r = make([]int, 0, len(this) / ‹resultsCapFactor›)
+				ˇ.R.Set(B.Make.Of(ret.Type, L(0), B.Len.Of(ˇ.This).Div(L(resultsCapFactor)))), // r = make([]int, 0, len(this) / ‹resultsCapFactor›)
 			),
 			ForEach(ˇ.I, None, ˇ.This, // for i := range this
 				If(foreachitemcheckcond, Then( // if ‹check› {
-					ˇ.R.Set(B.Append.C(ˇ.R, ˇ.I)))), // r = append(r, i)
+					ˇ.R.Set(B.Append.Of(ˇ.R, ˇ.I)))), // r = append(r, i)
 			),
 		)
 }
@@ -84,7 +84,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, 
 			ˇ.R.Set(ˇ.I), // r = i
 			K.Return)),
 	), UNLESS{
-		predicate: If(ˇ.Ok.C(ˇ.This.At(ˇ.I)), Then( // if ok(this[i])
+		predicate: If(ˇ.Ok.Of(ˇ.This.At(ˇ.I)), Then( // if ok(this[i])
 			ˇ.R.Set(ˇ.I), // r = i
 			K.Return)),
 		variadic: ForEach(ˇ.J, None, arg, // for j := range v
@@ -97,7 +97,7 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, 
 		Doc().
 		Code(
 			GEN_IF(isLast, Then(
-				For(ˇ.I.Let(B.Len.C(ˇ.This).Minus(L(1))), (ˇ.I.Gt(-1)), (ˇ.I.Decr1()), // for i := len(this)-1; i>=0; i--
+				For(ˇ.I.Let(B.Len.Of(ˇ.This).Minus(L(1))), (ˇ.I.Gt(-1)), (ˇ.I.Decr1()), // for i := len(this)-1; i>=0; i--
 					loopbody),
 			), Else(
 				ForEach(ˇ.I, None, ˇ.This, // for i := range this
