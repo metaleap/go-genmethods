@@ -28,11 +28,8 @@ func WellknownNums() (names []string, values []Num) {
 	return
 }
 
-// String implements the `fmt.Stringer` interface.
+// String implements the Go standard library's `fmt.Stringer` interface.
 func (this Num) String() (r string) {
-	if (this < zero) || (this > three) {
-		goto formatNum
-	}
 	switch this {
 	case zero:
 		r = "Zero"
@@ -53,9 +50,6 @@ formatNum:
 
 // NumFromString returns the `Num` represented by `s` (as returned by `Num.String`, but case-insensitively), or an `error` if none exists.
 func NumFromString(s string) (this Num, err error) {
-	if (len(s) < 3) || (len(s) > 5) {
-		goto tryParseNum
-	}
 	{
 		t := s
 		switch {
@@ -92,7 +86,7 @@ func NumFromStringOr(s string, fallback Num) (this Num) {
 	return
 }
 
-// GoString implements the `fmt.GoStringer` interface.
+// GoString implements the Go standard library's `fmt.GoStringer` interface.
 func (this Num) GoString() (r string) {
 	if (this < zero) || (this > three) {
 		goto formatNum

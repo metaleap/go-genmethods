@@ -26,9 +26,9 @@ const (
 
 ```go
 const (
-	DefaultStringers0DocComments              = "{N} implements the `fmt.Stringer` interface."
+	DefaultStringers0DocComments              = "{N} implements the Go standard library's `fmt.Stringer` interface."
 	DefaultStringers0MethodName               = "String"
-	DefaultStringers1DocComments              = "{N} implements the `fmt.GoStringer` interface."
+	DefaultStringers1DocComments              = "{N} implements the Go standard library's `fmt.GoStringer` interface."
 	DefaultStringers1MethodName               = "GoString"
 	DefaultStringersParsersDocComments        = "{N} returns the `{T}` represented by `{s}` (as returned by `{T}.{str}`, {caseSensitivity}), or an `error` if none exists."
 	DefaultStringersParsersDocCommentsErrless = "{N} is like `{p}` but returns `{fallback}` for unrecognized inputs."

@@ -27,7 +27,7 @@ type GentIsValidMethod struct {
 	IsLastInvalid  bool
 }
 
-type comparisonOperator = func(Any) IExprBoolish
+type comparisonOperator = func(IAny) IExprBoolish
 
 func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
 	return t.G.This.Method(this.MethodName).Rets(ˇ.R.OfType(T.Bool)).

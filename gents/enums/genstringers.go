@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	DefaultStringers0DocComments              = "{N} implements the `fmt.Stringer` interface."
+	DefaultStringers0DocComments              = "{N} implements the Go standard library's `fmt.Stringer` interface."
 	DefaultStringers0MethodName               = "String"
-	DefaultStringers1DocComments              = "{N} implements the `fmt.GoStringer` interface."
+	DefaultStringers1DocComments              = "{N} implements the Go standard library's `fmt.GoStringer` interface."
 	DefaultStringers1MethodName               = "GoString"
 	DefaultStringersParsersDocComments        = "{N} returns the `{T}` represented by `{s}` (as returned by `{T}.{str}`, {caseSensitivity}), or an `error` if none exists."
 	DefaultStringersParsersDocCommentsErrless = "{N} is like `{p}` but returns `{fallback}` for unrecognized inputs."
@@ -22,8 +22,8 @@ func init() {
 		{DocComment: DefaultStringers1DocComments, Name: DefaultStringers1MethodName, Disabled: true},
 	}
 	for i := range Gents.Stringers.All {
-		Gents.Stringers.All[i].Parser.Add, Gents.Stringers.All[i].Parser.FuncName, Gents.Stringers.All[i].Parser.Errless =
-			true, DefaultStringersParsersFuncName, gent.Variant{Add: false, NameOrSuffix: "Or"}
+		Gents.Stringers.All[i].Parser.FuncName, Gents.Stringers.All[i].Parser.Errless =
+			DefaultStringersParsersFuncName, gent.Variant{NameOrSuffix: "Or"}
 	}
 	Gents.Stringers.DocComments.Parsers = DefaultStringersParsersDocComments
 	Gents.Stringers.DocComments.ParsersErrlessVariant = DefaultStringersParsersDocCommentsErrless
@@ -69,7 +69,7 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 			this.DocComment.With("N", this.Name, "T", t.Name),
 		).
 		Code(
-			GEN_MAYBE(If(earlycheck, Then(GoTo("formatNum")))), // if ‹earlycheck› { goto formatNum }
+			If(earlycheck, Then(GoTo("formatNum"))), // if ‹earlycheck› { goto formatNum }
 			Switch(ˇ.This). // switch this
 					DefaultCase(GoTo("formatNum")). // default: goto formatNum
 					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
@@ -109,10 +109,10 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 		}
 	}
 
-	ebt, tryparseint := TrNamed("", t.Enumish.BaseType), func(inttype *TypeRef, parsefuncname string, args ...Any) Syns {
+	ebt, tryparseint := TrNamed("", t.Enumish.BaseType), func(inttype *TypeRef, parsefuncname string, args ...IAny) Syns {
 		return Syns{
-			Var(ˇ.V.Name, inttype, nil),                                                         // var v ‹inttype›
-			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.Call(parsefuncname, append([]Any{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
+			Var(ˇ.V.Name, inttype, nil),                                                          // var v ‹inttype›
+			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.Call(parsefuncname, append([]IAny{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
 			If(ˇ.Err.Eq(B.Nil), Then( // if err == nil
 				ˇ.This.Set(t.G.T.Conv(ˇ.V)), // this = ‹enumType›(v)
 			)),
@@ -124,7 +124,7 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 			docComment.With("N", parsefuncname, "T", t.Name, "s", ˇ.S.Name, "str", this.Name, "caseSensitivity", casehint),
 		).
 		Code(
-			GEN_MAYBE(If(earlycheck, Then(GoTo("tryParseNum")))), // if ‹earlycheck› { goto tryParseNum }
+			If(earlycheck, Then(GoTo("tryParseNum"))), // if ‹earlycheck› { goto tryParseNum }
 			Block(
 				ˇ.T.Let(GEN_EITHER(len(maybecommonprefix) == 0, ˇ.S, ˇ.S.Sl(len(maybecommonprefix), -1))), // t := s   ~|OR|~   t := s[‹lenOfCommonPrefix›:]
 				Switch(GEN_EITHER(this.Parser.WithIgnoreCaseCmp, nil, ˇ.T)).
