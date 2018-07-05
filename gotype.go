@@ -42,15 +42,15 @@ type Type struct {
 	G struct {
 		// a type-ref to this `Type`
 		T *udevgogen.TypeRef
-		// a type-ref to pointer-to-`Type`
+		// a type-ref to pointer-to-`Type` (think ª for addr)
 		Tª *udevgogen.TypeRef
 		// a type-ref to slice-of-`Type`
 		Ts *udevgogen.TypeRef
 		// a type-ref to slice-of-pointers-to-`Type`
 		Tªs *udevgogen.TypeRef
-		// Name="this" and Type=T.G.T
+		// Name="this" and Type=.G.T
 		This udevgogen.NamedTyped
-		// Name="this" and Type=T.G.Tª
+		// Name="this" and Type=.G.Tª
 		Thisª udevgogen.NamedTyped
 	}
 

@@ -12,17 +12,19 @@ func init() {
 	Defaults.CtxOpt.NoGoFmt = usys.EnvBool("GOGENT_NOGOFMT", false)
 }
 
+// CtxOpts wraps `Ctx` options.
 type CtxOpts struct {
-	// For Defaults.CtxOpt, initialized from env-var
+	// For Defaults.CtxOpts, initialized from env-var
 	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
 	NoGoFmt bool
 
-	// For Defaults.CtxOpt, initialized from env-var
+	// For Defaults.CtxOpts, initialized from env-var
 	// `GOGENT_EMITNOOPS` if `strconv.ParseBool`able.
 	EmitNoOpFuncBodies bool
 
 	// If set, can be used to prevent running of the given
 	// (or any) `IGent` on the given (or any) `*Type`.
+	// See also `IGent.Opt().MayRunForType`.
 	MayGentRunForType func(IGent, *Type) bool
 }
 
@@ -31,7 +33,10 @@ type ctxDeclKey struct {
 	t *Type
 }
 
+// Ctx is a codegen-time context during a `Pkg.RunGents`
+// call and is passed to `IGent.GenerateTopLevelDecls`.
 type Ctx struct {
+	// options pertaining to this `Ctx`
 	Opt CtxOpts
 
 	pkg                            *Pkg
@@ -62,6 +67,8 @@ func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) 
 	return
 }
 
+// DeclsGeneratedSoFar collects and returns all results of `IGent.GenerateTopLevelDecls`
+// performed so far by `this` `Ctx`, filtered optionally by `IGent` and/or by `Type`.
 func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns) {
 	for gt, decls := range this.declsGenerated {
 		if (maybeGent == nil || gt.g == maybeGent) && (maybeType == nil || gt.t == maybeType) {
@@ -71,7 +78,12 @@ func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches 
 	return
 }
 
-func (this *Ctx) I(pkgImportPath string) (pkgImportName udevgogen.PkgName) {
+// Import returns the `pkgImportName` for the specified `pkgImportPath`.
+// Eg. `Import("encoding/json")` might return `pkg__encoding_json` and
+// more importantly, the import will be properly emitted (only if any of
+// the import's uses get emitted) at code-gen time. Import is a `Ctx`-local
+// wrapper of the `github.com/go-leap/dev/go/gen.PkgImports.Ensure` method.
+func (this *Ctx) Import(pkgImportPath string) (pkgImportName udevgogen.PkgName) {
 	pkgImportName = this.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
 	return
 }

@@ -165,7 +165,7 @@ func (this *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.
 func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if len(this.All) > 0 && t.IsEnumish() {
 		yield = make(Syns, 0, 3*len(this.All))
-		pkgstrconv, pkgstrings, names := ctx.I("strconv"), ctx.I("strings"), make([]string, 0, len(t.Enumish.ConstNames))
+		pkgstrconv, pkgstrings, names := ctx.Import("strconv"), ctx.Import("strings"), make([]string, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {
 				names = append(names, enumerant)

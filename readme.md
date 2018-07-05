@@ -48,41 +48,54 @@ var (
 
 ```go
 type Ctx struct {
+	// options pertaining to this `Ctx`
 	Opt CtxOpts
 }
 ```
 
+Ctx is a codegen-time context during a `Pkg.RunGents` call and is passed to
+`IGent.GenerateTopLevelDecls`.
 
 #### func (*Ctx) DeclsGeneratedSoFar
 
 ```go
 func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns)
 ```
+DeclsGeneratedSoFar collects and returns all results of
+`IGent.GenerateTopLevelDecls` performed so far by `this` `Ctx`, filtered
+optionally by `IGent` and/or by `Type`.
 
-#### func (*Ctx) I
+#### func (*Ctx) Import
 
 ```go
-func (this *Ctx) I(pkgImportPath string) (pkgImportName udevgogen.PkgName)
+func (this *Ctx) Import(pkgImportPath string) (pkgImportName udevgogen.PkgName)
 ```
+Import returns the `pkgImportName` for the specified `pkgImportPath`. Eg.
+`Import("encoding/json")` might return `pkg__encoding_json` and more
+importantly, the import will be properly emitted (only if any of the import's
+uses get emitted) at code-gen time. Import is a `Ctx`-local wrapper of the
+`github.com/go-leap/dev/go/gen.PkgImports.Ensure` method.
 
 #### type CtxOpts
 
 ```go
 type CtxOpts struct {
-	// For Defaults.CtxOpt, initialized from env-var
+	// For Defaults.CtxOpts, initialized from env-var
 	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
 	NoGoFmt bool
 
-	// For Defaults.CtxOpt, initialized from env-var
+	// For Defaults.CtxOpts, initialized from env-var
 	// `GOGENT_EMITNOOPS` if `strconv.ParseBool`able.
 	EmitNoOpFuncBodies bool
 
 	// If set, can be used to prevent running of the given
 	// (or any) `IGent` on the given (or any) `*Type`.
+	// See also `IGent.Opt().MayRunForType`.
 	MayGentRunForType func(IGent, *Type) bool
 }
 ```
 
+CtxOpts wraps `Ctx` options.
 
 #### type Gents
 
@@ -90,24 +103,29 @@ type CtxOpts struct {
 type Gents []IGent
 ```
 
+Gents is a slice if `IGent`s.
 
 #### func (Gents) EnableOrDisableAll
 
 ```go
 func (this Gents) EnableOrDisableAll(enabled bool)
 ```
+EnableOrDisableAll sets all `IGent.Opt().Disabled` fields to `!enabled`.
 
 #### func (Gents) EnableOrDisableAllVariantsAndOptionals
 
 ```go
 func (this Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
+EnableOrDisableAllVariantsAndOptionals calls the same-named method on all
+`IGent`s in `this`.
 
 #### func (Gents) With
 
 ```go
-func (this Gents) With(gents ...Gents) (all Gents)
+func (this Gents) With(gents ...Gents) (merged Gents)
 ```
+With merges all `IGent`s in this with all those in `gents` into `merged`.
 
 #### type IGent
 
@@ -133,11 +151,18 @@ IGent is the interface implemented by individual code-gens.
 
 ```go
 type Opts struct {
-	Disabled              bool
-	Name                  string
+	Disabled bool
+
+	// not used by `go-gent`, but could be handy for callers
+	Name string
+
 	RunNeverForTypesNamed []string
 	RunOnlyForTypesNamed  []string
-	MayRunForType         func(*Type) bool
+
+	// If set, can be used to prevent running of
+	// the `IGent` on the given (or any) `*Type`.
+	// See also `CtxOpts.MayGentRunForType`.
+	MayRunForType func(*Type) bool
 }
 ```
 
@@ -198,8 +223,9 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(maybeCtxOpt *CtxOpts, gents Gents) (src []byte, timeTaken time.Duration, err error)
+func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, timetakengofmt time.Duration, err error)
 ```
+RunGents instructs the given `gents` to generate code for `this` `Pkg`.
 
 #### type Pkgs
 
@@ -223,14 +249,16 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
 ```
+MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpt *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
+RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 
 #### type Str
 
@@ -268,15 +296,15 @@ type Type struct {
 	G struct {
 		// a type-ref to this `Type`
 		T *udevgogen.TypeRef
-		// a type-ref to pointer-to-`Type`
+		// a type-ref to pointer-to-`Type` (think ª for addr)
 		Tª *udevgogen.TypeRef
 		// a type-ref to slice-of-`Type`
 		Ts *udevgogen.TypeRef
 		// a type-ref to slice-of-pointers-to-`Type`
 		Tªs *udevgogen.TypeRef
-		// Name="this" and Type=T.G.T
+		// Name="this" and Type=.G.T
 		This udevgogen.NamedTyped
-		// Name="this" and Type=T.G.Tª
+		// Name="this" and Type=.G.Tª
 		Thisª udevgogen.NamedTyped
 	}
 

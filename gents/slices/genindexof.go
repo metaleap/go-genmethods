@@ -57,7 +57,7 @@ type IndexMethodOpts struct {
 }
 
 func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
-	arg, ret := this.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.Sl.Ints)
+	arg, ret := this.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.SliceOf.Ints)
 	foreachitemcheckcond := GEN_IF(predicate, Then(
 		ˇ.Ok.Of(ˇ.This.At(ˇ.I)), // ok(this[i])
 	), Else(

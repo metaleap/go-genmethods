@@ -32,7 +32,7 @@ type GentListEnumerantsFunc struct {
 }
 
 func (this *GentListEnumerantsFunc) genListEnumerantsFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
-	return Func(funcName).Ret("names", T.Sl.Strings).Ret("values", TrSlice(t.G.T)).
+	return Func(funcName).Ret("names", T.SliceOf.Strings).Ret("values", TrSlice(t.G.T)).
 		Doc(
 			this.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
 		).
