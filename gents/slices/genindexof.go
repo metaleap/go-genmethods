@@ -78,31 +78,27 @@ func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string
 }
 
 func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, isLast bool, variadic bool, predicate bool) *SynFunc {
-	arg := this.indexMethodArg(t, variadic, predicate)
-	loopbody := GEN_BYCASE(USUALLY(
-		If(ˇ.This.At(ˇ.I).Eq(ˇ.V), Then( // if this[i] == v
-			ˇ.R.Set(ˇ.I), // r = i
-			K.Return)),
-	), UNLESS{
-		predicate: If(ˇ.Ok.Of(ˇ.This.At(ˇ.I)), Then( // if ok(this[i])
-			ˇ.R.Set(ˇ.I), // r = i
-			K.Return)),
-		variadic: ForEach(ˇ.J, None, arg, // for j := range v
-			If(ˇ.This.At(ˇ.I).Eq(ˇ.V.At(ˇ.J)), Then( // if this[i] == v[j]
-				ˇ.R.Set(ˇ.I), // r = i
-				K.Return))),
-	})
+	arg, forloop := this.indexMethodArg(t, variadic, predicate), ForEach(ˇ.I, None, ˇ.This) // for i := range this
+	if isLast {
+		forloop = For(ˇ.I.Let(B.Len.Of(ˇ.This).Minus(L(1))), (ˇ.I.Gt(-1)), (ˇ.I.Decr1())) // for i := len(this)-1; i > -1; i--
+	}
 
 	return t.G.This.Method(methodName, arg).Rets(ˇ.R.OfType(T.Int)).
 		Doc().
 		Code(
-			GEN_IF(isLast, Then(
-				For(ˇ.I.Let(B.Len.Of(ˇ.This).Minus(L(1))), (ˇ.I.Gt(-1)), (ˇ.I.Decr1()), // for i := len(this)-1; i>=0; i--
-					loopbody),
-			), Else(
-				ForEach(ˇ.I, None, ˇ.This, // for i := range this
-					loopbody),
-			)),
+			forloop.Code(GEN_BYCASE(USUALLY(
+				If(ˇ.This.At(ˇ.I).Eq(ˇ.V), Then( // if this[i] == v
+					ˇ.R.Set(ˇ.I), // r = i
+					K.Return)),
+			), UNLESS{
+				predicate: If(ˇ.Ok.Of(ˇ.This.At(ˇ.I)), Then( // if ok(this[i])
+					ˇ.R.Set(ˇ.I), // r = i
+					K.Return)),
+				variadic: ForEach(ˇ.J, None, arg, // for j := range v
+					If(ˇ.This.At(ˇ.I).Eq(ˇ.V.At(ˇ.J)), Then( // if this[i] == v[j]
+						ˇ.R.Set(ˇ.I), // r = i
+						K.Return))),
+			})),
 			ˇ.R.Set(-1), // r = -1
 		)
 }

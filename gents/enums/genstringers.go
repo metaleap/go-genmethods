@@ -69,7 +69,7 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 			this.DocComment.With("N", this.Name, "T", t.Name),
 		).
 		Code(
-			If(earlycheck, Then(GoTo("formatNum"))), // if ‹earlycheck› { goto formatNum }
+			If(earlycheck, GoTo("formatNum")), // if ‹earlycheck› { goto formatNum }
 			Switch(ˇ.This). // switch this
 					DefaultCase(GoTo("formatNum")). // default: goto formatNum
 					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
@@ -124,7 +124,7 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 			docComment.With("N", parsefuncname, "T", t.Name, "s", ˇ.S.Name, "str", this.Name, "caseSensitivity", casehint),
 		).
 		Code(
-			If(earlycheck, Then(GoTo("tryParseNum"))), // if ‹earlycheck› { goto tryParseNum }
+			If(earlycheck, GoTo("tryParseNum")), // if ‹earlycheck› { goto tryParseNum }
 			Block(
 				ˇ.T.Let(GEN_EITHER(len(maybecommonprefix) == 0, ˇ.S, ˇ.S.Sl(len(maybecommonprefix), -1))), // t := s   ~|OR|~   t := s[‹lenOfCommonPrefix›:]
 				Switch(GEN_EITHER(this.Parser.WithIgnoreCaseCmp, nil, ˇ.T)).
