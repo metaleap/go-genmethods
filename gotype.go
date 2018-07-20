@@ -76,6 +76,10 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {
 						curvaltident, _ = cdecl.Type.(*ast.Ident)
+					} else if len(cdecl.Values) > 0 {
+						if call, okc := cdecl.Values[0].(*ast.CallExpr); okc {
+							curvaltident, _ = call.Fun.(*ast.Ident)
+						}
 					}
 					if curvaltident != nil {
 						if tnamed := this.Types.Named(curvaltident.Name); tnamed != nil {

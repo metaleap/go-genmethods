@@ -64,6 +64,13 @@ func (this *Ctx) mayGentRunForType(g IGent, t *Type) bool {
 func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) {
 	decls = g.GenerateTopLevelDecls(this, t)
 	this.declsGenerated[ctxDeclKey{g: g, t: t}] = decls
+	if g.Opt().EmitCommented {
+		for i := range decls {
+			if fn, _ := decls[i].(*udevgogen.SynFunc); fn != nil {
+				fn.EmitCommented = true
+			}
+		}
+	}
 	return
 }
 

@@ -32,3 +32,5 @@ type Variant struct {
 	Add          bool
 	NameOrSuffix string
 }
+
+type Rename func(*Ctx, *Type, string) string

@@ -54,13 +54,18 @@ func (this Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
 
 // Opts related to a single `IGent`, and designed for embedding.
 type Opts struct {
-	Disabled bool
+	Disabled      bool
+	EmitCommented bool
 
 	// not used by `go-gent`, but could be handy for callers
 	Name string
 
-	RunNeverForTypesNamed []string
-	RunOnlyForTypesNamed  []string
+	// if-and-only-if these are set, they're checked
+	// before `MayRunForType` (but after `Disabled`)
+	RunNeverForTypes, RunOnlyForTypes struct {
+		Named      []string
+		Satisfying func(*Type) bool
+	}
 
 	// If set, can be used to prevent running of
 	// the `IGent` on the given (or any) `*Type`.
@@ -78,20 +83,26 @@ func (this *Opts) mayRunForType(t *Type) bool {
 	if this.Disabled || t.Alias {
 		return false
 	}
-	if len(this.RunNeverForTypesNamed) > 0 {
-		for _, tname := range this.RunNeverForTypesNamed {
+	if len(this.RunNeverForTypes.Named) > 0 {
+		for _, tname := range this.RunNeverForTypes.Named {
 			if tname == t.Name {
 				return false
 			}
 		}
 	}
-	if len(this.RunOnlyForTypesNamed) > 0 {
-		for _, tname := range this.RunOnlyForTypesNamed {
+	if this.RunNeverForTypes.Satisfying != nil && this.RunNeverForTypes.Satisfying(t) {
+		return false
+	}
+	if len(this.RunOnlyForTypes.Named) > 0 {
+		for _, tname := range this.RunOnlyForTypes.Named {
 			if tname == t.Name {
 				return true
 			}
 		}
 		return false
+	}
+	if this.RunOnlyForTypes.Satisfying != nil {
+		return this.RunOnlyForTypes.Satisfying(t)
 	}
 
 	return this.MayRunForType == nil || this.MayRunForType(t)

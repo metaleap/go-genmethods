@@ -151,13 +151,18 @@ IGent is the interface implemented by individual code-gens.
 
 ```go
 type Opts struct {
-	Disabled bool
+	Disabled      bool
+	EmitCommented bool
 
 	// not used by `go-gent`, but could be handy for callers
 	Name string
 
-	RunNeverForTypesNamed []string
-	RunOnlyForTypesNamed  []string
+	// if-and-only-if these are set, they're checked
+	// before `MayRunForType` (but after `Disabled`)
+	RunNeverForTypes, RunOnlyForTypes struct {
+		Named      []string
+		Satisfying func(*Type) bool
+	}
 
 	// If set, can be used to prevent running of
 	// the `IGent` on the given (or any) `*Type`.
@@ -259,6 +264,13 @@ MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
 ```
 RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
+
+#### type Rename
+
+```go
+type Rename func(*Ctx, *Type, string) string
+```
+
 
 #### type Str
 

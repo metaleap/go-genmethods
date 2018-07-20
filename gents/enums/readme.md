@@ -19,8 +19,14 @@ const (
 
 ```go
 const (
-	DefaultListDocComment = "{N} returns the `names` and `values` of all {n} well-known `{T}` enumerants."
-	DefaultListFuncName   = "Wellknown{T}{s}"
+	DefaultListBothFuncName     = "Wellknown{T}{s}"
+	DefaultListBothDocComment   = "{N} returns the `names` and `values` of all {n} well-known `{T}` enumerants."
+	DefaultListNamesFuncName    = "Wellknown{T}Names"
+	DefaultListNamesDocComment  = "{N} returns the `names` of all {n} well-known `{T}` enumerants."
+	DefaultListValuesFuncName   = "Wellknown{T}Values"
+	DefaultListValuesDocComment = "{N} returns the `values` of all {n} well-known `{T}` enumerants."
+	DefaultListMapFuncName      = "Wellknown{T}NamesAndValues"
+	DefaultListMapDocComment    = "{N} returns the `namesToValues` of all {n} well-known `{T}` enumerants."
 )
 ```
 
@@ -53,7 +59,7 @@ var (
 	Gents struct {
 		IsFoo     GentIsFooMethods
 		IsValid   GentIsValidMethod
-		List      GentListEnumerantsFunc
+		Listers   GentListEnumerantsFuncs
 		Stringers GentStringersMethods
 
 		// contains pointers to all the above fields, in order
@@ -73,7 +79,7 @@ type GentIsFooMethods struct {
 	MethodName gent.Str
 
 	// if set, renames the enumerant used for {e} in `MethodName`
-	MethodNameRenameEnumerant func(string) string
+	MethodNameRenameEnumerant gent.Rename
 }
 ```
 
@@ -120,28 +126,46 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
 at most one method if `t` is a suitable enum type-def.
 
-#### type GentListEnumerantsFunc
+#### type GentListEnumerantsFuncs
 
 ```go
-type GentListEnumerantsFunc struct {
+type GentListEnumerantsFuncs struct {
 	gent.Opts
 
-	DocComment gent.Str
-	// eg. "Wellknown{T}{s}" with `{T}` for type name and
-	// `{s}` for pluralization suffix (either "s" or "es")
-	FuncName gent.Str
+	ListNames struct {
+		DocComment gent.Str
+		FuncName   gent.Str
+	}
+	ListValues struct {
+		DocComment gent.Str
+		FuncName   gent.Str
+	}
+	ListMap struct {
+		DocComment gent.Str
+		FuncName   gent.Str
+	}
+	ListBoth struct {
+		DocComment gent.Str
+
+		// eg. "Wellknown{T}{s}" with `{T}` for type name and
+		// `{s}` for pluralization suffix (either "s" or "es")
+		FuncName gent.Str
+	}
+
+	SkipFirst bool
+	Rename    gent.Rename
 }
 ```
 
-GentListEnumerantsFunc generates a `func WellknownFoos() ([]string, []Foo)` for
+GentListEnumerantsFuncs generates a `func WellknownFoos() ([]string, []Foo)` for
 each enum type-def `Foo`.
 
 An instance with illustrative defaults is in `Gents.List`.
 
-#### func (*GentListEnumerantsFunc) GenerateTopLevelDecls
+#### func (*GentListEnumerantsFuncs) GenerateTopLevelDecls
 
 ```go
-func (this *GentListEnumerantsFunc) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (this *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -186,7 +210,7 @@ type StringMethodOpts struct {
 	Disabled        bool
 	DocComment      gent.Str
 	Name            string
-	EnumerantRename func(string) string
+	EnumerantRename gent.Rename
 	SkipEarlyChecks bool
 	Parser          struct {
 		Add               bool

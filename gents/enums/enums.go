@@ -20,7 +20,7 @@ var (
 	Gents struct {
 		IsFoo     GentIsFooMethods
 		IsValid   GentIsValidMethod
-		List      GentListEnumerantsFunc
+		Listers   GentListEnumerantsFuncs
 		Stringers GentStringersMethods
 
 		// contains pointers to all the above fields, in order
@@ -29,5 +29,5 @@ var (
 )
 
 func init() {
-	Gents.All = gent.Gents{&Gents.IsFoo, &Gents.IsValid, &Gents.List, &Gents.Stringers}
+	Gents.All = gent.Gents{&Gents.IsFoo, &Gents.IsValid, &Gents.Listers, &Gents.Stringers}
 }

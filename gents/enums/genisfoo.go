@@ -28,7 +28,7 @@ type GentIsFooMethods struct {
 	MethodName gent.Str
 
 	// if set, renames the enumerant used for {e} in `MethodName`
-	MethodNameRenameEnumerant func(string) string
+	MethodNameRenameEnumerant gent.Rename
 }
 
 func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
@@ -50,9 +50,11 @@ func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 		for _, enumerant := range t.Enumish.ConstNames {
 			if renamed := enumerant; enumerant != "_" {
 				if this.MethodNameRenameEnumerant != nil {
-					renamed = this.MethodNameRenameEnumerant(enumerant)
+					renamed = this.MethodNameRenameEnumerant(ctx, t, enumerant)
 				}
-				yield.Add(this.genIsFooMethod(t, this.MethodName.With("T", t.Name, "e", renamed), enumerant))
+				if renamed != "" {
+					yield.Add(this.genIsFooMethod(t, this.MethodName.With("T", t.Name, "e", renamed), enumerant))
+				}
 			}
 		}
 	}

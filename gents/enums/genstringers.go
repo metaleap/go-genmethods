@@ -47,7 +47,7 @@ type StringMethodOpts struct {
 	Disabled        bool
 	DocComment      gent.Str
 	Name            string
-	EnumerantRename func(string) string
+	EnumerantRename gent.Rename
 	SkipEarlyChecks bool
 	Parser          struct {
 		Add               bool
@@ -177,7 +177,7 @@ func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 			if self := &this.All[i]; !self.Disabled {
 				if self.EnumerantRename != nil {
 					for i := range names {
-						renames[i] = self.EnumerantRename(names[i])
+						renames[i] = self.EnumerantRename(ctx, t, names[i])
 					}
 					hadrenameslast = true
 				} else if hadrenameslast {
