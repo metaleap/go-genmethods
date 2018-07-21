@@ -50,6 +50,9 @@ var (
 type Ctx struct {
 	// options pertaining to this `Ctx`
 	Opt CtxOpts
+
+	// strictly read-only
+	Pkg *Pkg
 }
 ```
 
@@ -330,10 +333,22 @@ type Type struct {
 ```
 
 
+#### func (*Type) IsArray
+
+```go
+func (this *Type) IsArray() bool
+```
+
 #### func (*Type) IsEnumish
 
 ```go
 func (this *Type) IsEnumish() bool
+```
+
+#### func (*Type) IsSlice
+
+```go
+func (this *Type) IsSlice() bool
 ```
 
 #### func (*Type) IsSliceOrArray
@@ -368,4 +383,28 @@ type Variant struct {
 	Add          bool
 	NameOrSuffix string
 }
+```
+
+
+#### func (*Variant) NameWith
+
+```go
+func (this *Variant) NameWith(placeholderNamesAndValues ...string) string
+```
+
+#### type Variation
+
+```go
+type Variation struct {
+	Disabled   bool
+	DocComment Str
+	Name       string
+}
+```
+
+
+#### func (*Variation) NameWith
+
+```go
+func (this *Variation) NameWith(placeholderNamesAndValues ...string) string
 ```

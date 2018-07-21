@@ -132,28 +132,13 @@ at most one method if `t` is a suitable enum type-def.
 type GentListEnumerantsFuncs struct {
 	gent.Opts
 
-	ListNames struct {
-		DocComment gent.Str
-		FuncName   gent.Str
-	}
-	ListValues struct {
-		DocComment gent.Str
-		FuncName   gent.Str
-	}
-	ListMap struct {
-		DocComment gent.Str
-		FuncName   gent.Str
-	}
-	ListBoth struct {
-		DocComment gent.Str
+	ListNames  gent.Variation
+	ListValues gent.Variation
+	ListMap    gent.Variation
+	ListBoth   gent.Variation
 
-		// eg. "Wellknown{T}{s}" with `{T}` for type name and
-		// `{s}` for pluralization suffix (either "s" or "es")
-		FuncName gent.Str
-	}
-
-	SkipFirst bool
-	Rename    gent.Rename
+	AlwaysSkipFirst bool
+	Rename          gent.Rename
 }
 ```
 
@@ -161,6 +146,14 @@ GentListEnumerantsFuncs generates a `func WellknownFoos() ([]string, []Foo)` for
 each enum type-def `Foo`.
 
 An instance with illustrative defaults is in `Gents.List`.
+
+#### func (*GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals
+
+```go
+func (this *GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+```
+EnableOrDisableAllVariantsAndOptionals implements
+`github.com/metaleap/go-gent.IGent`.
 
 #### func (*GentListEnumerantsFuncs) GenerateTopLevelDecls
 
@@ -207,9 +200,7 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
 ```go
 type StringMethodOpts struct {
-	Disabled        bool
-	DocComment      gent.Str
-	Name            string
+	gent.Variation
 	EnumerantRename gent.Rename
 	SkipEarlyChecks bool
 	Parser          struct {

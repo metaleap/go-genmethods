@@ -1,4 +1,4 @@
-package gentslices
+package gentjson
 
 import (
 	"github.com/go-leap/dev/go/gen"
@@ -14,10 +14,7 @@ var (
 	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
-		IndexOf    GentIndexMethods
-		Filters    GentFilteringMethods
-		Mutators   GentMutatorMethods
-		Converters GentConvertMethods
+		Enums GentEnumJsonMethods
 
 		// contains pointers to all the above fields, in order
 		All gent.Gents
@@ -25,5 +22,5 @@ var (
 )
 
 func init() {
-	Gents.All = gent.Gents{&Gents.IndexOf, &Gents.Filters, &Gents.Mutators, &Gents.Converters}
+	Gents.All = gent.Gents{&Gents.Enums}
 }

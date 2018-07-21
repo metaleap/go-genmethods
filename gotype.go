@@ -119,6 +119,14 @@ func (this *Type) IsEnumish() bool {
 	return this.Enumish.BaseType != "" && len(this.Enumish.ConstNames) > 0 && (this.Enumish.ConstNames[0] != "_" || len(this.Enumish.ConstNames) > 1)
 }
 
+func (this *Type) IsArray() bool {
+	return this.IsSliceOrArray() && this.Expr.GenRef.ArrOrSlice.IsFixedLen != nil
+}
+
+func (this *Type) IsSlice() bool {
+	return this.IsSliceOrArray() && this.Expr.GenRef.ArrOrSlice.IsFixedLen == nil
+}
+
 func (this *Type) IsSliceOrArray() bool {
 	return this.Expr.GenRef.ArrOrSlice.Of != nil
 }

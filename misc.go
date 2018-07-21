@@ -33,4 +33,18 @@ type Variant struct {
 	NameOrSuffix string
 }
 
+func (this *Variant) NameWith(placeholderNamesAndValues ...string) string {
+	return Str(this.NameOrSuffix).With(placeholderNamesAndValues...)
+}
+
+type Variation struct {
+	Disabled   bool
+	DocComment Str
+	Name       string
+}
+
+func (this *Variation) NameWith(placeholderNamesAndValues ...string) string {
+	return Str(this.Name).With(placeholderNamesAndValues...)
+}
+
 type Rename func(*Ctx, *Type, string) string

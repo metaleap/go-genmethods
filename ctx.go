@@ -39,7 +39,9 @@ type Ctx struct {
 	// options pertaining to this `Ctx`
 	Opt CtxOpts
 
-	pkg                            *Pkg
+	// strictly read-only
+	Pkg *Pkg
+
 	gents                          Gents
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
@@ -52,10 +54,9 @@ func (this *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 	}
 	return &Ctx{
 		Opt: *this, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
-		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, gents: gents, pkg: pkg,
+		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, gents: gents, Pkg: pkg,
 	}
 }
-
 func (this *Ctx) mayGentRunForType(g IGent, t *Type) bool {
 	return g.Opt().mayRunForType(t) &&
 		(this.Opt.MayGentRunForType == nil || this.Opt.MayGentRunForType(g, t))

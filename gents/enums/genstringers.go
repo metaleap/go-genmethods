@@ -17,16 +17,19 @@ const (
 )
 
 func init() {
-	Gents.Stringers.All = []StringMethodOpts{
-		{DocComment: DefaultStringers0DocComments, Name: DefaultStringers0MethodName, EnumerantRename: nil},
-		{DocComment: DefaultStringers1DocComments, Name: DefaultStringers1MethodName, Disabled: true},
-	}
+	Gents.Stringers.DocComments.Parsers = DefaultStringersParsersDocComments
+	Gents.Stringers.DocComments.ParsersErrlessVariant = DefaultStringersParsersDocCommentsErrless
+	Gents.Stringers.All = make([]StringMethodOpts, 2)
+
+	Gents.Stringers.All[0].DocComment, Gents.Stringers.All[0].Name =
+		DefaultStringers0DocComments, DefaultStringers0MethodName
+	Gents.Stringers.All[1].DocComment, Gents.Stringers.All[1].Name, Gents.Stringers.All[1].Disabled =
+		DefaultStringers1DocComments, DefaultStringers1MethodName, true
+
 	for i := range Gents.Stringers.All {
 		Gents.Stringers.All[i].Parser.FuncName, Gents.Stringers.All[i].Parser.Errless =
 			DefaultStringersParsersFuncName, gent.Variant{NameOrSuffix: "Or"}
 	}
-	Gents.Stringers.DocComments.Parsers = DefaultStringersParsersDocComments
-	Gents.Stringers.DocComments.ParsersErrlessVariant = DefaultStringersParsersDocCommentsErrless
 }
 
 // GentStringersMethods generates for enum type-defs the specified
@@ -44,9 +47,7 @@ type GentStringersMethods struct {
 }
 
 type StringMethodOpts struct {
-	Disabled        bool
-	DocComment      gent.Str
-	Name            string
+	gent.Variation
 	EnumerantRename gent.Rename
 	SkipEarlyChecks bool
 	Parser          struct {

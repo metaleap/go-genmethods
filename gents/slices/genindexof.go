@@ -50,10 +50,8 @@ type GentIndexMethods struct {
 }
 
 type IndexMethodOpts struct {
-	Disabled   bool
-	DocComment gent.Str
-	Name       string
-	Predicate  gent.Variant
+	gent.Variation
+	Predicate gent.Variant
 }
 
 func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
