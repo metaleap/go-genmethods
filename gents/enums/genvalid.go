@@ -50,12 +50,12 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
 
-		var op1, op2 comparisonOperator = ˇ.This.Geq, ˇ.This.Leq
+		var op1, op2 comparisonOperator = This.Geq, This.Leq
 		if invalid1 {
-			info1, op1 = "exclusive", ˇ.This.Gt
+			info1, op1 = "exclusive", This.Gt
 		}
 		if invalid2 {
-			info2, op2 = "exclusive", ˇ.This.Lt
+			info2, op2 = "exclusive", This.Lt
 		}
 		yield = Syns{this.genIsValidMethod(t, op1, op2, name1, name2, info1, info2)}
 	}

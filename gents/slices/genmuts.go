@@ -19,7 +19,7 @@ func (this *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
 	return t.G.Tª.Method(this.Append.NameOrSuffix).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
 		Doc().
 		Code(
-			ˇ.This.Deref().Set(B.Append.Of(ˇ.This.Deref(), ˇ.V).Spreads()),
+			This.Deref().Set(B.Append.Of(This.Deref(), ˇ.V).Spreads()),
 		)
 }
 

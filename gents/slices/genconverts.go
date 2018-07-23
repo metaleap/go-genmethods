@@ -24,25 +24,25 @@ type GentConvertMethods struct {
 }
 
 func (this *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructField) *SynFunc {
-	tsl := TrSlice(field.Type)
+	tsl := TSlice(field.Type)
 	return t.G.T.Method(this.Fields.NameWith("field", field.Name)).Rets(ˇ.R.OfType(tsl)).
 		Doc().
 		Code(
-			ˇ.R.Set(B.Make.Of(tsl, B.Len.Of(ˇ.This))),
-			ForEach(ˇ.I, None, ˇ.This,
-				ˇ.R.At(ˇ.I).Set(ˇ.This.At(ˇ.I).D(N(field.Name))),
+			ˇ.R.Set(B.Make.Of(tsl, B.Len.Of(This))),
+			ForEach(ˇ.I, None, This,
+				ˇ.R.At(ˇ.I).Set(This.At(ˇ.I).D(N(field.Name))),
 			),
 		)
 }
 
 func (this *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructField) *SynFunc {
-	tmap := TrMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
+	tmap := TMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
 	return t.G.T.Method(this.ToMaps.NameWith("field", field.Name)).Rets(ˇ.R.OfType(tmap)).
 		Doc().
 		Code(
-			ˇ.R.Set(B.Make.Of(tmap, B.Len.Of(ˇ.This))),
-			ForEach(ˇ.I, None, ˇ.This,
-				ˇ.R.At(ˇ.This.At(ˇ.I).D(N(field.Name))).Set(ˇ.This.At(ˇ.I)),
+			ˇ.R.Set(B.Make.Of(tmap, B.Len.Of(This))),
+			ForEach(ˇ.I, None, This,
+				ˇ.R.At(This.At(ˇ.I).D(N(field.Name))).Set(This.At(ˇ.I)),
 			),
 		)
 }

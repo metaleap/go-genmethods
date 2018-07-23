@@ -54,7 +54,7 @@ func (this *GentListEnumerantsFuncs) genListNamesFunc(t *gent.Type, funcName str
 }
 
 func (this *GentListEnumerantsFuncs) genListValuesFunc(t *gent.Type, funcName string, enumerantValues Syns) *SynFunc {
-	return Func(funcName).Ret("values", TrSlice(t.G.T)).
+	return Func(funcName).Ret("values", TSlice(t.G.T)).
 		Doc(
 			this.ListValues.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantValues))),
 		).
@@ -64,7 +64,7 @@ func (this *GentListEnumerantsFuncs) genListValuesFunc(t *gent.Type, funcName st
 }
 
 func (this *GentListEnumerantsFuncs) genListBothFunc(t *gent.Type, funcName string, funcNameNames string, funcNameValues string, numEnumerants int) *SynFunc {
-	return Func(funcName).Ret("names", T.SliceOf.Strings).Ret("values", TrSlice(t.G.T)).
+	return Func(funcName).Ret("names", T.SliceOf.Strings).Ret("values", TSlice(t.G.T)).
 		Doc(
 			this.ListBoth.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(numEnumerants)),
 		).
@@ -74,13 +74,13 @@ func (this *GentListEnumerantsFuncs) genListBothFunc(t *gent.Type, funcName stri
 }
 
 func (this *GentListEnumerantsFuncs) genListMapFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
-	maptype := TrMap(T.String, t.G.T)
+	maptype := TMap(T.String, t.G.T)
 	return Func(funcName).Ret("namesToValues", maptype).
 		Doc(
 			this.ListBoth.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
 		).
 		Code(
-			N("namesToValues").Set(B.Make.Of(TrMap(T.String, t.G.T), len(enumerantNames))),
+			N("namesToValues").Set(B.Make.Of(TMap(T.String, t.G.T), len(enumerantNames))),
 			GEN_FOR(0, len(enumerantNames), 1, func(i int) ISyn {
 				return N("namesToValues").At(enumerantNames[i]).Set(enumerantValues[i])
 			}),

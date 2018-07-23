@@ -160,6 +160,12 @@ type Opts struct {
 	// not used by `go-gent`, but could be handy for callers
 	Name string
 
+	// tested right after `Disabled` and before the below checks.
+	// should typically be false for most `Gent`s as the design assumes
+	// generation of methods, but it's for the occasional need to generate
+	// non-method `func`s related to certain type-alias declarations
+	RunOnlyForTypeAliases bool
+
 	// if-and-only-if these are set, they're checked
 	// before `MayRunForType` (but after `Disabled`)
 	RunNeverForTypes, RunOnlyForTypes struct {
@@ -168,7 +174,7 @@ type Opts struct {
 	}
 
 	// If set, can be used to prevent running of
-	// the `IGent` on the given (or any) `*Type`.
+	// this `IGent` on the given (or any) `*Type`.
 	// See also `CtxOpts.MayGentRunForType`.
 	MayRunForType func(*Type) bool
 }
@@ -309,13 +315,13 @@ type Type struct {
 
 	// commonly useful code-gen values prepared for this `Type`
 	G struct {
-		// a type-ref to this `Type`
+		// type-ref to this `Type`
 		T *udevgogen.TypeRef
-		// a type-ref to pointer-to-`Type` (think ª for addr)
+		// type-ref to pointer-to-`Type` (think 'ª for addr')
 		Tª *udevgogen.TypeRef
-		// a type-ref to slice-of-`Type`
+		// type-ref to slice-of-`Type`
 		Ts *udevgogen.TypeRef
-		// a type-ref to slice-of-pointers-to-`Type`
+		// type-ref to slice-of-pointers-to-`Type`
 		Tªs *udevgogen.TypeRef
 		// Name="this" and Type=.G.T
 		This udevgogen.NamedTyped

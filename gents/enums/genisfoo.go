@@ -37,7 +37,7 @@ func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, en
 			this.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
 		).
 		Code(
-			ˇ.R.Set(ˇ.This.Eq(N(enumerant))), // r = (this == ‹enumerant›)
+			ˇ.R.Set(This.Eq(N(enumerant))), // r = (this == ‹enumerant›)
 		)
 }
 

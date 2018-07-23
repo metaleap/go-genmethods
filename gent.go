@@ -60,6 +60,12 @@ type Opts struct {
 	// not used by `go-gent`, but could be handy for callers
 	Name string
 
+	// tested right after `Disabled` and before the below checks.
+	// should typically be false for most `Gent`s as the design assumes
+	// generation of methods, but it's for the occasional need to generate
+	// non-method `func`s related to certain type-alias declarations
+	RunOnlyForTypeAliases bool
+
 	// if-and-only-if these are set, they're checked
 	// before `MayRunForType` (but after `Disabled`)
 	RunNeverForTypes, RunOnlyForTypes struct {
@@ -68,7 +74,7 @@ type Opts struct {
 	}
 
 	// If set, can be used to prevent running of
-	// the `IGent` on the given (or any) `*Type`.
+	// this `IGent` on the given (or any) `*Type`.
 	// See also `CtxOpts.MayGentRunForType`.
 	MayRunForType func(*Type) bool
 }
@@ -80,7 +86,7 @@ type Opts struct {
 func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool) {}
 
 func (this *Opts) mayRunForType(t *Type) bool {
-	if this.Disabled || t.Alias {
+	if this.Disabled || (this.RunOnlyForTypeAliases != t.Alias) {
 		return false
 	}
 	if len(this.RunNeverForTypes.Named) > 0 {

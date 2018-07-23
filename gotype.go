@@ -40,13 +40,13 @@ type Type struct {
 
 	// commonly useful code-gen values prepared for this `Type`
 	G struct {
-		// a type-ref to this `Type`
+		// type-ref to this `Type`
 		T *udevgogen.TypeRef
-		// a type-ref to pointer-to-`Type` (think ª for addr)
+		// type-ref to pointer-to-`Type` (think 'ª for addr')
 		Tª *udevgogen.TypeRef
-		// a type-ref to slice-of-`Type`
+		// type-ref to slice-of-`Type`
 		Ts *udevgogen.TypeRef
-		// a type-ref to slice-of-pointers-to-`Type`
+		// type-ref to slice-of-pointers-to-`Type`
 		Tªs *udevgogen.TypeRef
 		// Name="this" and Type=.G.T
 		This udevgogen.NamedTyped
@@ -69,9 +69,9 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
 					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
-					t.G.T, t.Expr.AstExpr = udevgogen.TrNamed("", t.Name), goAstTypeExprSansParens(tdecl.Type)
-					t.G.Tª, t.G.Ts = udevgogen.TrPtr(t.G.T), udevgogen.TrSlice(t.G.T)
-					t.G.Tªs, t.G.This, t.G.Thisª = udevgogen.TrSlice(t.G.Tª), udevgogen.Vars.This.OfType(t.G.T), udevgogen.Vars.This.OfType(udevgogen.TrPtr(t.G.T))
+					t.G.T, t.Expr.AstExpr = udevgogen.TFrom("", t.Name), goAstTypeExprSansParens(tdecl.Type)
+					t.G.Tª, t.G.Ts = udevgogen.TPointer(t.G.T), udevgogen.TSlice(t.G.T)
+					t.G.Tªs, t.G.This, t.G.Thisª = udevgogen.TSlice(t.G.Tª), udevgogen.This.OfType(t.G.T), udevgogen.This.OfType(udevgogen.TPointer(t.G.T))
 					this.Types.Add(t)
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {

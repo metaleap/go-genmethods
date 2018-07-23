@@ -26,7 +26,7 @@ func (this *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
 	return t.G.T.Method(this.NonNils.NameOrSuffix).Rets(ˇ.R.OfType(t.G.T)).
 		Doc().
 		Code(
-			ˇ.R.Set(ˇ.This),
+			ˇ.R.Set(This),
 			For(ˇ.I.Let(0), ˇ.I.Lt(B.Len.Of(ˇ.R)), ˇ.I.Incr1(),
 				If(ˇ.R.At(ˇ.I).Eq(B.Nil), Then(
 					ˇ.R.Set(B.Append.Of(ˇ.R.Sl(nil, ˇ.I), ˇ.R.Sl(ˇ.I.Plus(1), nil)).Spreads()),
@@ -38,13 +38,13 @@ func (this *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
 
 func (this *GentFilteringMethods) genSelectWhereMethod(t *gent.Type) *SynFunc {
 	tdpred := TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool)
-	return t.G.T.Method(this.SelectWhere.NameOrSuffix).Args(ˇ.Ok.OfType(tdpred.Ref())).Rets(ˇ.R.OfType(t.G.T)).
+	return t.G.T.Method(this.SelectWhere.NameOrSuffix).Args(ˇ.Ok.OfType(tdpred.T())).Rets(ˇ.R.OfType(t.G.T)).
 		Doc().
 		Code(
-			ˇ.R.Set(B.Make.Of(t.G.T, 0, B.Len.Of(ˇ.This).Div(2))),
-			ForEach(ˇ.I, None, ˇ.This,
-				If(ˇ.Ok.Of(ˇ.This.At(ˇ.I)), Then(
-					ˇ.R.Set(B.Append.Of(ˇ.R, ˇ.This.At(ˇ.I))),
+			ˇ.R.Set(B.Make.Of(t.G.T, 0, B.Len.Of(This).Div(2))),
+			ForEach(ˇ.I, None, This,
+				If(ˇ.Ok.Of(This.At(ˇ.I)), Then(
+					ˇ.R.Set(B.Append.Of(ˇ.R, This.At(ˇ.I))),
 				)),
 			),
 		)
@@ -54,9 +54,9 @@ func (this *GentFilteringMethods) genByFieldMethod(t *gent.Type, field *SynStruc
 	return t.G.T.Method(this.ByFields.NameWith("field", field.Name)).Args(ˇ.V.OfType(field.Type)).Rets(ˇ.R.OfType(t.Expr.GenRef.ArrOrSlice.Of)).
 		Doc().
 		Code(
-			ForEach(ˇ.I, None, ˇ.This,
-				If(ˇ.This.At(ˇ.I).D(N(field.Name)).Eq(ˇ.V), Then(
-					ˇ.R.Set(ˇ.This.At(ˇ.I)),
+			ForEach(ˇ.I, None, This,
+				If(This.At(ˇ.I).D(N(field.Name)).Eq(ˇ.V), Then(
+					ˇ.R.Set(This.At(ˇ.I)),
 					K.Return,
 				)),
 			),

@@ -31,11 +31,11 @@ func goAstTypeExprSansParens(expr ast.Expr) ast.Expr {
 func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 	switch tx := expr.(type) {
 	case *ast.Ident:
-		return udevgogen.TrNamed("", tx.Name)
+		return udevgogen.TFrom("", tx.Name)
 	case *ast.SelectorExpr:
-		return udevgogen.TrNamed(tx.Sel.Name, tx.X.(*ast.Ident).Name)
+		return udevgogen.TFrom(tx.Sel.Name, tx.X.(*ast.Ident).Name)
 	case *ast.StarExpr:
-		return udevgogen.TrPtr(goAstTypeExpr2GenTypeRef(tx.X))
+		return udevgogen.TPointer(goAstTypeExpr2GenTypeRef(tx.X))
 	case *ast.ArrayType:
 		switch l := tx.Len.(type) {
 		case *ast.BasicLit:
@@ -43,16 +43,16 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 			if err != nil {
 				panic(err)
 			}
-			return udevgogen.TrArray(fixedlen, goAstTypeExpr2GenTypeRef(tx.Elt))
+			return udevgogen.TArray(fixedlen, goAstTypeExpr2GenTypeRef(tx.Elt))
 		default:
-			return udevgogen.TrSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
+			return udevgogen.TSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
 		}
 	case *ast.Ellipsis:
-		sl := udevgogen.TrSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
+		sl := udevgogen.TSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
 		sl.ArrOrSlice.IsEllipsis = true
 		return sl
 	case *ast.MapType:
-		return udevgogen.TrMap(goAstTypeExpr2GenTypeRef(tx.Key), goAstTypeExpr2GenTypeRef(tx.Value))
+		return udevgogen.TMap(goAstTypeExpr2GenTypeRef(tx.Key), goAstTypeExpr2GenTypeRef(tx.Value))
 	case *ast.FuncType:
 		var tdfn udevgogen.TypeFunc
 		if tx.Params != nil {
@@ -65,7 +65,7 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 				tdfn.Rets.Add("", goAstTypeExpr2GenTypeRef(fld.Type))
 			}
 		}
-		return udevgogen.TrFunc(&tdfn)
+		return udevgogen.TFunc(&tdfn)
 	case *ast.InterfaceType:
 		if tx.Incomplete {
 			panic("interface-type methods list incomplete: investigate to handle!")
@@ -84,7 +84,7 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 				}
 			}
 		}
-		return udevgogen.TrInterface(&tdi)
+		return udevgogen.TInterface(&tdi)
 	case *ast.StructType:
 		if tx.Incomplete {
 			panic("struct-type fields list incomplete: investigate to handle!")
@@ -104,9 +104,9 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 				tds.Fields = append(tds.Fields, udevgogen.TdStructFld(fldname, goAstTypeExpr2GenTypeRef(fld.Type), goStructFieldTagsTryParse(fldtag)))
 			}
 		}
-		return udevgogen.TrStruct(&tds)
+		return udevgogen.TStruct(&tds)
 	case *ast.ChanType:
-		return udevgogen.TrChan(goAstTypeExpr2GenTypeRef(tx.Value), tx.Dir == ast.RECV, tx.Dir == ast.SEND)
+		return udevgogen.TChan(goAstTypeExpr2GenTypeRef(tx.Value), tx.Dir == ast.RECV, tx.Dir == ast.SEND)
 	default:
 		panic(tx)
 	}
