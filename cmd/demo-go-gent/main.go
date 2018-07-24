@@ -37,9 +37,9 @@ func main() {
 	gentenums.Gents.Stringers.All[0].SkipEarlyChecks = true
 	gentenums.Gents.Stringers.All[0].EnumerantRename = func(_ *gent.Ctx, _ *gent.Type, en string) string { return ustr.CaseSnake(ustr.Replace(en, "_", "·")) }
 
-	timetotal, timeperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(nil, gents)
+	timetotal, statsperpkg := pkgs.MustRunGentsAndGenerateOutputFiles(nil, gents)
 	fmt.Println("total time taken for all parallel runs and INCL. gofmt + file-write :\n\t\t" + timetotal.String())
-	for pkg, timetaken := range timeperpkg {
-		fmt.Println("time taken for " + pkg.ImportPath + " EXCL. gofmt & file-write:\n\t\t" + timetaken.String())
+	for pkg, stats := range statsperpkg {
+		fmt.Println("time taken for " + pkg.ImportPath + " EXCL. file-write:\n\t\tconstruct=" + stats.DurationOf.Constructing.String() + "\t\temit=" + stats.DurationOf.Emitting.String() + "\t\tformat=" + stats.DurationOf.Formatting.String() + "")
 	}
 }

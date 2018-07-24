@@ -28,6 +28,15 @@ type CtxOpts struct {
 	MayGentRunForType func(IGent, *Type) bool
 }
 
+type Stats struct {
+	DurationOf struct {
+		Constructing time.Duration
+		Emitting     time.Duration
+		Formatting   time.Duration
+		Everything   time.Duration
+	}
+}
+
 type ctxDeclKey struct {
 	g IGent
 	t *Type

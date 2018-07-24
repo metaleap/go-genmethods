@@ -120,9 +120,14 @@ func (this *Opts) mayRunForType(t *Type) bool {
 func (this *Opts) Opt() *Opts { return this }
 
 // RunGents instructs the given `gents` to generate code for `this` `Pkg`.
-func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, timetakengofmt time.Duration, err error) {
+func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error) {
 	ctx, dst, codegencommentnotice :=
 		maybeCtxOpts.newCtx(this, gents), udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), CodeGenCommentNotice.With("progName", CodeGenCommentProgName)
+	for _, g := range gents {
+		if g.Opt().RunOnlyOnceWithoutAnyType {
+			dst.Body.Add(ctx.generateTopLevelDecls(g, nil)...)
+		}
+	}
 	for _, t := range this.Types {
 		for _, g := range gents {
 			if ctx.mayGentRunForType(g, t) {
@@ -130,21 +135,21 @@ func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, timet
 			}
 		}
 	}
-	for _, g := range gents {
-		if g.Opt().RunOnlyOnceWithoutAnyType {
-			dst.Body.Add(ctx.generateTopLevelDecls(g, nil)...)
-		}
-	}
+	stats = &Stats{}
+	stats.DurationOf.Constructing = time.Since(ctx.timeStarted)
 
+	var timetakengofmt time.Duration
+	emitstarttime := time.Now()
 	src, timetakengofmt, err = dst.CodeGen(codegencommentnotice, ctx.pkgImportPathsToPkgImportNames, ctx.Opt.EmitNoOpFuncBodies, !ctx.Opt.NoGoFmt)
-	timetakengofmt = time.Since(ctx.timeStarted) - timetakengofmt
+	stats.DurationOf.Formatting, stats.DurationOf.Emitting, stats.DurationOf.Everything =
+		timetakengofmt, time.Since(emitstarttime)-timetakengofmt, time.Since(ctx.timeStarted)
 	return
 }
 
 // MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration) {
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats) {
 	var errs map[*Pkg]error
-	timeTakenTotal, timeTakenPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpts, gents)
+	timeTakenTotal, statsPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpts, gents)
 	for _, err := range errs {
 		panic(err)
 	}
@@ -152,25 +157,25 @@ func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents
 }
 
 // RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error) {
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
-		src, timetaken, err := pkg.RunGents(maybeCtxOpts, gents)
+		src, stats, err := pkg.RunGents(maybeCtxOpts, gents)
 		if err == nil {
 			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
 		} else {
 			println(string(src))
 		}
 		maps.Lock()
-		if timeTakenPerPkg[pkg] = timetaken; err != nil {
+		if statsPerPkg[pkg] = stats; err != nil {
 			errs[pkg] = err
 		}
 		maps.Unlock()
 		runs.Done()
 	}
 
-	timeTakenPerPkg, errs = make(map[*Pkg]time.Duration, len(this)), map[*Pkg]error{}
+	statsPerPkg, errs = make(map[*Pkg]*Stats, len(this)), map[*Pkg]error{}
 	runs.Add(len(this))
 	for _, pkg := range this {
 		go run(pkg)

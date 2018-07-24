@@ -22,11 +22,27 @@ func (this Num) Isthree() (r bool) { r = this == three; return }
 // Valid returns whether the value of this `Num` is between `zero` (inclusive) and `three` (inclusive).
 func (this Num) Valid() (r bool) { r = (this >= zero) && (this <= three); return }
 
-// WellknownNums returns the `names` and `values` of all 4 well-known `Num` enumerants.
-func WellknownNums() (names []string, values []Num) {
-	names, values = []string{"zero", "one", "two", "three"}, []Num{zero, one, two, three}
+// WellknownNumNamesAndValues returns the `names` and `values` of all 4 well-known `Num` enumerants.
+func WellknownNumNamesAndValues() (namesToValues map[string]Num) {
+	namesToValues = make(map[string]Num, 4)
+	namesToValues["zero"] = zero
+	namesToValues["one"] = one
+	namesToValues["two"] = two
+	namesToValues["three"] = three
 	return
 }
+
+// WellknownNums returns the `names` and `values` of all 4 well-known `Num` enumerants.
+func WellknownNums() (names []string, values []Num) {
+	names, values = WellknownNumNames(), WellknownNumValues()
+	return
+}
+
+// WellknownNumNames returns the `names` of all 4 well-known `Num` enumerants.
+func WellknownNumNames() (names []string) { names = []string{"zero", "one", "two", "three"}; return }
+
+// WellknownNumValues returns the `values` of all 4 well-known `Num` enumerants.
+func WellknownNumValues() (values []Num) { values = []Num{zero, one, two, three}; return }
 
 // String implements the Go standard library's `fmt.Stringer` interface.
 func (this Num) String() (r string) {
@@ -211,3 +227,15 @@ func (this complex384) IndicesFunc(ok func(complex128) bool) (r []int) {
 	}
 	return
 }
+
+func (this complex384) SelectWhere(ok func(complex128) bool) (r complex384) {
+	r = make(complex384, 0, len(this)/2)
+	for i := range this {
+		if ok(this[i]) {
+			r = append(r, this[i])
+		}
+	}
+	return
+}
+
+func (this *complex384) Append(v ...complex128) { *this = append(*this, v...) }

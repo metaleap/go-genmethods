@@ -239,7 +239,7 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, timetakengofmt time.Duration, err error)
+func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error)
 ```
 RunGents instructs the given `gents` to generate code for `this` `Pkg`.
 
@@ -265,14 +265,14 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration)
+func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats)
 ```
 MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, timeTakenPerPkg map[*Pkg]time.Duration, errs map[*Pkg]error)
+func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error)
 ```
 RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 
@@ -280,6 +280,20 @@ RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 
 ```go
 type Rename func(*Ctx, *Type, string) string
+```
+
+
+#### type Stats
+
+```go
+type Stats struct {
+	DurationOf struct {
+		Constructing time.Duration
+		Emitting     time.Duration
+		Formatting   time.Duration
+		Everything   time.Duration
+	}
+}
 ```
 
 
