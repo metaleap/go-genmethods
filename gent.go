@@ -66,6 +66,8 @@ type Opts struct {
 	// non-method `func`s related to certain type-alias declarations
 	RunOnlyForTypeAliases bool
 
+	RunOnlyOnceWithoutAnyType bool
+
 	// if-and-only-if these are set, they're checked
 	// before `MayRunForType` (but after `Disabled`)
 	RunNeverForTypes, RunOnlyForTypes struct {
@@ -86,7 +88,7 @@ type Opts struct {
 func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool) {}
 
 func (this *Opts) mayRunForType(t *Type) bool {
-	if this.Disabled || (this.RunOnlyForTypeAliases != t.Alias) {
+	if this.Disabled || this.RunOnlyOnceWithoutAnyType || (this.RunOnlyForTypeAliases != t.Alias) {
 		return false
 	}
 	if len(this.RunNeverForTypes.Named) > 0 {
@@ -126,6 +128,11 @@ func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, timet
 			if ctx.mayGentRunForType(g, t) {
 				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
 			}
+		}
+	}
+	for _, g := range gents {
+		if g.Opt().RunOnlyOnceWithoutAnyType {
+			dst.Body.Add(ctx.generateTopLevelDecls(g, nil)...)
 		}
 	}
 

@@ -166,6 +166,8 @@ type Opts struct {
 	// non-method `func`s related to certain type-alias declarations
 	RunOnlyForTypeAliases bool
 
+	RunOnlyOnceWithoutAnyType bool
+
 	// if-and-only-if these are set, they're checked
 	// before `MayRunForType` (but after `Disabled`)
 	RunNeverForTypes, RunOnlyForTypes struct {

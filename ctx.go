@@ -69,6 +69,8 @@ func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) 
 		for i := range decls {
 			if fn, _ := decls[i].(*udevgogen.SynFunc); fn != nil {
 				fn.EmitCommented = true
+			} else if raw, _ := decls[i].(*udevgogen.SynRaw); raw != nil {
+				raw.EmitCommented = true
 			}
 		}
 	}

@@ -33,7 +33,7 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 	case *ast.Ident:
 		return udevgogen.TFrom("", tx.Name)
 	case *ast.SelectorExpr:
-		return udevgogen.TFrom(tx.Sel.Name, tx.X.(*ast.Ident).Name)
+		return udevgogen.TFrom(udevgogen.PkgName(tx.Sel.Name), tx.X.(*ast.Ident).Name)
 	case *ast.StarExpr:
 		return udevgogen.TPointer(goAstTypeExpr2GenTypeRef(tx.X))
 	case *ast.ArrayType:
