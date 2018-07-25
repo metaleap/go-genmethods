@@ -43,9 +43,15 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 			if err != nil {
 				panic(err)
 			}
-			return udevgogen.TArray(fixedlen, goAstTypeExpr2GenTypeRef(tx.Elt))
-		default:
+			return udevgogen.TArray(udevgogen.L(fixedlen), goAstTypeExpr2GenTypeRef(tx.Elt))
+		case *ast.Ident:
+			return udevgogen.TArray(udevgogen.N(l.Name), goAstTypeExpr2GenTypeRef(tx.Elt))
+		case *ast.SelectorExpr:
+			return udevgogen.TArray(udevgogen.D(udevgogen.N(l.X.(*ast.Ident).Name), udevgogen.N(l.Sel.Name)), goAstTypeExpr2GenTypeRef(tx.Elt))
+		case nil:
 			return udevgogen.TSlice(goAstTypeExpr2GenTypeRef(tx.Elt))
+		default:
+			panic(l)
 		}
 	case *ast.Ellipsis:
 		sl := udevgogen.TSlice(goAstTypeExpr2GenTypeRef(tx.Elt))

@@ -17,16 +17,7 @@ func init() {
 func main() {
 	pkgs := gent.MustLoadPkgs(map[string]string{
 		"github.com/metaleap/go-gent/cmd/demo-go-gent/testpkg": "°_gent.go",
-		"github.com/metaleap/zentient":                         "°_gent.go",
-		"github.com/metaleap/zentient/lang/golang":             "°_gent.go",
 	})
-
-	gent.Defaults.CtxOpt.MayGentRunForType = func(g gent.IGent, t *gent.Type) bool {
-		if g == &gentenums.Gents.Stringers {
-			return !(t.Pkg.ImportPath == "github.com/metaleap/zentient" && t.Name == "ToolCats")
-		}
-		return true
-	}
 
 	gents := gent.Gents{}.With(
 		gentenums.Gents.All,

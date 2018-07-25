@@ -227,15 +227,3 @@ func (this complex384) IndicesFunc(ok func(complex128) bool) (r []int) {
 	}
 	return
 }
-
-func (this complex384) SelectWhere(ok func(complex128) bool) (r complex384) {
-	r = make(complex384, 0, len(this)/2)
-	for i := range this {
-		if ok(this[i]) {
-			r = append(r, this[i])
-		}
-	}
-	return
-}
-
-func (this *complex384) Append(v ...complex128) { *this = append(*this, v...) }
