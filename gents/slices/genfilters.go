@@ -75,7 +75,7 @@ func (this *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 		if this.ByFields.Add && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
 			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
 				for _, field := range this.ByFields.Named {
-					if fld := tstruc.Expr.GenRef.Struct.Field(field); fld != nil {
+					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
 						yield.Add(this.genByFieldMethod(t, fld))
 					}
 				}
