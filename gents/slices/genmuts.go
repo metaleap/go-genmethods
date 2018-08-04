@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	Gents.Mutators.Append.NameOrSuffix = "Append"
+	Gents.Mutators.Append.Name = "Append"
 }
 
 type GentMutatorMethods struct {
@@ -16,7 +16,7 @@ type GentMutatorMethods struct {
 }
 
 func (this *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
-	return t.G.Tª.Method(this.Append.NameOrSuffix).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
+	return t.G.Tª.Method(this.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
 		Doc().
 		Code(
 			This.Deref().Set(B.Append.Of(This.Deref(), ˇ.V).Spreads()),

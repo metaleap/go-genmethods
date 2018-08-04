@@ -73,11 +73,12 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 type GentFilteringMethods struct {
 	gent.Opts
 
-	NonNils     gent.Variant
-	SelectWhere gent.Variant
-	ByFields    struct {
-		gent.Variant
-		Named []string
+	NonNils gent.Variant
+	Func    gent.Variant
+	By      struct {
+		gent.Variation
+		Fields  []string
+		Methods []NamedTyped
 	}
 }
 ```

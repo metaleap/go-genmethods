@@ -172,13 +172,13 @@ type Opts struct {
 	// before `MayRunForType` (but after `Disabled`)
 	RunNeverForTypes, RunOnlyForTypes struct {
 		Named      []string
-		Satisfying func(*Type) bool
+		Satisfying func(*Ctx, *Type) bool
 	}
 
 	// If set, can be used to prevent running of
 	// this `IGent` on the given (or any) `*Type`.
 	// See also `CtxOpts.MayGentRunForType`.
-	MayRunForType func(*Type) bool
+	MayRunForType func(*Ctx, *Type) bool
 }
 ```
 
@@ -227,7 +227,7 @@ type Pkg struct {
 #### func  LoadPkg
 
 ```go
-func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) (this *Pkg, err error)
+func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (this *Pkg, err error)
 ```
 
 #### func  MustLoadPkg
@@ -402,8 +402,8 @@ func (this Types) Named(name string) *Type
 
 ```go
 type Variant struct {
-	Add          bool
-	NameOrSuffix string
+	Add  bool
+	Name string
 }
 ```
 

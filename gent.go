@@ -72,13 +72,13 @@ type Opts struct {
 	// before `MayRunForType` (but after `Disabled`)
 	RunNeverForTypes, RunOnlyForTypes struct {
 		Named      []string
-		Satisfying func(*Type) bool
+		Satisfying func(*Ctx, *Type) bool
 	}
 
 	// If set, can be used to prevent running of
 	// this `IGent` on the given (or any) `*Type`.
 	// See also `CtxOpts.MayGentRunForType`.
-	MayRunForType func(*Type) bool
+	MayRunForType func(*Ctx, *Type) bool
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `IGent` but
@@ -87,7 +87,7 @@ type Opts struct {
 // To disable or enable an `IGent` itself, set `Opts.Disabled`.
 func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool) {}
 
-func (this *Opts) mayRunForType(t *Type) bool {
+func (this *Opts) mayRunForType(ctx *Ctx, t *Type) bool {
 	if this.Disabled || this.RunOnlyOnceWithoutAnyType || (this.RunOnlyForTypeAliases != t.Alias) {
 		return false
 	}
@@ -98,7 +98,7 @@ func (this *Opts) mayRunForType(t *Type) bool {
 			}
 		}
 	}
-	if this.RunNeverForTypes.Satisfying != nil && this.RunNeverForTypes.Satisfying(t) {
+	if this.RunNeverForTypes.Satisfying != nil && this.RunNeverForTypes.Satisfying(ctx, t) {
 		return false
 	}
 	if len(this.RunOnlyForTypes.Named) > 0 {
@@ -110,10 +110,10 @@ func (this *Opts) mayRunForType(t *Type) bool {
 		return false
 	}
 	if this.RunOnlyForTypes.Satisfying != nil {
-		return this.RunOnlyForTypes.Satisfying(t)
+		return this.RunOnlyForTypes.Satisfying(ctx, t)
 	}
 
-	return this.MayRunForType == nil || this.MayRunForType(t)
+	return this.MayRunForType == nil || this.MayRunForType(ctx, t)
 }
 
 // Opt implements `IGent.Opt()` for `Opts` embedders.

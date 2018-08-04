@@ -41,7 +41,7 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs {
 func LoadPkgs(pkgPathsWithOutputFileNames map[string]string) (Pkgs, error) {
 	pkgs := make(Pkgs, len(pkgPathsWithOutputFileNames))
 	for pkgImportPathOrFileSystemPath, outputFileName := range pkgPathsWithOutputFileNames {
-		if pkg, err := LoadPkg(pkgImportPathOrFileSystemPath, outputFileName); err != nil {
+		if pkg, err := LoadPkg(pkgImportPathOrFileSystemPath, outputFileName, ""); err != nil {
 			return nil, err
 		} else {
 			pkgs[pkgImportPathOrFileSystemPath] = pkg
@@ -51,25 +51,24 @@ func LoadPkgs(pkgPathsWithOutputFileNames map[string]string) (Pkgs, error) {
 }
 
 func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *Pkg {
-	if pkg, err := LoadPkg(pkgImportPathOrFileSystemPath, outputFileName); err != nil {
+	if pkg, err := LoadPkg(pkgImportPathOrFileSystemPath, outputFileName, ""); err != nil {
 		panic(err)
 	} else {
 		return pkg
 	}
 }
 
-func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) (this *Pkg, err error) {
+func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (this *Pkg, err error) {
 	errnogopkg := errors.New("not a Go package: " + pkgImportPathOrFileSystemPath)
-	this = &Pkg{}
+	this = &Pkg{Name: dontLoadButJustInitUsingPkgNameInstead}
 	this.CodeGen.OutputFileName = outputFileName
 
-	if err = this.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil {
+	if err = this.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil && dontLoadButJustInitUsingPkgNameInstead == "" {
 		var gofilepaths []string
 		if gofilepaths, err = this.load_SetFileNames(errnogopkg); err == nil {
 			err = this.load_FromFiles(gofilepaths)
 		}
 	}
-
 	if err != nil {
 		this = nil
 	}

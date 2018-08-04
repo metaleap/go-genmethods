@@ -28,7 +28,7 @@ func init() {
 
 	for i := range Gents.Stringers.All {
 		Gents.Stringers.All[i].Parser.FuncName, Gents.Stringers.All[i].Parser.Errless =
-			DefaultStringersParsersFuncName, gent.Variant{NameOrSuffix: "Or"}
+			DefaultStringersParsersFuncName, gent.Variant{Name: "Or"}
 	}
 }
 
@@ -189,7 +189,7 @@ func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 				if yield.Add(self.genStringerMethod(t, pkgstrconv, names, renames)); self.Parser.Add {
 					fnp := self.genParseFunc(t, this.DocComments.Parsers, pkgstrconv, pkgstrings, names, renames)
 					if yield.Add(fnp); self.Parser.Errless.Add {
-						yield.Add(self.genParseErrlessFunc(t, this.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.NameOrSuffix, fnp.Name))
+						yield.Add(self.genParseErrlessFunc(t, this.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.Name, fnp.Name))
 					}
 				}
 			}

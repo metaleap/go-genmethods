@@ -6,24 +6,25 @@ import (
 )
 
 func init() {
-	Gents.Filters.NonNils.NameOrSuffix = "NonNils"
-	Gents.Filters.SelectWhere.NameOrSuffix = "SelectWhere"
-	Gents.Filters.ByFields.NameOrSuffix = "By{field}"
+	Gents.Filters.NonNils.Name = "WhereNotNil"
+	Gents.Filters.Func.Name = "Where"
+	Gents.Filters.By.Name = "Where{member}"
 }
 
 type GentFilteringMethods struct {
 	gent.Opts
 
-	NonNils     gent.Variant
-	SelectWhere gent.Variant
-	ByFields    struct {
-		gent.Variant
-		Named []string
+	NonNils gent.Variant
+	Func    gent.Variant
+	By      struct {
+		gent.Variation
+		Fields  []string
+		Methods []NamedTyped
 	}
 }
 
 func (this *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
-	return t.G.T.Method(this.NonNils.NameOrSuffix).Rets(ˇ.R.OfType(t.G.T)).
+	return t.G.T.Method(this.NonNils.Name).Rets(ˇ.R.OfType(t.G.T)).
 		Doc().
 		Code(
 			ˇ.R.Set(This),
@@ -38,7 +39,7 @@ func (this *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
 
 func (this *GentFilteringMethods) genSelectWhereMethod(t *gent.Type) *SynFunc {
 	tdpred := TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool)
-	return t.G.T.Method(this.SelectWhere.NameOrSuffix).Args(ˇ.Ok.OfType(tdpred.T())).Rets(ˇ.R.OfType(t.G.T)).
+	return t.G.T.Method(this.Func.Name).Args(ˇ.Ok.OfType(tdpred.T())).Rets(ˇ.R.OfType(t.G.T)).
 		Doc().
 		Code(
 			ˇ.R.Set(B.Make.Of(t.G.T, 0, B.Len.Of(This).Div(2))),
@@ -51,7 +52,7 @@ func (this *GentFilteringMethods) genSelectWhereMethod(t *gent.Type) *SynFunc {
 }
 
 func (this *GentFilteringMethods) genByFieldMethod(t *gent.Type, field *SynStructField) *SynFunc {
-	return t.G.T.Method(this.ByFields.NameWith("field", field.Name)).Args(ˇ.V.OfType(field.Type)).Rets(ˇ.R.OfType(t.Expr.GenRef.ArrOrSlice.Of)).
+	return t.G.T.Method(this.By.NameWith("member", field.Name)).Args(ˇ.V.OfType(field.Type)).Rets(ˇ.R.OfType(t.Expr.GenRef.ArrOrSlice.Of)).
 		Doc().
 		Code(
 			ForEach(ˇ.I, None, This,
@@ -63,21 +64,37 @@ func (this *GentFilteringMethods) genByFieldMethod(t *gent.Type, field *SynStruc
 		)
 }
 
+func (this *GentFilteringMethods) genByMethodMethod(t *gent.Type, i int) *SynFunc {
+	m := this.By.Methods[i]
+	return t.G.T.Method(this.By.NameWith("member", m.Name)).
+		Args(m.Type.Func.Args.IfUntypedUse(t.Expr.GenRef.ArrOrSlice.Of)...).
+		Rets(ˇ.R.OfType(t.G.T)).
+		Doc().
+		Code(
+			ˇ.R.Set(This.C(this.Func.Name, Func("").Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Ret("", T.Bool).Code(
+				Ret(ˇ.V.C(m.Name, m.Type.Func.Args.Names()...)),
+			))),
+		)
+}
+
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsSlice() {
 		if this.NonNils.Add && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil {
 			yield.Add(this.genNonNilsMethod(t))
 		}
-		if this.SelectWhere.Add {
+		if this.Func.Add {
 			yield.Add(this.genSelectWhereMethod(t))
 		}
-		if this.ByFields.Add && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
+		if (!this.By.Disabled) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
 			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
-				for _, field := range this.ByFields.Named {
-					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
+				for _, field := range this.By.Fields {
+					if fld := tstruc.Expr.GenRef.Struct.Field(field); fld != nil {
 						yield.Add(this.genByFieldMethod(t, fld))
 					}
+				}
+				for i := range this.By.Methods {
+					yield.Add(this.genByMethodMethod(t, i))
 				}
 			}
 		}
@@ -87,5 +104,6 @@ func (this *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentFilteringMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
-	this.SelectWhere.Add, this.ByFields.Add, this.NonNils.Add = enabled, enabled, enabled
+	this.By.Disabled = !enabled
+	this.Func.Add, this.NonNils.Add = enabled, enabled
 }

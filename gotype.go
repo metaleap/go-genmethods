@@ -14,9 +14,11 @@ func (this *Types) Add(t *Type) {
 }
 
 func (this Types) Named(name string) *Type {
-	for _, t := range this {
-		if t.Name == name {
-			return t
+	if name != "" {
+		for _, t := range this {
+			if t.Name == name {
+				return t
+			}
 		}
 	}
 	return nil

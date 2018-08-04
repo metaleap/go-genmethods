@@ -17,7 +17,7 @@ func init() {
 	def := &Gents.IndexOf
 	def.IndexOf.Name, def.IndicesOf.Name, def.IndexLast.Name, def.Contains.Name, def.IndicesOf.Disabled, def.IndexLast.Disabled, def.Contains.Disabled =
 		DefaultIndexMethodName, DefaultIndicesMethodName, DefaultIndexLastMethodName, DefaultContainsMethodName, true, true, true
-	def.IndexOf.Predicate.NameOrSuffix, def.IndicesOf.Predicate.NameOrSuffix, def.IndexLast.Predicate.NameOrSuffix, def.Contains.Predicate.NameOrSuffix =
+	def.IndexOf.Predicate.Name, def.IndicesOf.Predicate.Name, def.IndexLast.Predicate.Name, def.Contains.Predicate.Name =
 		DefaultMethodNameSuffixPredicate, DefaultMethodNameSuffixPredicate, DefaultMethodNameSuffixPredicate, DefaultMethodNameSuffixPredicate
 }
 
@@ -127,7 +127,7 @@ func (this *GentIndexMethods) genIndexOfs(t *gent.Type, isLast bool) (decls Syns
 	}
 	decls.Add(this.genIndexOfMethod(t, self.Name, isLast, self.Variadic, false))
 	if self.Predicate.Add {
-		decls.Add(this.genIndexOfMethod(t, self.Name+self.Predicate.NameOrSuffix, isLast, false, true))
+		decls.Add(this.genIndexOfMethod(t, self.Name+self.Predicate.Name, isLast, false, true))
 	}
 	return
 }
@@ -136,7 +136,7 @@ func (this *GentIndexMethods) genIndicesOfs(t *gent.Type) (decls Syns) {
 	self := &this.IndicesOf
 	decls.Add(this.genIndicesOfMethod(t, self.Name, self.ResultsCapFactor, false))
 	if self.Predicate.Add {
-		decls.Add(this.genIndicesOfMethod(t, self.Name+self.Predicate.NameOrSuffix, self.ResultsCapFactor, true))
+		decls.Add(this.genIndicesOfMethod(t, self.Name+self.Predicate.Name, self.ResultsCapFactor, true))
 	}
 	return
 }

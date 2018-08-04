@@ -29,12 +29,12 @@ func (this Str) With(placeholderNamesAndValues ...string) string {
 var strWith = ustr.NamedPlaceholders('{', '}')
 
 type Variant struct {
-	Add          bool
-	NameOrSuffix string
+	Add  bool
+	Name string
 }
 
 func (this *Variant) NameWith(placeholderNamesAndValues ...string) string {
-	return Str(this.NameOrSuffix).With(placeholderNamesAndValues...)
+	return Str(this.Name).With(placeholderNamesAndValues...)
 }
 
 type Variation struct {

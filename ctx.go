@@ -67,7 +67,7 @@ func (this *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 	}
 }
 func (this *Ctx) mayGentRunForType(g IGent, t *Type) bool {
-	return g.Opt().mayRunForType(t) &&
+	return g.Opt().mayRunForType(this, t) &&
 		(this.Opt.MayGentRunForType == nil || this.Opt.MayGentRunForType(g, t))
 }
 
