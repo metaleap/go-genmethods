@@ -236,6 +236,12 @@ func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLo
 func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *Pkg
 ```
 
+#### func (*Pkg) DirName
+
+```go
+func (this *Pkg) DirName() string
+```
+
 #### func (*Pkg) RunGents
 
 ```go

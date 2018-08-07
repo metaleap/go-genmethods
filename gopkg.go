@@ -127,3 +127,5 @@ func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 	}
 	return
 }
+
+func (this *Pkg) DirName() string { return filepath.Base(this.DirPath) }
