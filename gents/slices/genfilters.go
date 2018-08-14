@@ -72,7 +72,7 @@ func (this *GentFilteringMethods) genByMethodMethod(t *gent.Type, i int) *SynFun
 		Doc().
 		Code(
 			ˇ.R.Set(This.C(this.Func.Name, Func("").Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Ret("", T.Bool).Code(
-				Ret(ˇ.V.C(m.Name, m.Type.Func.Args.Names()...)),
+				Ret(ˇ.V.C(m.Name, m.Type.Func.Args.Names(false)...)),
 			))),
 		)
 }
@@ -89,7 +89,7 @@ func (this *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 		if (!this.By.Disabled) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
 			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
 				for _, field := range this.By.Fields {
-					if fld := tstruc.Expr.GenRef.Struct.Field(field); fld != nil {
+					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
 						yield.Add(this.genByFieldMethod(t, fld))
 					}
 				}

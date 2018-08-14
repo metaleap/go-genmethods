@@ -53,7 +53,7 @@ func (this *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Typ
 		if (this.Fields.Add || this.ToMaps.Add) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
 			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
 				for _, field := range this.Fields.Named {
-					if fld := tstruc.Expr.GenRef.Struct.Field(field); fld != nil {
+					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
 						if this.Fields.Add {
 							yield.Add(this.genFieldsMethod(t, fld))
 						}

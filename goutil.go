@@ -63,12 +63,20 @@ func goAstTypeExpr2GenTypeRef(expr ast.Expr) *udevgogen.TypeRef {
 		var tdfn udevgogen.TypeFunc
 		if tx.Params != nil {
 			for _, fld := range tx.Params.List {
-				tdfn.Args.Add("", goAstTypeExpr2GenTypeRef(fld.Type))
+				var fldname string
+				if len(fld.Names) == 1 {
+					fldname = fld.Names[0].Name
+				}
+				tdfn.Args.Add(fldname, goAstTypeExpr2GenTypeRef(fld.Type))
 			}
 		}
 		if tx.Results != nil {
 			for _, fld := range tx.Results.List {
-				tdfn.Rets.Add("", goAstTypeExpr2GenTypeRef(fld.Type))
+				var fldname string
+				if len(fld.Names) == 1 {
+					fldname = fld.Names[0].Name
+				}
+				tdfn.Rets.Add(fldname, goAstTypeExpr2GenTypeRef(fld.Type))
 			}
 		}
 		return udevgogen.TFunc(&tdfn)

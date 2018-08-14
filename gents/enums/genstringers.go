@@ -80,12 +80,12 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 			K.Return,
 			Label("formatNum",
 				GEN_BYCASE(USUALLY(ˇ.R.Set( // r =
-					pkgstrconv.C("FormatInt", T.Int64.Conv(This), 10)), // pkg__strconv.FormatInt(int64(this), 10)
+					pkgstrconv.C("FormatInt", T.Int64.From(This), 10)), // pkg__strconv.FormatInt(int64(this), 10)
 				), UNLESS{
 					ebt == "int": ˇ.R.Set( // r =
-						pkgstrconv.C("Itoa", T.Int.Conv(This))), // pkg__strconv.Itoa(int(this))
+						pkgstrconv.C("Itoa", T.Int.From(This))), // pkg__strconv.Itoa(int(this))
 					ustr.In(ebt, "uint", "uint8", "uint16", "uint32", "uint64"): ˇ.R.Set( // r =
-						pkgstrconv.C("FormatUint", T.Uint64.Conv(This), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
+						pkgstrconv.C("FormatUint", T.Uint64.From(This), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
 				}),
 			),
 		)
@@ -115,7 +115,7 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 			Var(ˇ.V.Name, inttype, nil),                                                       // var v ‹inttype›
 			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.C(parsefuncname, append([]IAny{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
 			If(ˇ.Err.Eq(B.Nil), Then( // if err == nil
-				This.Set(t.G.T.Conv(ˇ.V)), // this = ‹enumType›(v)
+				This.Set(t.G.T.From(ˇ.V)), // this = ‹enumType›(v)
 			)),
 		}
 	}

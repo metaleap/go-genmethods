@@ -28,7 +28,7 @@ func (this *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *
 	return t.G.T.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(this.DocCommentMarshal).
 		Code(
-			ˇ.R.Set(T.SliceOf.Bytes.Conv(ctx.Import("strconv").C("Quote", This.C(this.StringerToUse.Name)))),
+			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", This.C(this.StringerToUse.Name)))),
 		)
 }
 
@@ -37,7 +37,7 @@ func (this *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type)
 		Doc(this.DocCommentUnmarshal).
 		Code(
 			Var(ˇ.S.Name, T.String, nil),
-			Tup(ˇ.S, ˇ.Err).Set(ctx.Import("strconv").C("Unquote", T.String.Conv(ˇ.V))),
+			Tup(ˇ.S, ˇ.Err).Set(ctx.Import("strconv").C("Unquote", T.String.From(ˇ.V))),
 			If(ˇ.Err.Eq(B.Nil), Then(
 				Var(ˇ.T.Name, t.G.T, nil),
 				Tup(ˇ.T, ˇ.Err).Set(N(this.StringerToUse.Parser.FuncName.With("T", t.Name, "str", this.StringerToUse.Name)).Of(ˇ.S)),
