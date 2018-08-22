@@ -5,9 +5,14 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+const (
+	DefaultConvFieldsDocComment = "{N} returns all `{field}` values of the constituent `{T}`s in `{this}`."
+	DefaultConvToMapsDocComment = "{N} converts `{this}` into a `map` indexed by the `{field}` values of its constituent `{T}`s."
+)
+
 func init() {
-	Gents.Converters.Fields.Name = "All{field}s"
-	Gents.Converters.ToMaps.Name = "ToMapBy{field}"
+	Gents.Converters.Fields.Name, Gents.Converters.Fields.DocComment = "All{field}s", DefaultConvFieldsDocComment
+	Gents.Converters.ToMaps.Name, Gents.Converters.ToMaps.DocComment = "ToMapBy{field}", DefaultConvToMapsDocComment
 }
 
 type GentConvertMethods struct {
@@ -24,9 +29,10 @@ type GentConvertMethods struct {
 }
 
 func (this *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructField) *SynFunc {
-	tsl := TSlice(field.Type)
-	return t.G.T.Method(this.Fields.NameWith("field", field.Name)).Rets(ˇ.R.OfType(tsl)).
-		Doc().
+	methodname, tsl :=
+		this.Fields.NameWith("field", field.Name), TSlice(field.Type)
+	return t.G.T.Method(methodname).Rets(ˇ.R.OfType(tsl)).
+		Doc(this.Fields.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", This.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(tsl, B.Len.Of(This))),
 			ForEach(ˇ.I, None, This,
@@ -36,9 +42,10 @@ func (this *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructFi
 }
 
 func (this *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructField) *SynFunc {
-	tmap := TMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
-	return t.G.T.Method(this.ToMaps.NameWith("field", field.Name)).Rets(ˇ.R.OfType(tmap)).
-		Doc().
+	methodname, tmap :=
+		this.ToMaps.NameWith("field", field.Name), TMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
+	return t.G.T.Method(methodname).Rets(ˇ.R.OfType(tmap)).
+		Doc(this.ToMaps.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", This.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(tmap, B.Len.Of(This))),
 			ForEach(ˇ.I, None, This,

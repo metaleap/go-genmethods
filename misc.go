@@ -29,8 +29,9 @@ func (this Str) With(placeholderNamesAndValues ...string) string {
 var strWith = ustr.NamedPlaceholders('{', '}')
 
 type Variant struct {
-	Add  bool
-	Name string
+	Add        bool
+	Name       string
+	DocComment Str
 }
 
 func (this *Variant) NameWith(placeholderNamesAndValues ...string) string {

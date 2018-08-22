@@ -408,8 +408,9 @@ func (this Types) Named(name string) *Type
 
 ```go
 type Variant struct {
-	Add  bool
-	Name string
+	Add        bool
+	Name       string
+	DocComment Str
 }
 ```
 

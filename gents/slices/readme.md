@@ -7,11 +7,24 @@
 
 ```go
 const (
+	DefaultConvFieldsDocComment = "{N} returns all `{field}` values of the constituent `{T}`s in `{this}`."
+	DefaultConvToMapsDocComment = "{N} converts `{this}` into a `map` indexed by the `{field}` values of its constituent `{T}`s."
+)
+```
+
+```go
+const (
 	DefaultIndexMethodName           = "Index"
 	DefaultIndicesMethodName         = "Indices"
 	DefaultIndexLastMethodName       = "LastIndex"
 	DefaultContainsMethodName        = "Contains"
 	DefaultMethodNameSuffixPredicate = "Func"
+)
+```
+
+```go
+const (
+	DefaultMutAppendDocComment = "{N} is a convenience (dot-accessor) short-hand for Go's built-in `append` function."
 )
 ```
 

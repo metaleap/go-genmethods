@@ -5,8 +5,12 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+const (
+	DefaultMutAppendDocComment = "{N} is a convenience (dot-accessor) short-hand for Go's built-in `append` function."
+)
+
 func init() {
-	Gents.Mutators.Append.Name = "Append"
+	Gents.Mutators.Append.Name, Gents.Mutators.Append.DocComment = "Append", DefaultMutAppendDocComment
 }
 
 type GentMutatorMethods struct {
@@ -17,7 +21,7 @@ type GentMutatorMethods struct {
 
 func (this *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
 	return t.G.Tª.Method(this.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
-		Doc().
+		Doc(this.Append.DocComment.With("N", this.Append.Name)).
 		Code(
 			This.Deref().Set(B.Append.Of(This.Deref(), ˇ.V).Spreads()),
 		)
