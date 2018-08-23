@@ -64,6 +64,9 @@ func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLo
 	this.CodeGen.OutputFileName = outputFileName
 
 	if err = this.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil && dontLoadButJustInitUsingPkgNameInstead == "" {
+		if this.CodeGen.OutputFileName != "" && OnBeforeLoad != nil {
+			OnBeforeLoad(this)
+		}
 		var gofilepaths []string
 		if gofilepaths, err = this.load_SetFileNames(errnogopkg); err == nil {
 			err = this.load_FromFiles(gofilepaths)

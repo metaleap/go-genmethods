@@ -14,6 +14,14 @@ const (
 
 ```go
 const (
+	DefaultFiltNonNilsDocComment = "{N} returns only the non-`nil` `{T}` objects contained in `{this}`."
+	DefaultFiltFuncDocComment    = "{N} returns only the `{T}` objects contained in `{this}` that satisfy the specified `{ok}` predicate."
+	DefaultFiltByDocComment      = "{N} returns {what} `{T}` object(s) encountered in `{this}` whose `{member}` member succeeds for the specified value(s)."
+)
+```
+
+```go
+const (
 	DefaultIndexMethodName           = "Index"
 	DefaultIndicesMethodName         = "Indices"
 	DefaultIndexLastMethodName       = "LastIndex"

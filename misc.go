@@ -14,6 +14,7 @@ var (
 	Defaults struct {
 		CtxOpt CtxOpts
 	}
+	OnBeforeLoad func(*Pkg)
 )
 
 func init() {
