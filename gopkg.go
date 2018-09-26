@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
+	"github.com/go-leap/dev/go/gen"
 	"github.com/go-leap/fs"
 	"github.com/go-leap/str"
 	"golang.org/x/tools/go/loader"
@@ -26,7 +27,10 @@ type Pkg struct {
 	Types Types
 
 	CodeGen struct {
-		OutputFileName string
+		OutputFile struct {
+			Name        string
+			DocComments udevgogen.SingleLineDocCommentParagraphs
+		}
 	}
 }
 
@@ -61,10 +65,10 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (this *Pkg, err error) {
 	errnogopkg := errors.New("not a Go package: " + pkgImportPathOrFileSystemPath)
 	this = &Pkg{Name: dontLoadButJustInitUsingPkgNameInstead}
-	this.CodeGen.OutputFileName = outputFileName
+	this.CodeGen.OutputFile.Name = outputFileName
 
 	if err = this.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil && dontLoadButJustInitUsingPkgNameInstead == "" {
-		if this.CodeGen.OutputFileName != "" && OnBeforeLoad != nil {
+		if this.CodeGen.OutputFile.Name != "" && OnBeforeLoad != nil {
 			OnBeforeLoad(this)
 		}
 		var gofilepaths []string

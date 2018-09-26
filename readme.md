@@ -219,7 +219,10 @@ type Pkg struct {
 	Types Types
 
 	CodeGen struct {
-		OutputFileName string
+		OutputFile struct {
+			Name        string
+			DocComments udevgogen.SingleLineDocCommentParagraphs
+		}
 	}
 }
 ```
@@ -249,6 +252,12 @@ func (this *Pkg) DirName() string
 func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error)
 ```
 RunGents instructs the given `gents` to generate code for `this` `Pkg`.
+
+#### func (*Pkg) RunGentsAndGenerateOutputFile
+
+```go
+func (this *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error)
+```
 
 #### type Pkgs
 

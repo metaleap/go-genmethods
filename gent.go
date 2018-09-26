@@ -123,6 +123,7 @@ func (this *Opts) Opt() *Opts { return this }
 func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error) {
 	ctx, dst, codegencommentnotice :=
 		maybeCtxOpts.newCtx(this, gents), udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), CodeGenCommentNotice.With("progName", CodeGenCommentProgName)
+	dst.DocComments = this.CodeGen.OutputFile.DocComments
 	for _, g := range gents {
 		if g.Opt().RunOnlyOnceWithoutAnyType {
 			dst.Body.Add(ctx.generateTopLevelDecls(g, nil)...)
@@ -146,6 +147,14 @@ func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats
 	return
 }
 
+func (this *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error) {
+	src, stats, err := this.RunGents(maybeCtxOpts, gents)
+	if err == nil {
+		err = ufs.WriteBinaryFile(filepath.Join(this.DirPath, this.CodeGen.OutputFile.Name), src)
+	}
+	return stats, err
+}
+
 // MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
 func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats) {
 	var errs map[*Pkg]error
@@ -161,12 +170,7 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gen
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
-		src, stats, err := pkg.RunGents(maybeCtxOpts, gents)
-		if err == nil {
-			err = ufs.WriteBinaryFile(filepath.Join(pkg.DirPath, pkg.CodeGen.OutputFileName), src)
-		} else {
-			println(string(src))
-		}
+		stats, err := pkg.RunGentsAndGenerateOutputFile(maybeCtxOpts, gents)
 		maps.Lock()
 		if statsPerPkg[pkg] = stats; err != nil {
 			errs[pkg] = err
