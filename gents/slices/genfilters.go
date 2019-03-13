@@ -31,9 +31,9 @@ type GentFilteringMethods struct {
 
 func (this *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
 	return t.G.T.Method(this.NonNils.Name).Rets(ˇ.R.OfType(t.G.T)).
-		Doc(this.NonNils.DocComment.With("N", this.NonNils.Name, "this", This.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
+		Doc(this.NonNils.DocComment.With("N", this.NonNils.Name, "this", Self.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
 		Code(
-			ˇ.R.Set(This),
+			ˇ.R.Set(Self),
 			For(ˇ.I.Let(0), ˇ.I.Lt(B.Len.Of(ˇ.R)), ˇ.I.Incr1(),
 				If(ˇ.R.At(ˇ.I).Eq(B.Nil), Then(
 					ˇ.R.Set(B.Append.Of(ˇ.R.Sl(nil, ˇ.I), ˇ.R.Sl(ˇ.I.Plus(1), nil)).Spreads()),
@@ -46,12 +46,12 @@ func (this *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
 func (this *GentFilteringMethods) genSelectWhereMethod(t *gent.Type) *SynFunc {
 	tdpred := TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool)
 	return t.G.T.Method(this.Func.Name).Args(ˇ.Ok.OfType(tdpred.T())).Rets(ˇ.R.OfType(t.G.T)).
-		Doc(this.Func.DocComment.With("N", this.Func.Name, "this", This.Name, "ok", ˇ.Ok.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
+		Doc(this.Func.DocComment.With("N", this.Func.Name, "this", Self.Name, "ok", ˇ.Ok.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
 		Code(
-			ˇ.R.Set(B.Make.Of(t.G.T, 0, B.Len.Of(This).Div(2))),
-			ForEach(ˇ.I, None, This,
-				If(ˇ.Ok.Of(This.At(ˇ.I)), Then(
-					ˇ.R.Set(B.Append.Of(ˇ.R, This.At(ˇ.I))),
+			ˇ.R.Set(B.Make.Of(t.G.T, 0, B.Len.Of(Self).Div(2))),
+			ForEach(ˇ.I, None, Self,
+				If(ˇ.Ok.Of(Self.At(ˇ.I)), Then(
+					ˇ.R.Set(B.Append.Of(ˇ.R, Self.At(ˇ.I))),
 				)),
 			),
 		)
@@ -62,11 +62,11 @@ func (this *GentFilteringMethods) genByFieldMethod(t *gent.Type, mem *SynStructF
 	return t.G.T.Method(methodname).
 		Args(ˇ.V.OfType(mem.Type)).
 		Rets(ˇ.R.OfType(t.Expr.GenRef.ArrOrSlice.Of)).
-		Doc(this.By.DocComment.With("N", methodname, "what", "the first", "this", This.Name, "member", mem.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
+		Doc(this.By.DocComment.With("N", methodname, "what", "the first", "this", Self.Name, "member", mem.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
 		Code(
-			ForEach(ˇ.I, None, This,
-				If(This.At(ˇ.I).D(N(mem.Name)).Eq(ˇ.V), Then(
-					ˇ.R.Set(This.At(ˇ.I)),
+			ForEach(ˇ.I, None, Self,
+				If(Self.At(ˇ.I).D(N(mem.Name)).Eq(ˇ.V), Then(
+					ˇ.R.Set(Self.At(ˇ.I)),
 					K.Return,
 				)),
 			),
@@ -79,9 +79,9 @@ func (this *GentFilteringMethods) genByMethodMethod(t *gent.Type, i int) *SynFun
 	return t.G.T.Method(methodname).
 		Args(mem.Type.Func.Args.IfUntypedUse(t.Expr.GenRef.ArrOrSlice.Of)...).
 		Rets(ˇ.R.OfType(t.G.T)).
-		Doc(this.By.DocComment.With("N", methodname, "what", "only the", "this", This.Name, "member", mem.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
+		Doc(this.By.DocComment.With("N", methodname, "what", "only the", "this", Self.Name, "member", mem.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
 		Code(
-			ˇ.R.Set(This.C(this.Func.Name, Func("").Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Ret("", T.Bool).Code(
+			ˇ.R.Set(Self.C(this.Func.Name, Func("").Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Ret("", T.Bool).Code(
 				Ret(ˇ.V.C(mem.Name, mem.Type.Func.Args.Names(false)...)),
 			))),
 		)

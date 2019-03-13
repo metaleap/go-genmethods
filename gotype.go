@@ -73,7 +73,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
 					t.G.T, t.Expr.AstExpr = udevgogen.TFrom("", t.Name), goAstTypeExprSansParens(tdecl.Type)
 					t.G.Tª, t.G.Ts = udevgogen.TPointer(t.G.T), udevgogen.TSlice(t.G.T)
-					t.G.Tªs, t.G.This, t.G.Thisª = udevgogen.TSlice(t.G.Tª), udevgogen.This.OfType(t.G.T), udevgogen.This.OfType(udevgogen.TPointer(t.G.T))
+					t.G.Tªs, t.G.This, t.G.Thisª = udevgogen.TSlice(t.G.Tª), udevgogen.Self.OfType(t.G.T), udevgogen.Self.OfType(udevgogen.TPointer(t.G.T))
 					this.Types.Add(t)
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {
@@ -131,4 +131,8 @@ func (this *Type) IsSlice() bool {
 
 func (this *Type) IsSliceOrArray() bool {
 	return this.Expr.GenRef.ArrOrSlice.Of != nil
+}
+
+func (this *Type) IsStruct() bool {
+	return this.Expr.GenRef.Struct != nil
 }

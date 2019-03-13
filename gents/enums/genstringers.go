@@ -61,7 +61,7 @@ type StringMethodOpts struct {
 func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName, names []string, renames []string) *SynFunc {
 	var earlycheck IExprBoolish
 	if !this.SkipEarlyChecks {
-		earlycheck = This.Lt(N(names[0])).Or(This.Gt(N(names[len(names)-1]))) // this < ‹minEnumerant› || this > ‹maxEnumerant›
+		earlycheck = Self.Lt(N(names[0])).Or(Self.Gt(N(names[len(names)-1]))) // this < ‹minEnumerant› || this > ‹maxEnumerant›
 	}
 
 	ebt := t.Enumish.BaseType
@@ -71,7 +71,7 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 		).
 		Code(
 			If(earlycheck, GoTo("formatNum")), // if ‹earlycheck› { goto formatNum }
-			Switch(This). // switch this
+			Switch(Self). // switch this
 					DefaultCase(GoTo("formatNum")). // default: goto formatNum
 					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
 					return Case(N(names[i]), // case ‹enumerantIdent›:
@@ -80,12 +80,12 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 			K.Return,
 			Label("formatNum",
 				GEN_BYCASE(USUALLY(ˇ.R.Set( // r =
-					pkgstrconv.C("FormatInt", T.Int64.From(This), 10)), // pkg__strconv.FormatInt(int64(this), 10)
+					pkgstrconv.C("FormatInt", T.Int64.From(Self), 10)), // pkg__strconv.FormatInt(int64(this), 10)
 				), UNLESS{
 					ebt == "int": ˇ.R.Set( // r =
-						pkgstrconv.C("Itoa", T.Int.From(This))), // pkg__strconv.Itoa(int(this))
+						pkgstrconv.C("Itoa", T.Int.From(Self))), // pkg__strconv.Itoa(int(this))
 					ustr.In(ebt, "uint", "uint8", "uint16", "uint32", "uint64"): ˇ.R.Set( // r =
-						pkgstrconv.C("FormatUint", T.Uint64.From(This), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
+						pkgstrconv.C("FormatUint", T.Uint64.From(Self), 10)), // pkg__strconv.FormatUint(uint64(this), 10)
 				}),
 			),
 		)
@@ -112,10 +112,10 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 
 	ebt, tryparseint := TFrom("", t.Enumish.BaseType), func(inttype *TypeRef, parsefuncname string, args ...IAny) Syns {
 		return Syns{
-			Var(ˇ.V.Name, inttype, nil),                                                       // var v ‹inttype›
+			Var(ˇ.V.Name, inttype, nil), // var v ‹inttype›
 			Tup(ˇ.V, ˇ.Err).Set(pkgstrconv.C(parsefuncname, append([]IAny{ˇ.S}, args...)...)), // v, err = strconv.‹ParseFunc›(s, ‹args›)
 			If(ˇ.Err.Eq(B.Nil), Then( // if err == nil
-				This.Set(t.G.T.From(ˇ.V)), // this = ‹enumType›(v)
+				Self.Set(t.G.T.From(ˇ.V)), // this = ‹enumType›(v)
 			)),
 		}
 	}
@@ -133,7 +133,7 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
 						enname, enstrlit := N(names[i]), L(renames[i][len(maybecommonprefix):])
 						return Case(GEN_EITHER(!this.Parser.WithIgnoreCaseCmp, enstrlit, pkgstrings.C("EqualFold", ˇ.T, enstrlit)), // case "‹enumerant›"   ~|OR|~   case strings.EqualFold(t, "‹enumerant›")
-							This.Set(enname)) // this = ‹enumerant›
+							Self.Set(enname)) // this = ‹enumerant›
 					})...),
 				K.Return,
 			),
@@ -157,8 +157,8 @@ func (this *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.
 		Code(
 			Tup(maybe, ˇ.Err).Let(C(parseFuncName, ˇ.S)), // maybe,err := ‹parseFunc›(s)
 			If(ˇ.Err.Eq(B.Nil), // if err == nil
-				Then(This.Set(maybe)),     // this = maybe
-				Else(This.Set(fallback))), // else this = fallback
+				Then(Self.Set(maybe)),     // this = maybe
+				Else(Self.Set(fallback))), // else this = fallback
 		)
 }
 

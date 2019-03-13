@@ -22,6 +22,8 @@ var (
 	Gents struct {
 		Enums GentEnumJsonMethods
 
+		Structs GentStructJsonMethods
+
 		// contains pointers to all the above fields, in order
 		All gent.Gents
 	}
@@ -45,5 +47,24 @@ type GentEnumJsonMethods struct {
 
 ```go
 func (this *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+```
+GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+
+#### type GentStructJsonMethods
+
+```go
+type GentStructJsonMethods struct {
+	gent.Opts
+
+	DocCommentMarshal   string
+	DocCommentUnmarshal string
+}
+```
+
+
+#### func (*GentStructJsonMethods) GenerateTopLevelDecls
+
+```go
+func (this *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.

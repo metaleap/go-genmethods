@@ -395,6 +395,12 @@ func (this *Type) IsSlice() bool
 func (this *Type) IsSliceOrArray() bool
 ```
 
+#### func (*Type) IsStruct
+
+```go
+func (this *Type) IsStruct() bool
+```
+
 #### type Types
 
 ```go

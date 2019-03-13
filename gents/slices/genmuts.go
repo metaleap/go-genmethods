@@ -23,7 +23,7 @@ func (this *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
 	return t.G.Tª.Method(this.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
 		Doc(this.Append.DocComment.With("N", this.Append.Name)).
 		Code(
-			This.Deref().Set(B.Append.Of(This.Deref(), ˇ.V).Spreads()),
+			Self.Deref().Set(B.Append.Of(Self.Deref(), ˇ.V).Spreads()),
 		)
 }
 

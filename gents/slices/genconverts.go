@@ -32,11 +32,11 @@ func (this *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructFi
 	methodname, tsl :=
 		this.Fields.NameWith("field", field.Name), TSlice(field.Type)
 	return t.G.T.Method(methodname).Rets(ˇ.R.OfType(tsl)).
-		Doc(this.Fields.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", This.Name)).
+		Doc(this.Fields.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", Self.Name)).
 		Code(
-			ˇ.R.Set(B.Make.Of(tsl, B.Len.Of(This))),
-			ForEach(ˇ.I, None, This,
-				ˇ.R.At(ˇ.I).Set(This.At(ˇ.I).D(N(field.Name))),
+			ˇ.R.Set(B.Make.Of(tsl, B.Len.Of(Self))),
+			ForEach(ˇ.I, None, Self,
+				ˇ.R.At(ˇ.I).Set(Self.At(ˇ.I).D(N(field.Name))),
 			),
 		)
 }
@@ -45,11 +45,11 @@ func (this *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructFie
 	methodname, tmap :=
 		this.ToMaps.NameWith("field", field.Name), TMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
 	return t.G.T.Method(methodname).Rets(ˇ.R.OfType(tmap)).
-		Doc(this.ToMaps.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", This.Name)).
+		Doc(this.ToMaps.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", Self.Name)).
 		Code(
-			ˇ.R.Set(B.Make.Of(tmap, B.Len.Of(This))),
-			ForEach(ˇ.I, None, This,
-				ˇ.R.At(This.At(ˇ.I).D(N(field.Name))).Set(This.At(ˇ.I)),
+			ˇ.R.Set(B.Make.Of(tmap, B.Len.Of(Self))),
+			ForEach(ˇ.I, None, Self,
+				ˇ.R.At(Self.At(ˇ.I).D(N(field.Name))).Set(Self.At(ˇ.I)),
 			),
 		)
 }

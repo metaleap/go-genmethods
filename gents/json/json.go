@@ -5,6 +5,11 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+const (
+	DefaultDocCommentMarshal   = "MarshalJSON implements the Go standard library's `encoding/json.Marshaler` interface."
+	DefaultDocCommentUnmarshal = "UnmarshalJSON implements the Go standard library's `encoding/json.Unmarshaler` interface."
+)
+
 var (
 	// common var-names such as "i", "ok", "err", "this" etc
 	ˇ = udevgogen.Vars
@@ -16,11 +21,13 @@ var (
 	Gents struct {
 		Enums GentEnumJsonMethods
 
+		Structs GentStructJsonMethods
+
 		// contains pointers to all the above fields, in order
 		All gent.Gents
 	}
 )
 
 func init() {
-	Gents.All = gent.Gents{&Gents.Enums}
+	Gents.All = gent.Gents{&Gents.Enums, &Gents.Structs}
 }

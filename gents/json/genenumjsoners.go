@@ -6,11 +6,6 @@ import (
 	"github.com/metaleap/go-gent/gents/enums"
 )
 
-const (
-	DefaultDocCommentMarshal   = "MarshalJSON implements the Go standard library's `encoding/json.Marshaler` interface."
-	DefaultDocCommentUnmarshal = "UnmarshalJSON implements the Go standard library's `encoding/json.Unmarshaler` interface."
-)
-
 func init() {
 	Gents.Enums.DocCommentMarshal, Gents.Enums.DocCommentUnmarshal, Gents.Enums.StringerToUse =
 		DefaultDocCommentMarshal, DefaultDocCommentUnmarshal, &gentenums.Gents.Stringers.All[0]
@@ -28,7 +23,7 @@ func (this *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *
 	return t.G.T.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(this.DocCommentMarshal).
 		Code(
-			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", This.C(this.StringerToUse.Name)))),
+			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", Self.C(this.StringerToUse.Name)))),
 		)
 }
 
@@ -42,7 +37,7 @@ func (this *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type)
 				Var(ˇ.T.Name, t.G.T, nil),
 				Tup(ˇ.T, ˇ.Err).Set(N(this.StringerToUse.Parser.FuncName.With("T", t.Name, "str", this.StringerToUse.Name)).Of(ˇ.S)),
 				If(ˇ.Err.Eq(B.Nil), Then(
-					This.Deref().Set(ˇ.T),
+					Self.Deref().Set(ˇ.T),
 				)),
 			)),
 		)
