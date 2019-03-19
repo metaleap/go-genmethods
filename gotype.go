@@ -132,7 +132,3 @@ func (this *Type) IsSlice() bool {
 func (this *Type) IsSliceOrArray() bool {
 	return this.Expr.GenRef.ArrOrSlice.Of != nil
 }
-
-func (this *Type) IsStruct() bool {
-	return this.Expr.GenRef.Struct != nil
-}

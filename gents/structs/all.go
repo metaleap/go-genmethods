@@ -1,4 +1,4 @@
-package genttrav
+package gentstructs
 
 import (
 	"github.com/go-leap/dev/go/gen"
@@ -14,7 +14,8 @@ var (
 	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
-		StructFieldsTrav GentStructFieldsTrav
+		StructFieldsTrav   GentStructFieldsTrav
+		StructFieldsGetSet GentStructFieldsGetSet
 
 		// contains pointers to all the above fields, in order
 		All gent.Gents
@@ -22,5 +23,5 @@ var (
 )
 
 func init() {
-	Gents.All = gent.Gents{&Gents.StructFieldsTrav}
+	Gents.All = gent.Gents{&Gents.StructFieldsTrav, &Gents.StructFieldsGetSet}
 }

@@ -31,7 +31,7 @@ func (this *GentStructJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Typ
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (this *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsStruct() {
+	if t.Expr.GenRef.Struct != nil {
 		yield.Add(
 			this.genMarshalMethod(ctx, t),
 			this.genUnmarshalMethod(ctx, t),
