@@ -54,8 +54,8 @@ type IndexMethodOpts struct {
 	Predicate gent.Variant
 }
 
-func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
-	arg, ret := this.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.SliceOf.Ints)
+func (me *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
+	arg, ret := me.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.SliceOf.Ints)
 	foreachitemcheckcond := GEN_IF(predicate, Then(
 		ˇ.Ok.Of(Self.At(ˇ.I)), // ok(this[i])
 	), Else(
@@ -75,8 +75,8 @@ func (this *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string
 		)
 }
 
-func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, isLast bool, variadic bool, predicate bool) *SynFunc {
-	arg, forloop := this.indexMethodArg(t, variadic, predicate), ForEach(ˇ.I, None, Self) // for i := range this
+func (me *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, isLast bool, variadic bool, predicate bool) *SynFunc {
+	arg, forloop := me.indexMethodArg(t, variadic, predicate), ForEach(ˇ.I, None, Self) // for i := range this
 	if isLast {
 		forloop = For(ˇ.I.Let(B.Len.Of(Self).Minus(L(1))), (ˇ.I.Gt(-1)), (ˇ.I.Decr1())) // for i := len(this)-1; i > -1; i--
 	}
@@ -102,50 +102,50 @@ func (this *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, 
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsSliceOrArray() {
-		if !this.IndexOf.Disabled {
-			yield.Add(this.genIndexOfs(t, false)...)
+		if !me.IndexOf.Disabled {
+			yield.Add(me.genIndexOfs(t, false)...)
 		}
-		if !this.IndexLast.Disabled {
-			yield.Add(this.genIndexOfs(t, true)...)
+		if !me.IndexLast.Disabled {
+			yield.Add(me.genIndexOfs(t, true)...)
 		}
-		if !this.IndicesOf.Disabled {
-			yield.Add(this.genIndicesOfs(t)...)
+		if !me.IndicesOf.Disabled {
+			yield.Add(me.genIndicesOfs(t)...)
 		}
-		if !this.Contains.Disabled {
-			yield.Add(this.genContainsMethods(t)...)
+		if !me.Contains.Disabled {
+			yield.Add(me.genContainsMethods(t)...)
 		}
 	}
 	return
 }
 
-func (this *GentIndexMethods) genIndexOfs(t *gent.Type, isLast bool) (decls Syns) {
-	self := &this.IndexOf
+func (me *GentIndexMethods) genIndexOfs(t *gent.Type, isLast bool) (decls Syns) {
+	self := &me.IndexOf
 	if isLast {
-		self = &this.IndexLast
+		self = &me.IndexLast
 	}
-	decls.Add(this.genIndexOfMethod(t, self.Name, isLast, self.Variadic, false))
+	decls.Add(me.genIndexOfMethod(t, self.Name, isLast, self.Variadic, false))
 	if self.Predicate.Add {
-		decls.Add(this.genIndexOfMethod(t, self.Name+self.Predicate.Name, isLast, false, true))
+		decls.Add(me.genIndexOfMethod(t, self.Name+self.Predicate.Name, isLast, false, true))
 	}
 	return
 }
 
-func (this *GentIndexMethods) genIndicesOfs(t *gent.Type) (decls Syns) {
-	self := &this.IndicesOf
-	decls.Add(this.genIndicesOfMethod(t, self.Name, self.ResultsCapFactor, false))
+func (me *GentIndexMethods) genIndicesOfs(t *gent.Type) (decls Syns) {
+	self := &me.IndicesOf
+	decls.Add(me.genIndicesOfMethod(t, self.Name, self.ResultsCapFactor, false))
 	if self.Predicate.Add {
-		decls.Add(this.genIndicesOfMethod(t, self.Name+self.Predicate.Name, self.ResultsCapFactor, true))
+		decls.Add(me.genIndicesOfMethod(t, self.Name+self.Predicate.Name, self.ResultsCapFactor, true))
 	}
 	return
 }
 
-func (this *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
+func (me *GentIndexMethods) genContainsMethods(t *gent.Type) (decls Syns) {
 	return
 }
 
-func (this *GentIndexMethods) indexMethodArg(t *gent.Type, variadic bool, predicate bool) (arg NamedTyped) {
+func (me *GentIndexMethods) indexMethodArg(t *gent.Type, variadic bool, predicate bool) (arg NamedTyped) {
 	if predicate {
 		arg = ˇ.Ok.OfType(TdFunc().Arg("", t.Expr.GenRef.ArrOrSlice.Of).Ret("", T.Bool).T())
 	} else if arg = ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of); variadic {
@@ -156,8 +156,8 @@ func (this *GentIndexMethods) indexMethodArg(t *gent.Type, variadic bool, predic
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentIndexMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+func (me *GentIndexMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
 	disabled := !enabled
-	this.Contains.Disabled, this.IndexLast.Disabled, this.IndexOf.Disabled, this.IndicesOf.Disabled = disabled, disabled, disabled, disabled
-	this.Contains.Predicate.Add, this.IndexLast.Predicate.Add, this.IndexOf.Predicate.Add, this.IndicesOf.Predicate.Add = enabled, enabled, enabled, enabled
+	me.Contains.Disabled, me.IndexLast.Disabled, me.IndexOf.Disabled, me.IndicesOf.Disabled = disabled, disabled, disabled, disabled
+	me.Contains.Predicate.Add, me.IndexLast.Predicate.Add, me.IndexOf.Predicate.Add, me.IndicesOf.Predicate.Add = enabled, enabled, enabled, enabled
 }

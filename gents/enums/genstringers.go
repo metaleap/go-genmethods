@@ -58,16 +58,16 @@ type StringMethodOpts struct {
 	}
 }
 
-func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName, names []string, renames []string) *SynFunc {
+func (me *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName, names []string, renames []string) *SynFunc {
 	var earlycheck IExprBoolish
-	if !this.SkipEarlyChecks {
+	if !me.SkipEarlyChecks {
 		earlycheck = Self.Lt(N(names[0])).Or(Self.Gt(N(names[len(names)-1]))) // this < ‹minEnumerant› || this > ‹maxEnumerant›
 	}
 
 	ebt := t.Enumish.BaseType
-	return t.G.This.Method(this.Name).Rets(ˇ.R.OfType(T.String)).
+	return t.G.This.Method(me.Name).Rets(ˇ.R.OfType(T.String)).
 		Doc(
-			this.DocComment.With("N", this.Name, "T", t.Name),
+			me.DocComment.With("N", me.Name, "T", t.Name),
 		).
 		Code(
 			If(earlycheck, GoTo("formatNum")), // if ‹earlycheck› { goto formatNum }
@@ -91,18 +91,18 @@ func (this *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName
 		)
 }
 
-func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pkgstrconv PkgName, pkgstrings PkgName, names []string, renames []string) *SynFunc {
+func (me *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pkgstrconv PkgName, pkgstrings PkgName, names []string, renames []string) *SynFunc {
 	maybecommonprefix, casehint, parsefuncname :=
-		"", "and case-sensitively", this.Parser.FuncName.With("T", t.Name, "str", this.Name)
-	if this.Parser.WithIgnoreCaseCmp {
+		"", "and case-sensitively", me.Parser.FuncName.With("T", t.Name, "str", me.Name)
+	if me.Parser.WithIgnoreCaseCmp {
 		casehint = "but case-insensitively"
 	}
 
 	var earlycheck IExprBoolish
-	if minlen, maxlen := ustr.ShortestAndLongest(renames...); !this.SkipEarlyChecks {
+	if minlen, maxlen := ustr.ShortestAndLongest(renames...); !me.SkipEarlyChecks {
 		earlycheck = B.Len.Of(ˇ.S).Lt(minlen).Or(B.Len.Of(ˇ.S).Gt(maxlen)) // len(s) < ‹minLen› || len(s) > ‹maxLen›
 		if maybecommonprefix = ustr.CommonPrefix(renames...); maybecommonprefix != "" {
-			if l := len(maybecommonprefix); !this.Parser.WithIgnoreCaseCmp {
+			if l := len(maybecommonprefix); !me.Parser.WithIgnoreCaseCmp {
 				earlycheck = earlycheck.Or(ˇ.S.Sl(0, l).Neq(maybecommonprefix)) // || s[0:5] != "PREF_" // (for example)
 			} else {
 				earlycheck = earlycheck.Or(Not(pkgstrings.C("EqualFold", ˇ.S.Sl(0, l), maybecommonprefix))) // || !strings.EqualFold(s[0:5], "Pref_") // (for example)
@@ -122,17 +122,17 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 
 	return Func(parsefuncname).Args(ˇ.S.OfType(T.String)).Rets(t.G.This, ˇ.Err).
 		Doc(
-			docComment.With("N", parsefuncname, "T", t.Name, "s", ˇ.S.Name, "str", this.Name, "caseSensitivity", casehint),
+			docComment.With("N", parsefuncname, "T", t.Name, "s", ˇ.S.Name, "str", me.Name, "caseSensitivity", casehint),
 		).
 		Code(
 			If(earlycheck, GoTo("tryParseNum")), // if ‹earlycheck› { goto tryParseNum }
 			Block(
 				ˇ.T.Let(GEN_EITHER(len(maybecommonprefix) == 0, ˇ.S, ˇ.S.Sl(len(maybecommonprefix), -1))), // t := s   ~|OR|~   t := s[‹lenOfCommonPrefix›:]
-				Switch(GEN_EITHER(this.Parser.WithIgnoreCaseCmp, nil, ˇ.T)).
+				Switch(GEN_EITHER(me.Parser.WithIgnoreCaseCmp, nil, ˇ.T)).
 					DefaultCase(GoTo("tryParseNum")). // default: goto tryParseNum
 					CasesFrom(true, GEN_FOR(0, len(names), 1, func(i int) ISyn {
 						enname, enstrlit := N(names[i]), L(renames[i][len(maybecommonprefix):])
-						return Case(GEN_EITHER(!this.Parser.WithIgnoreCaseCmp, enstrlit, pkgstrings.C("EqualFold", ˇ.T, enstrlit)), // case "‹enumerant›"   ~|OR|~   case strings.EqualFold(t, "‹enumerant›")
+						return Case(GEN_EITHER(!me.Parser.WithIgnoreCaseCmp, enstrlit, pkgstrings.C("EqualFold", ˇ.T, enstrlit)), // case "‹enumerant›"   ~|OR|~   case strings.EqualFold(t, "‹enumerant›")
 							Self.Set(enname)) // this = ‹enumerant›
 					})...),
 				K.Return,
@@ -148,7 +148,7 @@ func (this *StringMethodOpts) genParseFunc(t *gent.Type, docComment gent.Str, pk
 		)
 }
 
-func (this *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.Str, funcName string, parseFuncName string) *SynFunc {
+func (me *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.Str, funcName string, parseFuncName string) *SynFunc {
 	maybe, fallback := N("maybe"+t.Name), N("fallback")
 	return Func(funcName).Args(ˇ.S.OfType(T.String), fallback.OfType(t.G.T)).Rets(t.G.This).
 		Doc(
@@ -163,9 +163,9 @@ func (this *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if len(this.All) > 0 && t.IsEnumish() {
-		yield = make(Syns, 0, 3*len(this.All))
+func (me *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if len(me.All) > 0 && t.IsEnumish() {
+		yield = make(Syns, 0, 3*len(me.All))
 		pkgstrconv, pkgstrings, names := ctx.Import("strconv"), ctx.Import("strings"), make([]string, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if enumerant != "_" {
@@ -174,8 +174,8 @@ func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 		}
 		hadrenameslast, renames := true, make([]string, len(names))
 
-		for i := range this.All {
-			if self := &this.All[i]; !self.Disabled {
+		for i := range me.All {
+			if self := &me.All[i]; !self.Disabled {
 				if self.EnumerantRename != nil {
 					for i := range names {
 						renames[i] = self.EnumerantRename(ctx, t, names[i])
@@ -187,9 +187,9 @@ func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 				}
 
 				if yield.Add(self.genStringerMethod(t, pkgstrconv, names, renames)); self.Parser.Add {
-					fnp := self.genParseFunc(t, this.DocComments.Parsers, pkgstrconv, pkgstrings, names, renames)
+					fnp := self.genParseFunc(t, me.DocComments.Parsers, pkgstrconv, pkgstrings, names, renames)
 					if yield.Add(fnp); self.Parser.Errless.Add {
-						yield.Add(self.genParseErrlessFunc(t, this.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.Name, fnp.Name))
+						yield.Add(self.genParseErrlessFunc(t, me.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.Name, fnp.Name))
 					}
 				}
 			}
@@ -199,11 +199,11 @@ func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.T
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentStringersMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+func (me *GentStringersMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
 	disabled := !enabled
-	for i := range this.All {
-		this.All[i].Disabled = disabled
-		this.All[i].Parser.Add = enabled
-		this.All[i].Parser.Errless.Add = enabled
+	for i := range me.All {
+		me.All[i].Disabled = disabled
+		me.All[i].Parser.Add = enabled
+		me.All[i].Parser.Errless.Add = enabled
 	}
 }

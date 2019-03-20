@@ -76,7 +76,7 @@ type GentConvertMethods struct {
 #### func (*GentConvertMethods) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *GentConvertMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me *GentConvertMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements
 `github.com/metaleap/go-gent.IGent`.
@@ -84,7 +84,7 @@ EnableOrDisableAllVariantsAndOptionals implements
 #### func (*GentConvertMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -108,7 +108,7 @@ type GentFilteringMethods struct {
 #### func (*GentFilteringMethods) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *GentFilteringMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me *GentFilteringMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements
 `github.com/metaleap/go-gent.IGent`.
@@ -116,7 +116,7 @@ EnableOrDisableAllVariantsAndOptionals implements
 #### func (*GentFilteringMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -156,7 +156,7 @@ type GentIndexMethods struct {
 #### func (*GentIndexMethods) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *GentIndexMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me *GentIndexMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements
 `github.com/metaleap/go-gent.IGent`.
@@ -164,7 +164,7 @@ EnableOrDisableAllVariantsAndOptionals implements
 #### func (*GentIndexMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -182,7 +182,7 @@ type GentMutatorMethods struct {
 #### func (*GentMutatorMethods) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *GentMutatorMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me *GentMutatorMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements
 `github.com/metaleap/go-gent.IGent`.
@@ -190,7 +190,7 @@ EnableOrDisableAllVariantsAndOptionals implements
 #### func (*GentMutatorMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentMutatorMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentMutatorMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 

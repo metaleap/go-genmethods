@@ -23,8 +23,8 @@ func init() {
 
 type Str string
 
-func (this Str) With(placeholderNamesAndValues ...string) string {
-	return strWith(string(this), placeholderNamesAndValues...)
+func (me Str) With(placeholderNamesAndValues ...string) string {
+	return strWith(string(me), placeholderNamesAndValues...)
 }
 
 var strWith = ustr.NamedPlaceholders('{', '}')
@@ -35,8 +35,8 @@ type Variant struct {
 	DocComment Str
 }
 
-func (this *Variant) NameWith(placeholderNamesAndValues ...string) string {
-	return Str(this.Name).With(placeholderNamesAndValues...)
+func (me *Variant) NameWith(placeholderNamesAndValues ...string) string {
+	return Str(me.Name).With(placeholderNamesAndValues...)
 }
 
 type Variation struct {
@@ -45,8 +45,8 @@ type Variation struct {
 	Name       string
 }
 
-func (this *Variation) NameWith(placeholderNamesAndValues ...string) string {
-	return Str(this.Name).With(placeholderNamesAndValues...)
+func (me *Variation) NameWith(placeholderNamesAndValues ...string) string {
+	return Str(me.Name).With(placeholderNamesAndValues...)
 }
 
 type Rename func(*Ctx, *Type, string) string

@@ -19,25 +19,25 @@ type GentMutatorMethods struct {
 	Append gent.Variant
 }
 
-func (this *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
-	return t.G.Tª.Method(this.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
-		Doc(this.Append.DocComment.With("N", this.Append.Name)).
+func (me *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
+	return t.G.Tª.Method(me.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
+		Doc(me.Append.DocComment.With("N", me.Append.Name)).
 		Code(
 			Self.Deref().Set(B.Append.Of(Self.Deref(), ˇ.V).Spreads()),
 		)
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentMutatorMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentMutatorMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsSlice() {
-		if this.Append.Add {
-			yield.Add(this.genAppendMethod(t))
+		if me.Append.Add {
+			yield.Add(me.genAppendMethod(t))
 		}
 	}
 	return
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentMutatorMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
-	this.Append.Add = enabled
+func (me *GentMutatorMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+	me.Append.Add = enabled
 }

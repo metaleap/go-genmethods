@@ -94,7 +94,7 @@ An instance with illustrative defaults is in `Gents.IsFoo`.
 #### func (*GentIsFooMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. If `t` is
 a suitable enum type-def, it returns a method `t.IsFoo() bool` for each
@@ -121,7 +121,7 @@ An instance with illustrative defaults is in `Gents.IsValid`.
 #### func (*GentIsValidMethod) GenerateTopLevelDecls
 
 ```go
-func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`. It returns
 at most one method if `t` is a suitable enum type-def.
@@ -150,7 +150,7 @@ An instance with illustrative defaults is in `Gents.List`.
 #### func (*GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me *GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements
 `github.com/metaleap/go-gent.IGent`.
@@ -158,7 +158,7 @@ EnableOrDisableAllVariantsAndOptionals implements
 #### func (*GentListEnumerantsFuncs) GenerateTopLevelDecls
 
 ```go
-func (this *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -184,7 +184,7 @@ An instance with illustrative defaults is in `Gents.String`.
 #### func (*GentStringersMethods) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *GentStringersMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me *GentStringersMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements
 `github.com/metaleap/go-gent.IGent`.
@@ -192,7 +192,7 @@ EnableOrDisableAllVariantsAndOptionals implements
 #### func (*GentStringersMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 

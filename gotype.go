@@ -9,13 +9,13 @@ import (
 
 type Types []*Type
 
-func (this *Types) Add(t *Type) {
-	*this = append(*this, t)
+func (me *Types) Add(t *Type) {
+	*me = append(*me, t)
 }
 
-func (this Types) Named(name string) *Type {
+func (me Types) Named(name string) *Type {
 	if name != "" {
-		for _, t := range this {
+		for _, t := range me {
 			if t.Name == name {
 				return t
 			}
@@ -64,17 +64,17 @@ type Type struct {
 	}
 }
 
-func (this *Pkg) load_Types(goFile *ast.File) {
+func (me *Pkg) load_Types(goFile *ast.File) {
 	for _, topleveldecl := range goFile.Decls {
 		if somedecl, _ := topleveldecl.(*ast.GenDecl); somedecl != nil {
 			var curvaltident *ast.Ident
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
-					t := &Type{Pkg: this, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
+					t := &Type{Pkg: me, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
 					t.G.T, t.Expr.AstExpr = udevgogen.TFrom("", t.Name), goAstTypeExprSansParens(tdecl.Type)
 					t.G.Tª, t.G.Ts = udevgogen.TPointer(t.G.T), udevgogen.TSlice(t.G.T)
 					t.G.Tªs, t.G.This, t.G.Thisª = udevgogen.TSlice(t.G.Tª), udevgogen.Self.OfType(t.G.T), udevgogen.Self.OfType(udevgogen.TPointer(t.G.T))
-					this.Types.Add(t)
+					me.Types.Add(t)
 				} else if cdecl, _ := spec.(*ast.ValueSpec); somedecl.Tok == token.CONST && cdecl != nil && len(cdecl.Names) == 1 {
 					if cdecl.Type != nil {
 						curvaltident, _ = cdecl.Type.(*ast.Ident)
@@ -84,7 +84,7 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 						}
 					}
 					if curvaltident != nil {
-						if tnamed := this.Types.Named(curvaltident.Name); tnamed != nil {
+						if tnamed := me.Types.Named(curvaltident.Name); tnamed != nil {
 							tnamed.Enumish.ConstNames = append(tnamed.Enumish.ConstNames, cdecl.Names[0].Name)
 						}
 					}
@@ -94,41 +94,41 @@ func (this *Pkg) load_Types(goFile *ast.File) {
 	}
 }
 
-func (this *Pkg) load_PopulateTypes() {
-	for _, t := range this.Types {
+func (me *Pkg) load_PopulateTypes() {
+	for _, t := range me.Types {
 		if t.Expr.GenRef = goAstTypeExpr2GenTypeRef(t.Expr.AstExpr); t.Expr.GenRef == nil {
 			panic(t.Expr.AstExpr)
 		}
 	}
-	for _, t := range this.Types {
+	for _, t := range me.Types {
 		t.setPotentiallyEnumish()
 	}
 }
 
-func (this *Type) setPotentiallyEnumish() {
-	if this.Enumish.BaseType = ""; this.Expr.GenRef.Named.PkgName == "" && len(this.Enumish.ConstNames) > 0 {
-		switch this.Expr.GenRef.Named.TypeName {
+func (me *Type) setPotentiallyEnumish() {
+	if me.Enumish.BaseType = ""; me.Expr.GenRef.Named.PkgName == "" && len(me.Enumish.ConstNames) > 0 {
+		switch me.Expr.GenRef.Named.TypeName {
 		case "int", "uint", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
-			this.Enumish.BaseType = this.Expr.GenRef.Named.TypeName
+			me.Enumish.BaseType = me.Expr.GenRef.Named.TypeName
 		}
 	}
-	if this.Enumish.BaseType == "" {
-		this.Enumish.ConstNames = nil
+	if me.Enumish.BaseType == "" {
+		me.Enumish.ConstNames = nil
 	}
 }
 
-func (this *Type) IsEnumish() bool {
-	return this.Enumish.BaseType != "" && len(this.Enumish.ConstNames) > 0 && (this.Enumish.ConstNames[0] != "_" || len(this.Enumish.ConstNames) > 1)
+func (me *Type) IsEnumish() bool {
+	return me.Enumish.BaseType != "" && len(me.Enumish.ConstNames) > 0 && (me.Enumish.ConstNames[0] != "_" || len(me.Enumish.ConstNames) > 1)
 }
 
-func (this *Type) IsArray() bool {
-	return this.IsSliceOrArray() && this.Expr.GenRef.ArrOrSlice.IsFixedLen != nil
+func (me *Type) IsArray() bool {
+	return me.IsSliceOrArray() && me.Expr.GenRef.ArrOrSlice.IsFixedLen != nil
 }
 
-func (this *Type) IsSlice() bool {
-	return this.IsSliceOrArray() && this.Expr.GenRef.ArrOrSlice.IsFixedLen == nil
+func (me *Type) IsSlice() bool {
+	return me.IsSliceOrArray() && me.Expr.GenRef.ArrOrSlice.IsFixedLen == nil
 }
 
-func (this *Type) IsSliceOrArray() bool {
-	return this.Expr.GenRef.ArrOrSlice.Of != nil
+func (me *Type) IsSliceOrArray() bool {
+	return me.Expr.GenRef.ArrOrSlice.Of != nil
 }

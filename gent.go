@@ -27,9 +27,9 @@ type IGent interface {
 // Gents is a slice if `IGent`s.
 type Gents []IGent
 
-// With merges all `IGent`s in this with all those in `gents` into `merged`.
-func (this Gents) With(gents ...Gents) (merged Gents) {
-	merged = append(make(Gents, 0, len(this)+2*len(gents)), this...)
+// With merges all `IGent`s in `me` with all those in `gents` into `merged`.
+func (me Gents) With(gents ...Gents) (merged Gents) {
+	merged = append(make(Gents, 0, len(me)+2*len(gents)), me...)
 	for i := range gents {
 		merged = append(merged, gents[i]...)
 	}
@@ -37,18 +37,18 @@ func (this Gents) With(gents ...Gents) (merged Gents) {
 }
 
 // EnableOrDisableAll sets all `IGent.Opt().Disabled` fields to `!enabled`.
-func (this Gents) EnableOrDisableAll(enabled bool) {
+func (me Gents) EnableOrDisableAll(enabled bool) {
 	disabled := !enabled
-	for i := range this {
-		this[i].Opt().Disabled = disabled
+	for i := range me {
+		me[i].Opt().Disabled = disabled
 	}
 }
 
 // EnableOrDisableAllVariantsAndOptionals calls
-// the same-named method on all `IGent`s in `this`.
-func (this Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
-	for i := range this {
-		this[i].EnableOrDisableAllVariantsAndOptionals(enabled)
+// the same-named method on all `IGent`s in `me`.
+func (me Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+	for i := range me {
+		me[i].EnableOrDisableAllVariantsAndOptionals(enabled)
 	}
 }
 
@@ -85,51 +85,51 @@ type Opts struct {
 // with a no-op, to be overridden by `Opts`-embedders as desired.
 //
 // To disable or enable an `IGent` itself, set `Opts.Disabled`.
-func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool) {}
+func (me *Opts) EnableOrDisableAllVariantsAndOptionals(bool) {}
 
-func (this *Opts) mayRunForType(ctx *Ctx, t *Type) bool {
-	if this.Disabled || this.RunOnlyOnceWithoutAnyType || (this.RunOnlyForTypeAliases != t.Alias) {
+func (me *Opts) mayRunForType(ctx *Ctx, t *Type) bool {
+	if me.Disabled || me.RunOnlyOnceWithoutAnyType || (me.RunOnlyForTypeAliases != t.Alias) {
 		return false
 	}
-	if len(this.RunNeverForTypes.Named) > 0 {
-		for _, tname := range this.RunNeverForTypes.Named {
+	if len(me.RunNeverForTypes.Named) > 0 {
+		for _, tname := range me.RunNeverForTypes.Named {
 			if tname == t.Name {
 				return false
 			}
 		}
 	}
-	if this.RunNeverForTypes.Satisfying != nil && this.RunNeverForTypes.Satisfying(ctx, t) {
+	if me.RunNeverForTypes.Satisfying != nil && me.RunNeverForTypes.Satisfying(ctx, t) {
 		return false
 	}
-	if len(this.RunOnlyForTypes.Named) > 0 {
-		for _, tname := range this.RunOnlyForTypes.Named {
+	if len(me.RunOnlyForTypes.Named) > 0 {
+		for _, tname := range me.RunOnlyForTypes.Named {
 			if tname == t.Name {
 				return true
 			}
 		}
 		return false
 	}
-	if this.RunOnlyForTypes.Satisfying != nil {
-		return this.RunOnlyForTypes.Satisfying(ctx, t)
+	if me.RunOnlyForTypes.Satisfying != nil {
+		return me.RunOnlyForTypes.Satisfying(ctx, t)
 	}
 
-	return this.MayRunForType == nil || this.MayRunForType(ctx, t)
+	return me.MayRunForType == nil || me.MayRunForType(ctx, t)
 }
 
 // Opt implements `IGent.Opt()` for `Opts` embedders.
-func (this *Opts) Opt() *Opts { return this }
+func (me *Opts) Opt() *Opts { return me }
 
-// RunGents instructs the given `gents` to generate code for `this` `Pkg`.
-func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error) {
+// RunGents instructs the given `gents` to generate code for `me`.
+func (me *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error) {
 	ctx, dst, codegencommentnotice :=
-		maybeCtxOpts.newCtx(this, gents), udevgogen.File(this.Name, 2*len(this.Types)*len(gents)), CodeGenCommentNotice.With("progName", CodeGenCommentProgName)
-	dst.DocComments = this.CodeGen.OutputFile.DocComments
+		maybeCtxOpts.newCtx(me, gents), udevgogen.File(me.Name, 2*len(me.Types)*len(gents)), CodeGenCommentNotice.With("progName", CodeGenCommentProgName)
+	dst.DocComments = me.CodeGen.OutputFile.DocComments
 	for _, g := range gents {
 		if g.Opt().RunOnlyOnceWithoutAnyType {
 			dst.Body.Add(ctx.generateTopLevelDecls(g, nil)...)
 		}
 	}
-	for _, t := range this.Types {
+	for _, t := range me.Types {
 		for _, g := range gents {
 			if ctx.mayGentRunForType(g, t) {
 				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
@@ -147,26 +147,26 @@ func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats
 	return
 }
 
-func (this *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error) {
-	src, stats, err := this.RunGents(maybeCtxOpts, gents)
+func (me *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error) {
+	src, stats, err := me.RunGents(maybeCtxOpts, gents)
 	if err == nil {
-		err = ufs.WriteBinaryFile(filepath.Join(this.DirPath, this.CodeGen.OutputFile.Name), src)
+		err = ufs.WriteBinaryFile(filepath.Join(me.DirPath, me.CodeGen.OutputFile.Name), src)
 	}
 	return stats, err
 }
 
-// MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats) {
+// MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `me`.
+func (me Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats) {
 	var errs map[*Pkg]error
-	timeTakenTotal, statsPerPkg, errs = this.RunGentsAndGenerateOutputFiles(maybeCtxOpts, gents)
+	timeTakenTotal, statsPerPkg, errs = me.RunGentsAndGenerateOutputFiles(maybeCtxOpts, gents)
 	for _, err := range errs {
 		panic(err)
 	}
 	return
 }
 
-// RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error) {
+// RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `me`.
+func (me Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
 	starttime, run := time.Now(), func(pkg *Pkg) {
@@ -179,9 +179,9 @@ func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gen
 		runs.Done()
 	}
 
-	statsPerPkg, errs = make(map[*Pkg]*Stats, len(this)), map[*Pkg]error{}
-	runs.Add(len(this))
-	for _, pkg := range this {
+	statsPerPkg, errs = make(map[*Pkg]*Stats, len(me)), map[*Pkg]error{}
+	runs.Add(len(me))
+	for _, pkg := range me {
 		go run(pkg)
 	}
 	runs.Wait()

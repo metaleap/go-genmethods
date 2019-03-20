@@ -31,10 +31,10 @@ type GentIsFooMethods struct {
 	MethodNameRenameEnumerant gent.Rename
 }
 
-func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
+func (me *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
 	return t.G.This.Method(methodName).Rets(ˇ.R.OfType(T.Bool)).
 		Doc(
-			this.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
+			me.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
 		).
 		Code(
 			ˇ.R.Set(Self.Eq(N(enumerant))), // r = (this == ‹enumerant›)
@@ -44,16 +44,16 @@ func (this *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, en
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
-func (this *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
 		yield = make(Syns, 0, len(t.Enumish.ConstNames))
 		for _, enumerant := range t.Enumish.ConstNames {
 			if renamed := enumerant; enumerant != "_" {
-				if this.MethodNameRenameEnumerant != nil {
-					renamed = this.MethodNameRenameEnumerant(ctx, t, enumerant)
+				if me.MethodNameRenameEnumerant != nil {
+					renamed = me.MethodNameRenameEnumerant(ctx, t, enumerant)
 				}
 				if renamed != "" {
-					yield.Add(this.genIsFooMethod(t, this.MethodName.With("T", t.Name, "e", renamed), enumerant))
+					yield.Add(me.genIsFooMethod(t, me.MethodName.With("T", t.Name, "e", renamed), enumerant))
 				}
 			}
 		}

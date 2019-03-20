@@ -62,77 +62,77 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 	}
 }
 
-func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (this *Pkg, err error) {
+func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (me *Pkg, err error) {
 	errnogopkg := errors.New("not a Go package: " + pkgImportPathOrFileSystemPath)
-	this = &Pkg{Name: dontLoadButJustInitUsingPkgNameInstead}
-	this.CodeGen.OutputFile.Name = outputFileName
+	me = &Pkg{Name: dontLoadButJustInitUsingPkgNameInstead}
+	me.CodeGen.OutputFile.Name = outputFileName
 
-	if err = this.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil && dontLoadButJustInitUsingPkgNameInstead == "" {
-		if this.CodeGen.OutputFile.Name != "" && OnBeforeLoad != nil {
-			OnBeforeLoad(this)
+	if err = me.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil && dontLoadButJustInitUsingPkgNameInstead == "" {
+		if me.CodeGen.OutputFile.Name != "" && OnBeforeLoad != nil {
+			OnBeforeLoad(me)
 		}
 		var gofilepaths []string
-		if gofilepaths, err = this.load_SetFileNames(errnogopkg); err == nil {
-			err = this.load_FromFiles(gofilepaths)
+		if gofilepaths, err = me.load_SetFileNames(errnogopkg); err == nil {
+			err = me.load_FromFiles(gofilepaths)
 		}
 	}
 	if err != nil {
-		this = nil
+		me = nil
 	}
 	return
 }
 
-func (this *Pkg) load_SetPaths(pkgImportPathOrFileSystemPath string, errnogopkg error) (err error) {
+func (me *Pkg) load_SetPaths(pkgImportPathOrFileSystemPath string, errnogopkg error) (err error) {
 	if ufs.IsDir(pkgImportPathOrFileSystemPath) {
-		this.DirPath = pkgImportPathOrFileSystemPath
+		me.DirPath = pkgImportPathOrFileSystemPath
 	} else if ufs.IsFile(pkgImportPathOrFileSystemPath) {
-		this.DirPath = filepath.Dir(pkgImportPathOrFileSystemPath)
-	} else if this.DirPath = udevgo.GopathSrc(pkgImportPathOrFileSystemPath); this.DirPath != "" && ufs.IsDir(this.DirPath) {
-		this.ImportPath = pkgImportPathOrFileSystemPath
+		me.DirPath = filepath.Dir(pkgImportPathOrFileSystemPath)
+	} else if me.DirPath = udevgo.GopathSrc(pkgImportPathOrFileSystemPath); me.DirPath != "" && ufs.IsDir(me.DirPath) {
+		me.ImportPath = pkgImportPathOrFileSystemPath
 	} else {
 		err = errnogopkg
 	}
-	if err == nil && this.ImportPath == "" && this.DirPath != "" {
-		this.ImportPath = udevgo.DirPathToImportPath(this.DirPath)
+	if err == nil && me.ImportPath == "" && me.DirPath != "" {
+		me.ImportPath = udevgo.DirPathToImportPath(me.DirPath)
 	}
-	if err == nil && this.ImportPath == "" {
+	if err == nil && me.ImportPath == "" {
 		err = errnogopkg
 	}
 	return
 }
 
-func (this *Pkg) load_SetFileNames(errnogopkg error) (goFilePaths []string, err error) {
-	ufs.WalkFilesIn(this.DirPath, func(fp string) bool {
+func (me *Pkg) load_SetFileNames(errnogopkg error) (goFilePaths []string, err error) {
+	ufs.WalkFilesIn(me.DirPath, func(fp string) bool {
 		if fn := filepath.Base(fp); ustr.Suff(fp, ".go") && !ustr.Suff(fp, "_test.go") {
-			goFilePaths, this.GoFileNames = append(goFilePaths, fp), append(this.GoFileNames, fn)
+			goFilePaths, me.GoFileNames = append(goFilePaths, fp), append(me.GoFileNames, fn)
 		}
 		return true
 	})
-	if len(this.GoFileNames) == 0 {
+	if len(me.GoFileNames) == 0 {
 		err = errnogopkg
 	}
 	return
 }
 
-func (this *Pkg) load_FromFiles(goFilePaths []string) (err error) {
-	goload := loader.Config{Cwd: this.DirPath}
-	goload.CreateFromFilenames(this.ImportPath, goFilePaths...)
-	if this.Loaded.Prog, err = goload.Load(); err == nil {
-		this.Loaded.Info = this.Loaded.Prog.Package(this.ImportPath)
-		for _, gofile := range this.Loaded.Info.Files {
+func (me *Pkg) load_FromFiles(goFilePaths []string) (err error) {
+	goload := loader.Config{Cwd: me.DirPath}
+	goload.CreateFromFilenames(me.ImportPath, goFilePaths...)
+	if me.Loaded.Prog, err = goload.Load(); err == nil {
+		me.Loaded.Info = me.Loaded.Prog.Package(me.ImportPath)
+		for _, gofile := range me.Loaded.Info.Files {
 			if gofile.Name != nil {
-				if gfname := gofile.Name.Name; this.Name == "" {
-					this.Name = gfname
-				} else if gfname != "" && gfname != this.Name {
-					err = errors.New("naming mismatch: " + this.Name + " vs. " + gfname)
+				if gfname := gofile.Name.Name; me.Name == "" {
+					me.Name = gfname
+				} else if gfname != "" && gfname != me.Name {
+					err = errors.New("naming mismatch: " + me.Name + " vs. " + gfname)
 					return
 				}
-				this.load_Types(gofile)
+				me.load_Types(gofile)
 			}
 		}
-		this.load_PopulateTypes()
+		me.load_PopulateTypes()
 	}
 	return
 }
 
-func (this *Pkg) DirName() string { return filepath.Base(this.DirPath) }
+func (me *Pkg) DirName() string { return filepath.Base(me.DirPath) }

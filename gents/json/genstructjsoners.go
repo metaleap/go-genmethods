@@ -17,24 +17,24 @@ type GentStructJsonMethods struct {
 	DocCommentUnmarshal string
 }
 
-func (this *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	return t.G.T.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
-		Doc(this.DocCommentMarshal).
+		Doc(me.DocCommentMarshal).
 		Code()
 }
 
-func (this *GentStructJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+func (me *GentStructJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	return t.G.Tª.Method("UnmarshalJSON", ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
-		Doc(this.DocCommentUnmarshal).
+		Doc(me.DocCommentUnmarshal).
 		Code()
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.Expr.GenRef.Struct != nil {
 		yield.Add(
-			this.genMarshalMethod(ctx, t),
-			this.genUnmarshalMethod(ctx, t),
+			me.genMarshalMethod(ctx, t),
+			me.genUnmarshalMethod(ctx, t),
 		)
 	}
 	return

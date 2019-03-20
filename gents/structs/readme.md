@@ -44,14 +44,11 @@ var (
 type GentStructFieldsGetSet struct {
 	gent.Opts
 
-	DontGen struct {
-		Getters bool
-		Setters bool
+	Getter struct {
+		gent.Variation
+		ReturnsPtrInsteadOfVal bool
 	}
-	DocCommentGet gent.Str
-	MethodNameGet string
-	DocCommentSet gent.Str
-	MethodNameSet string
+	Setter gent.Variation
 }
 ```
 

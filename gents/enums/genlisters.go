@@ -43,41 +43,41 @@ type GentListEnumerantsFuncs struct {
 	Rename          gent.Rename
 }
 
-func (this *GentListEnumerantsFuncs) genListNamesFunc(t *gent.Type, funcName string, enumerantNames Syns) *SynFunc {
+func (me *GentListEnumerantsFuncs) genListNamesFunc(t *gent.Type, funcName string, enumerantNames Syns) *SynFunc {
 	return Func(funcName).Ret("names", T.SliceOf.Strings).
 		Doc(
-			this.ListNames.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
+			me.ListNames.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
 		).
 		Code(
 			N("names").Set(L(enumerantNames)),
 		)
 }
 
-func (this *GentListEnumerantsFuncs) genListValuesFunc(t *gent.Type, funcName string, enumerantValues Syns) *SynFunc {
+func (me *GentListEnumerantsFuncs) genListValuesFunc(t *gent.Type, funcName string, enumerantValues Syns) *SynFunc {
 	return Func(funcName).Ret("values", TSlice(t.G.T)).
 		Doc(
-			this.ListValues.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantValues))),
+			me.ListValues.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantValues))),
 		).
 		Code(
 			N("values").Set(L(enumerantValues)),
 		)
 }
 
-func (this *GentListEnumerantsFuncs) genListBothFunc(t *gent.Type, funcName string, funcNameNames string, funcNameValues string, numEnumerants int) *SynFunc {
+func (me *GentListEnumerantsFuncs) genListBothFunc(t *gent.Type, funcName string, funcNameNames string, funcNameValues string, numEnumerants int) *SynFunc {
 	return Func(funcName).Ret("names", T.SliceOf.Strings).Ret("values", TSlice(t.G.T)).
 		Doc(
-			this.ListBoth.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(numEnumerants)),
+			me.ListBoth.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(numEnumerants)),
 		).
 		Code(
 			Names("names", "values").Set(Tup(Call(N(funcNameNames)), Call(N(funcNameValues)))),
 		)
 }
 
-func (this *GentListEnumerantsFuncs) genListMapFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
+func (me *GentListEnumerantsFuncs) genListMapFunc(t *gent.Type, funcName string, enumerantNames Syns, enumerantValues Syns) *SynFunc {
 	maptype := TMap(T.String, t.G.T)
 	return Func(funcName).Ret("namesToValues", maptype).
 		Doc(
-			this.ListBoth.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
+			me.ListBoth.DocComment.With("N", funcName, "T", t.Name, "n", strconv.Itoa(len(enumerantNames))),
 		).
 		Code(
 			N("namesToValues").Set(B.Make.Of(TMap(T.String, t.G.T), len(enumerantNames))),
@@ -88,13 +88,13 @@ func (this *GentListEnumerantsFuncs) genListMapFunc(t *gent.Type, funcName strin
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsEnumish() && !(this.ListBoth.Disabled && this.ListMap.Disabled && this.ListNames.Disabled && this.ListValues.Disabled) {
+func (me *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if t.IsEnumish() && !(me.ListBoth.Disabled && me.ListMap.Disabled && me.ListNames.Disabled && me.ListValues.Disabled) {
 		names, values := make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
 		for i, enumerant := range t.Enumish.ConstNames {
-			if renamed := enumerant; enumerant != "_" && (i > 0 || !this.AlwaysSkipFirst) {
-				if this.Rename != nil {
-					renamed = this.Rename(ctx, t, enumerant)
+			if renamed := enumerant; enumerant != "_" && (i > 0 || !me.AlwaysSkipFirst) {
+				if me.Rename != nil {
+					renamed = me.Rename(ctx, t, enumerant)
 				}
 				if renamed != "" {
 					names.Add(L(renamed))
@@ -104,33 +104,33 @@ func (this *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gen
 		}
 
 		var fnamevals, fnamenames string
-		if !(this.ListBoth.Disabled && this.ListNames.Disabled && this.ListValues.Disabled) {
-			fnamevals, fnamenames = this.ListValues.NameWith("T", t.Name), this.ListNames.NameWith("T", t.Name)
+		if !(me.ListBoth.Disabled && me.ListNames.Disabled && me.ListValues.Disabled) {
+			fnamevals, fnamenames = me.ListValues.NameWith("T", t.Name), me.ListNames.NameWith("T", t.Name)
 		}
 
-		if !this.ListMap.Disabled {
-			fnamemap := this.ListMap.NameWith("T", t.Name)
-			yield.Add(this.genListMapFunc(t, fnamemap, names, values))
+		if !me.ListMap.Disabled {
+			fnamemap := me.ListMap.NameWith("T", t.Name)
+			yield.Add(me.genListMapFunc(t, fnamemap, names, values))
 		}
-		if !this.ListBoth.Disabled {
-			fnameboth := this.ListBoth.NameWith("T", t.Name, "s", ustr.If(ustr.Suff(t.Name, "s"), "es", "s"))
+		if !me.ListBoth.Disabled {
+			fnameboth := me.ListBoth.NameWith("T", t.Name, "s", ustr.If(ustr.Suff(t.Name, "s"), "es", "s"))
 			if ustr.Suff(fnameboth, "ys") {
 				fnameboth = fnameboth[:len(fnameboth)-2] + "ies"
 			}
-			yield.Add(this.genListBothFunc(t, fnameboth, fnamenames, fnamevals, len(names)))
+			yield.Add(me.genListBothFunc(t, fnameboth, fnamenames, fnamevals, len(names)))
 		}
-		if !(this.ListNames.Disabled && this.ListBoth.Disabled) {
-			yield.Add(this.genListNamesFunc(t, fnamenames, names))
+		if !(me.ListNames.Disabled && me.ListBoth.Disabled) {
+			yield.Add(me.genListNamesFunc(t, fnamenames, names))
 		}
-		if !(this.ListValues.Disabled && this.ListBoth.Disabled) {
-			yield.Add(this.genListValuesFunc(t, fnamevals, values))
+		if !(me.ListValues.Disabled && me.ListBoth.Disabled) {
+			yield.Add(me.genListValuesFunc(t, fnamevals, values))
 		}
 	}
 	return
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+func (me *GentListEnumerantsFuncs) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
 	disabled := !enabled
-	this.ListBoth.Disabled, this.ListMap.Disabled, this.ListNames.Disabled, this.ListValues.Disabled = disabled, disabled, disabled, disabled
+	me.ListBoth.Disabled, me.ListMap.Disabled, me.ListNames.Disabled, me.ListValues.Disabled = disabled, disabled, disabled, disabled
 }

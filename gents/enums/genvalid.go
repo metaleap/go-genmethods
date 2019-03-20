@@ -29,10 +29,10 @@ type GentIsValidMethod struct {
 
 type comparisonOperator = func(IAny) IExprBoolish
 
-func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
-	return t.G.This.Method(this.MethodName).Rets(ˇ.R.OfType(T.Bool)).
-		Doc(this.DocComment.With(
-			"N", this.MethodName, "T", t.Name,
+func (me *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
+	return t.G.This.Method(me.MethodName).Rets(ˇ.R.OfType(T.Bool)).
+		Doc(me.DocComment.With(
+			"N", me.MethodName, "T", t.Name,
 			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
 		)).
 		Code(
@@ -42,10 +42,10 @@ func (this *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq c
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
-func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
 		invalid1, invalid2, info1, info2, name1, name2 := // 1 refers to enum's first enumerant here, and 2 to last enumerant
-			this.IsFirstInvalid, this.IsLastInvalid, "inclusive", "inclusive", t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1]
+			me.IsFirstInvalid, me.IsLastInvalid, "inclusive", "inclusive", t.Enumish.ConstNames[0], t.Enumish.ConstNames[len(t.Enumish.ConstNames)-1]
 		if name1 == "_" {
 			invalid1, name1 = false, t.Enumish.ConstNames[1]
 		}
@@ -57,7 +57,7 @@ func (this *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 		if invalid2 {
 			info2, op2 = "exclusive", Self.Lt
 		}
-		yield = Syns{this.genIsValidMethod(t, op1, op2, name1, name2, info1, info2)}
+		yield = Syns{me.genIsValidMethod(t, op1, op2, name1, name2, info1, info2)}
 	}
 	return
 }

@@ -28,11 +28,11 @@ type GentConvertMethods struct {
 	}
 }
 
-func (this *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructField) *SynFunc {
+func (me *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructField) *SynFunc {
 	methodname, tsl :=
-		this.Fields.NameWith("field", field.Name), TSlice(field.Type)
+		me.Fields.NameWith("field", field.Name), TSlice(field.Type)
 	return t.G.T.Method(methodname).Rets(ˇ.R.OfType(tsl)).
-		Doc(this.Fields.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", Self.Name)).
+		Doc(me.Fields.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", Self.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(tsl, B.Len.Of(Self))),
 			ForEach(ˇ.I, None, Self,
@@ -41,11 +41,11 @@ func (this *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructFi
 		)
 }
 
-func (this *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructField) *SynFunc {
+func (me *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructField) *SynFunc {
 	methodname, tmap :=
-		this.ToMaps.NameWith("field", field.Name), TMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
+		me.ToMaps.NameWith("field", field.Name), TMap(field.Type, t.Expr.GenRef.ArrOrSlice.Of)
 	return t.G.T.Method(methodname).Rets(ˇ.R.OfType(tmap)).
-		Doc(this.ToMaps.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", Self.Name)).
+		Doc(me.ToMaps.DocComment.With("N", methodname, "field", field.Name, "T", t.Expr.GenRef.UltimateElemType().String(), "this", Self.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(tmap, B.Len.Of(Self))),
 			ForEach(ˇ.I, None, Self,
@@ -55,17 +55,17 @@ func (this *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructFie
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsSlice() {
-		if (this.Fields.Add || this.ToMaps.Add) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
+		if (me.Fields.Add || me.ToMaps.Add) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
 			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
-				for _, field := range this.Fields.Named {
+				for _, field := range me.Fields.Named {
 					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
-						if this.Fields.Add {
-							yield.Add(this.genFieldsMethod(t, fld))
+						if me.Fields.Add {
+							yield.Add(me.genFieldsMethod(t, fld))
 						}
-						if this.ToMaps.Add {
-							yield.Add(this.genToMapMethod(t, fld))
+						if me.ToMaps.Add {
+							yield.Add(me.genToMapMethod(t, fld))
 						}
 					}
 				}
@@ -76,6 +76,6 @@ func (this *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Typ
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentConvertMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
-	this.Fields.Add, this.ToMaps.Add = enabled, enabled
+func (me *GentConvertMethods) EnableOrDisableAllVariantsAndOptionals(enabled bool) {
+	me.Fields.Add, me.ToMaps.Add = enabled, enabled
 }

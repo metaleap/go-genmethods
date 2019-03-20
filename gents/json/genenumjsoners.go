@@ -19,23 +19,23 @@ type GentEnumJsonMethods struct {
 	StringerToUse       *gentenums.StringMethodOpts
 }
 
-func (this *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+func (me *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	return t.G.T.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
-		Doc(this.DocCommentMarshal).
+		Doc(me.DocCommentMarshal).
 		Code(
-			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", Self.C(this.StringerToUse.Name)))),
+			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", Self.C(me.StringerToUse.Name)))),
 		)
 }
 
-func (this *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+func (me *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	return t.G.Tª.Method("UnmarshalJSON", ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
-		Doc(this.DocCommentUnmarshal).
+		Doc(me.DocCommentUnmarshal).
 		Code(
 			Var(ˇ.S.Name, T.String, nil),
 			Tup(ˇ.S, ˇ.Err).Set(ctx.Import("strconv").C("Unquote", T.String.From(ˇ.V))),
 			If(ˇ.Err.Eq(B.Nil), Then(
 				Var(ˇ.T.Name, t.G.T, nil),
-				Tup(ˇ.T, ˇ.Err).Set(N(this.StringerToUse.Parser.FuncName.With("T", t.Name, "str", this.StringerToUse.Name)).Of(ˇ.S)),
+				Tup(ˇ.T, ˇ.Err).Set(N(me.StringerToUse.Parser.FuncName.With("T", t.Name, "str", me.StringerToUse.Name)).Of(ˇ.S)),
 				If(ˇ.Err.Eq(B.Nil), Then(
 					Self.Deref().Set(ˇ.T),
 				)),
@@ -44,11 +44,11 @@ func (this *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type)
 }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (this *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
 		yield.Add(
-			this.genMarshalMethod(ctx, t),
-			this.genUnmarshalMethod(ctx, t),
+			me.genMarshalMethod(ctx, t),
+			me.genUnmarshalMethod(ctx, t),
 		)
 	}
 	return

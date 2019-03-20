@@ -63,16 +63,16 @@ Ctx is a codegen-time context during a `Pkg.RunGents` call and is passed to
 #### func (*Ctx) DeclsGeneratedSoFar
 
 ```go
-func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns)
+func (me *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns)
 ```
 DeclsGeneratedSoFar collects and returns all results of
-`IGent.GenerateTopLevelDecls` performed so far by `this` `Ctx`, filtered
+`IGent.GenerateTopLevelDecls` performed so far by this `Ctx`, filtered
 optionally by `IGent` and/or by `Type`.
 
 #### func (*Ctx) Import
 
 ```go
-func (this *Ctx) Import(pkgImportPath string) (pkgImportName udevgogen.PkgName)
+func (me *Ctx) Import(pkgImportPath string) (pkgImportName udevgogen.PkgName)
 ```
 Import returns the `pkgImportName` for the specified `pkgImportPath`. Eg.
 `Import("encoding/json")` might return `pkg__encoding_json` and more
@@ -112,24 +112,24 @@ Gents is a slice if `IGent`s.
 #### func (Gents) EnableOrDisableAll
 
 ```go
-func (this Gents) EnableOrDisableAll(enabled bool)
+func (me Gents) EnableOrDisableAll(enabled bool)
 ```
 EnableOrDisableAll sets all `IGent.Opt().Disabled` fields to `!enabled`.
 
 #### func (Gents) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool)
+func (me Gents) EnableOrDisableAllVariantsAndOptionals(enabled bool)
 ```
 EnableOrDisableAllVariantsAndOptionals calls the same-named method on all
-`IGent`s in `this`.
+`IGent`s in `me`.
 
 #### func (Gents) With
 
 ```go
-func (this Gents) With(gents ...Gents) (merged Gents)
+func (me Gents) With(gents ...Gents) (merged Gents)
 ```
-With merges all `IGent`s in this with all those in `gents` into `merged`.
+With merges all `IGent`s in `me` with all those in `gents` into `merged`.
 
 #### type IGent
 
@@ -188,7 +188,7 @@ Opts related to a single `IGent`, and designed for embedding.
 #### func (*Opts) EnableOrDisableAllVariantsAndOptionals
 
 ```go
-func (this *Opts) EnableOrDisableAllVariantsAndOptionals(bool)
+func (me *Opts) EnableOrDisableAllVariantsAndOptionals(bool)
 ```
 EnableOrDisableAllVariantsAndOptionals implements `IGent` but with a no-op, to
 be overridden by `Opts`-embedders as desired.
@@ -198,7 +198,7 @@ To disable or enable an `IGent` itself, set `Opts.Disabled`.
 #### func (*Opts) Opt
 
 ```go
-func (this *Opts) Opt() *Opts
+func (me *Opts) Opt() *Opts
 ```
 Opt implements `IGent.Opt()` for `Opts` embedders.
 
@@ -231,7 +231,7 @@ type Pkg struct {
 #### func  LoadPkg
 
 ```go
-func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (this *Pkg, err error)
+func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (me *Pkg, err error)
 ```
 
 #### func  MustLoadPkg
@@ -243,20 +243,20 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 #### func (*Pkg) DirName
 
 ```go
-func (this *Pkg) DirName() string
+func (me *Pkg) DirName() string
 ```
 
 #### func (*Pkg) RunGents
 
 ```go
-func (this *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error)
+func (me *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *Stats, err error)
 ```
-RunGents instructs the given `gents` to generate code for `this` `Pkg`.
+RunGents instructs the given `gents` to generate code for `me`.
 
 #### func (*Pkg) RunGentsAndGenerateOutputFile
 
 ```go
-func (this *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error)
+func (me *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error)
 ```
 
 #### type Pkgs
@@ -281,16 +281,16 @@ func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs
 #### func (Pkgs) MustRunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats)
+func (me Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats)
 ```
-MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
+MustRunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `me`.
 
 #### func (Pkgs) RunGentsAndGenerateOutputFiles
 
 ```go
-func (this Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error)
+func (me Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error)
 ```
-RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `this`.
+RunGentsAndGenerateOutputFiles calls `RunGents` on the `Pkg`s in `me`.
 
 #### type Rename
 
@@ -323,7 +323,7 @@ type Str string
 #### func (Str) With
 
 ```go
-func (this Str) With(placeholderNamesAndValues ...string) string
+func (me Str) With(placeholderNamesAndValues ...string) string
 ```
 
 #### type Type
@@ -374,25 +374,25 @@ type Type struct {
 #### func (*Type) IsArray
 
 ```go
-func (this *Type) IsArray() bool
+func (me *Type) IsArray() bool
 ```
 
 #### func (*Type) IsEnumish
 
 ```go
-func (this *Type) IsEnumish() bool
+func (me *Type) IsEnumish() bool
 ```
 
 #### func (*Type) IsSlice
 
 ```go
-func (this *Type) IsSlice() bool
+func (me *Type) IsSlice() bool
 ```
 
 #### func (*Type) IsSliceOrArray
 
 ```go
-func (this *Type) IsSliceOrArray() bool
+func (me *Type) IsSliceOrArray() bool
 ```
 
 #### type Types
@@ -405,13 +405,13 @@ type Types []*Type
 #### func (*Types) Add
 
 ```go
-func (this *Types) Add(t *Type)
+func (me *Types) Add(t *Type)
 ```
 
 #### func (Types) Named
 
 ```go
-func (this Types) Named(name string) *Type
+func (me Types) Named(name string) *Type
 ```
 
 #### type Variant
@@ -428,7 +428,7 @@ type Variant struct {
 #### func (*Variant) NameWith
 
 ```go
-func (this *Variant) NameWith(placeholderNamesAndValues ...string) string
+func (me *Variant) NameWith(placeholderNamesAndValues ...string) string
 ```
 
 #### type Variation
@@ -445,5 +445,5 @@ type Variation struct {
 #### func (*Variation) NameWith
 
 ```go
-func (this *Variation) NameWith(placeholderNamesAndValues ...string) string
+func (me *Variation) NameWith(placeholderNamesAndValues ...string) string
 ```

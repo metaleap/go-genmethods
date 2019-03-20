@@ -46,7 +46,7 @@ type GentEnumJsonMethods struct {
 #### func (*GentEnumJsonMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -65,6 +65,6 @@ type GentStructJsonMethods struct {
 #### func (*GentStructJsonMethods) GenerateTopLevelDecls
 
 ```go
-func (this *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.

@@ -57,23 +57,24 @@ type Ctx struct {
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
 }
 
-func (this *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
-	if this == nil {
-		this = &Defaults.CtxOpt
+func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
+	if me == nil {
+		me = &Defaults.CtxOpt
 	}
 	return &Ctx{
-		Opt: *this, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
+		Opt: *me, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
 		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, gents: gents, Pkg: pkg,
 	}
 }
-func (this *Ctx) mayGentRunForType(g IGent, t *Type) bool {
-	return g.Opt().mayRunForType(this, t) &&
-		(this.Opt.MayGentRunForType == nil || this.Opt.MayGentRunForType(g, t))
+
+func (me *Ctx) mayGentRunForType(g IGent, t *Type) bool {
+	return g.Opt().mayRunForType(me, t) &&
+		(me.Opt.MayGentRunForType == nil || me.Opt.MayGentRunForType(g, t))
 }
 
-func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) {
-	decls = g.GenerateTopLevelDecls(this, t)
-	this.declsGenerated[ctxDeclKey{g: g, t: t}] = decls
+func (me *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) {
+	decls = g.GenerateTopLevelDecls(me, t)
+	me.declsGenerated[ctxDeclKey{g: g, t: t}] = decls
 	if g.Opt().EmitCommented {
 		for i := range decls {
 			if fn, _ := decls[i].(*udevgogen.SynFunc); fn != nil {
@@ -87,9 +88,9 @@ func (this *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) 
 }
 
 // DeclsGeneratedSoFar collects and returns all results of `IGent.GenerateTopLevelDecls`
-// performed so far by `this` `Ctx`, filtered optionally by `IGent` and/or by `Type`.
-func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns) {
-	for gt, decls := range this.declsGenerated {
+// performed so far by this `Ctx`, filtered optionally by `IGent` and/or by `Type`.
+func (me *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []udevgogen.Syns) {
+	for gt, decls := range me.declsGenerated {
 		if (maybeGent == nil || gt.g == maybeGent) && (maybeType == nil || gt.t == maybeType) {
 			matches = append(matches, decls)
 		}
@@ -102,7 +103,7 @@ func (this *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches 
 // more importantly, the import will be properly emitted (only if any of
 // the import's uses get emitted) at code-gen time. Import is a `Ctx`-local
 // wrapper of the `github.com/go-leap/dev/go/gen.PkgImports.Ensure` method.
-func (this *Ctx) Import(pkgImportPath string) (pkgImportName udevgogen.PkgName) {
-	pkgImportName = this.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
+func (me *Ctx) Import(pkgImportPath string) (pkgImportName udevgogen.PkgName) {
+	pkgImportName = me.pkgImportPathsToPkgImportNames.Ensure(pkgImportPath)
 	return
 }
