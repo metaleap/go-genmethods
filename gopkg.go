@@ -13,9 +13,13 @@ import (
 
 type Pkgs map[string]*Pkg
 
+type PkgSpec struct {
+	Name       string
+	ImportPath string
+}
+
 type Pkg struct {
-	Name        string
-	ImportPath  string
+	PkgSpec
 	DirPath     string
 	GoFileNames []string
 
@@ -64,7 +68,7 @@ func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *P
 
 func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLoadButJustInitUsingPkgNameInstead string) (me *Pkg, err error) {
 	errnogopkg := errors.New("not a Go package: " + pkgImportPathOrFileSystemPath)
-	me = &Pkg{Name: dontLoadButJustInitUsingPkgNameInstead}
+	me = &Pkg{PkgSpec: PkgSpec{Name: dontLoadButJustInitUsingPkgNameInstead}}
 	me.CodeGen.OutputFile.Name = outputFileName
 
 	if err = me.load_SetPaths(pkgImportPathOrFileSystemPath, errnogopkg); err == nil && dontLoadButJustInitUsingPkgNameInstead == "" {

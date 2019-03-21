@@ -3,7 +3,9 @@ package gent
 import (
 	"go/ast"
 	"go/token"
+	"strconv"
 
+	"github.com/go-leap/dev/go"
 	"github.com/go-leap/dev/go/gen"
 )
 
@@ -25,7 +27,8 @@ func (me Types) Named(name string) *Type {
 }
 
 type Type struct {
-	Pkg *Pkg
+	Pkg            *Pkg
+	SrcFileImports []PkgSpec
 
 	Name  string
 	Alias bool
@@ -64,13 +67,37 @@ type Type struct {
 	}
 }
 
+var miscPkgNames = map[string]string{}
+
 func (me *Pkg) load_Types(goFile *ast.File) {
+	imps := make([]PkgSpec, 0, len(goFile.Imports))
+	for _, srcimp := range goFile.Imports {
+		var imp PkgSpec
+		if srcimp.Name != nil {
+			imp.Name = srcimp.Name.Name
+		}
+		if srcimp.Path != nil {
+			imp.ImportPath, _ = strconv.Unquote(srcimp.Path.Value)
+		}
+		if imp.Name != "" || imp.ImportPath != "" {
+			if imp.ImportPath == "" {
+				imp.ImportPath = imp.Name
+			} else if imp.Name == "" {
+				if imp.Name = miscPkgNames[imp.ImportPath]; imp.Name == "" {
+					imp.Name = udevgo.LoadOnlyPkgNameFrom(imp.ImportPath)
+					miscPkgNames[imp.ImportPath] = imp.Name
+				}
+			}
+			imps = append(imps, imp)
+		}
+	}
+
 	for _, topleveldecl := range goFile.Decls {
 		if somedecl, _ := topleveldecl.(*ast.GenDecl); somedecl != nil {
 			var curvaltident *ast.Ident
 			for _, spec := range somedecl.Specs {
 				if tdecl, _ := spec.(*ast.TypeSpec); tdecl != nil && tdecl.Name != nil && tdecl.Name.Name != "" && tdecl.Type != nil {
-					t := &Type{Pkg: me, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid()}
+					t := &Type{Pkg: me, Name: tdecl.Name.Name, Alias: tdecl.Assign.IsValid(), SrcFileImports: imps}
 					t.G.T, t.Expr.AstExpr = udevgogen.TFrom("", t.Name), goAstTypeExprSansParens(tdecl.Type)
 					t.G.Tª, t.G.Ts = udevgogen.TPointer(t.G.T), udevgogen.TSlice(t.G.T)
 					t.G.Tªs, t.G.This, t.G.Thisª = udevgogen.TSlice(t.G.Tª), udevgogen.Self.OfType(t.G.T), udevgogen.Self.OfType(udevgogen.TPointer(t.G.T))
@@ -131,4 +158,15 @@ func (me *Type) IsSlice() bool {
 
 func (me *Type) IsSliceOrArray() bool {
 	return me.Expr.GenRef.ArrOrSlice.Of != nil
+}
+
+func (me *Type) SrcFileImportPathByName(impName string) *PkgSpec {
+	if impName != "" {
+		for i := range me.SrcFileImports {
+			if me.SrcFileImports[i].Name == impName {
+				return &me.SrcFileImports[i]
+			}
+		}
+	}
+	return nil
 }

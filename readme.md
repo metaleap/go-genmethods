@@ -206,8 +206,7 @@ Opt implements `IGent.Opt()` for `Opts` embedders.
 
 ```go
 type Pkg struct {
-	Name        string
-	ImportPath  string
+	PkgSpec
 	DirPath     string
 	GoFileNames []string
 
@@ -258,6 +257,16 @@ RunGents instructs the given `gents` to generate code for `me`.
 ```go
 func (me *Pkg) RunGentsAndGenerateOutputFile(maybeCtxOpts *CtxOpts, gents Gents) (*Stats, error)
 ```
+
+#### type PkgSpec
+
+```go
+type PkgSpec struct {
+	Name       string
+	ImportPath string
+}
+```
+
 
 #### type Pkgs
 
@@ -330,7 +339,8 @@ func (me Str) With(placeholderNamesAndValues ...string) string
 
 ```go
 type Type struct {
-	Pkg *Pkg
+	Pkg            *Pkg
+	SrcFileImports []PkgSpec
 
 	Name  string
 	Alias bool
@@ -393,6 +403,12 @@ func (me *Type) IsSlice() bool
 
 ```go
 func (me *Type) IsSliceOrArray() bool
+```
+
+#### func (*Type) SrcFileImportPathByName
+
+```go
+func (me *Type) SrcFileImportPathByName(impName string) *PkgSpec
 ```
 
 #### type Types

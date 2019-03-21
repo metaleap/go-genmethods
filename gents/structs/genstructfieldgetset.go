@@ -56,6 +56,9 @@ func (me *GentStructFieldsGetSet) genSetMethod(ctx *gent.Ctx, t *gent.Type) *Syn
 				CasesFrom(true, GEN_FOR(0, len(t.Expr.GenRef.Struct.Fields), 1, func(i int) ISyn {
 					fld := t.Expr.GenRef.Struct.Fields[i]
 					fldname := fld.EffectiveName()
+					if pkgimp := t.SrcFileImportPathByName(fld.Type.Named.PkgName); pkgimp != nil {
+						fld.Type.Named.PkgName = string(ctx.Import(pkgimp.ImportPath))
+					}
 					return Case(L(fldname),
 						okN.Set(B.True),
 						Tup(ˇ.T, ˇ.Ok).Let(ˇ.V.D(fld.Type)),
