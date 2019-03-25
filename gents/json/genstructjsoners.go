@@ -18,7 +18,7 @@ type GentStructJsonMethods struct {
 }
 
 func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
-	return t.G.T.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+	return t.G.Tª.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.DocCommentMarshal).
 		Code()
 }
