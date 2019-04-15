@@ -2,6 +2,7 @@ package gent
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 
 	"github.com/go-leap/dev/go"
@@ -106,7 +107,7 @@ func (me *Pkg) load_SetPaths(pkgImportPathOrFileSystemPath string, errnogopkg er
 }
 
 func (me *Pkg) load_SetFileNames(errnogopkg error) (goFilePaths []string, err error) {
-	ufs.WalkFilesIn(me.DirPath, func(fp string) bool {
+	ufs.WalkFilesIn(me.DirPath, func(fp string, _ os.FileInfo) bool {
 		if fn := filepath.Base(fp); ustr.Suff(fp, ".go") && !ustr.Suff(fp, "_test.go") {
 			goFilePaths, me.GoFileNames = append(goFilePaths, fp), append(me.GoFileNames, fn)
 		}
