@@ -1,6 +1,6 @@
 package genttest
 
-// DO NOT EDIT: code generated with `demo-go-gent` using `github.com/metaleap/go-gent`
+// DON'T EDIT: code gen'd with `demo-go-gent` using `github.com/metaleap/go-gent`
 
 import (
 	pkg__strconv "strconv"

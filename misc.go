@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	CodeGenCommentNotice   Str = "DO NOT EDIT: code generated with `{progName}` using `github.com/metaleap/go-gent`"
+	CodeGenCommentNotice   Str = "DON'T EDIT: code gen'd with `{progName}` using `github.com/metaleap/go-gent`"
 	CodeGenCommentProgName     = filepath.Base(os.Args[0])
 
 	Defaults struct {
