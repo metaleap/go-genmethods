@@ -7,29 +7,33 @@ import (
 )
 
 func init() {
-	Gents.Enums.DocCommentMarshal, Gents.Enums.DocCommentUnmarshal, Gents.Enums.StringerToUse =
-		DefaultDocCommentMarshal, DefaultDocCommentUnmarshal, &gentenums.Gents.Stringers.All[0]
+	Gents.Enums.Marshal.MethodName, Gents.Enums.Unmarshal.MethodName, Gents.Enums.Marshal.DocComment, Gents.Enums.Unmarshal.DocComment, Gents.Enums.StringerToUse =
+		DefaultMethodNameMarshal, DefaultMethodNameUnmarshal, DefaultDocCommentMarshal, DefaultDocCommentUnmarshal, &gentenums.Gents.Stringers.All[0]
 }
 
 type GentEnumJsonMethods struct {
 	gent.Opts
 
-	DocCommentMarshal   string
-	DocCommentUnmarshal string
-	StringerToUse       *gentenums.StringMethodOpts
+	Marshal struct {
+		JsonMethodOpts
+	}
+	Unmarshal struct {
+		JsonMethodOpts
+	}
+	StringerToUse *gentenums.StringMethodOpts
 }
 
 func (me *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
-	return t.G.T.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
-		Doc(me.DocCommentMarshal).
+	return t.G.T.Method(me.Marshal.MethodName).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+		Doc(me.Marshal.DocComment).
 		Code(
 			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", Self.C(me.StringerToUse.Name)))),
 		)
 }
 
 func (me *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
-	return t.G.Tª.Method("UnmarshalJSON", ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
-		Doc(me.DocCommentUnmarshal).
+	return t.G.Tª.Method(me.Unmarshal.MethodName, ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
+		Doc(me.Unmarshal.DocComment).
 		Code(
 			Var(ˇ.S.Name, T.String, nil),
 			Tup(ˇ.S, ˇ.Err).Set(ctx.Import("strconv").C("Unquote", T.String.From(ˇ.V))),

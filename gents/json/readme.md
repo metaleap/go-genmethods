@@ -7,8 +7,10 @@
 
 ```go
 const (
-	DefaultDocCommentMarshal   = "MarshalJSON implements the Go standard library's `encoding/json.Marshaler` interface."
-	DefaultDocCommentUnmarshal = "UnmarshalJSON implements the Go standard library's `encoding/json.Unmarshaler` interface."
+	DefaultMethodNameMarshal   = "MarshalJSON"
+	DefaultMethodNameUnmarshal = "UnmarshalJSON"
+	DefaultDocCommentMarshal   = DefaultMethodNameMarshal + " implements the Go standard library's `encoding/json.Marshaler` interface."
+	DefaultDocCommentUnmarshal = DefaultMethodNameUnmarshal + " implements the Go standard library's `encoding/json.Unmarshaler` interface."
 )
 ```
 
@@ -36,9 +38,13 @@ var (
 type GentEnumJsonMethods struct {
 	gent.Opts
 
-	DocCommentMarshal   string
-	DocCommentUnmarshal string
-	StringerToUse       *gentenums.StringMethodOpts
+	Marshal struct {
+		JsonMethodOpts
+	}
+	Unmarshal struct {
+		JsonMethodOpts
+	}
+	StringerToUse *gentenums.StringMethodOpts
 }
 ```
 
@@ -56,8 +62,12 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 type GentStructJsonMethods struct {
 	gent.Opts
 
-	DocCommentMarshal   string
-	DocCommentUnmarshal string
+	Marshal struct {
+		JsonMethodOpts
+	}
+	Unmarshal struct {
+		JsonMethodOpts
+	}
 }
 ```
 
@@ -68,3 +78,12 @@ type GentStructJsonMethods struct {
 func (me *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+
+#### type JsonMethodOpts
+
+```go
+type JsonMethodOpts struct {
+	DocComment string
+	MethodName string
+}
+```

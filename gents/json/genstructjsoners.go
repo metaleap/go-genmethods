@@ -6,26 +6,30 @@ import (
 )
 
 func init() {
-	Gents.Structs.DocCommentMarshal, Gents.Structs.DocCommentUnmarshal =
-		DefaultDocCommentMarshal, DefaultDocCommentUnmarshal
+	Gents.Structs.Marshal.MethodName, Gents.Structs.Unmarshal.MethodName, Gents.Structs.Marshal.DocComment, Gents.Structs.Unmarshal.DocComment =
+		DefaultMethodNameMarshal, DefaultMethodNameUnmarshal, DefaultDocCommentMarshal, DefaultDocCommentUnmarshal
 }
 
 type GentStructJsonMethods struct {
 	gent.Opts
 
-	DocCommentMarshal   string
-	DocCommentUnmarshal string
+	Marshal struct {
+		JsonMethodOpts
+	}
+	Unmarshal struct {
+		JsonMethodOpts
+	}
 }
 
 func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
-	return t.G.Tª.Method("MarshalJSON").Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
-		Doc(me.DocCommentMarshal).
+	return t.G.Tª.Method(me.Marshal.MethodName).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+		Doc(me.Marshal.DocComment).
 		Code()
 }
 
 func (me *GentStructJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
-	return t.G.Tª.Method("UnmarshalJSON", ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
-		Doc(me.DocCommentUnmarshal).
+	return t.G.Tª.Method(me.Unmarshal.MethodName, ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
+		Doc(me.Unmarshal.DocComment).
 		Code()
 }
 
