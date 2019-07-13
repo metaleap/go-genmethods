@@ -9,8 +9,8 @@
 const (
 	DefaultMethodNameMarshal   = "MarshalJSON"
 	DefaultMethodNameUnmarshal = "UnmarshalJSON"
-	DefaultDocCommentMarshal   = DefaultMethodNameMarshal + " implements the Go standard library's `encoding/json.Marshaler` interface."
-	DefaultDocCommentUnmarshal = DefaultMethodNameUnmarshal + " implements the Go standard library's `encoding/json.Unmarshaler` interface."
+	DefaultDocCommentMarshal   = "{N} implements the Go standard library's `encoding/json.Marshaler` interface."
+	DefaultDocCommentUnmarshal = "{N} implements the Go standard library's `encoding/json.Unmarshaler` interface."
 )
 ```
 
@@ -84,7 +84,6 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
 ```go
 type JsonMethodOpts struct {
-	DocComment string
-	MethodName string
+	gent.Variation
 }
 ```

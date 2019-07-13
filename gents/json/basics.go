@@ -8,8 +8,8 @@ import (
 const (
 	DefaultMethodNameMarshal   = "MarshalJSON"
 	DefaultMethodNameUnmarshal = "UnmarshalJSON"
-	DefaultDocCommentMarshal   = DefaultMethodNameMarshal + " implements the Go standard library's `encoding/json.Marshaler` interface."
-	DefaultDocCommentUnmarshal = DefaultMethodNameUnmarshal + " implements the Go standard library's `encoding/json.Unmarshaler` interface."
+	DefaultDocCommentMarshal   = "{N} implements the Go standard library's `encoding/json.Marshaler` interface."
+	DefaultDocCommentUnmarshal = "{N} implements the Go standard library's `encoding/json.Unmarshaler` interface."
 )
 
 var (
@@ -31,8 +31,7 @@ var (
 )
 
 type JsonMethodOpts struct {
-	DocComment string
-	MethodName string
+	gent.Variation
 }
 
 func init() {

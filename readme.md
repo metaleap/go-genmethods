@@ -54,6 +54,8 @@ type Ctx struct {
 
 	// strictly read-only
 	Pkg *Pkg
+
+	Gents Gents
 }
 ```
 
@@ -69,6 +71,12 @@ DeclsGeneratedSoFar collects and returns all results of
 `IGent.GenerateTopLevelDecls` performed so far by this `Ctx`, filtered
 optionally by `IGent` and/or by `Type`.
 
+#### func (*Ctx) GentExistsFor
+
+```go
+func (me *Ctx) GentExistsFor(t *Type, check func(IGent) bool) bool
+```
+
 #### func (*Ctx) Import
 
 ```go
@@ -79,6 +87,12 @@ Import returns the `pkgImportName` for the specified `pkgImportPath`. Eg.
 importantly, the import will be properly emitted (only if any of the import's
 uses get emitted) at code-gen time. Import is a `Ctx`-local wrapper of the
 `github.com/go-leap/dev/go/gen.PkgImports.Ensure` method.
+
+#### func (*Ctx) MayGentRunForType
+
+```go
+func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool
+```
 
 #### type CtxOpts
 
@@ -435,11 +449,12 @@ func (me Types) Named(name string) *Type
 ```go
 type Variant struct {
 	Add        bool
-	Name       string
 	DocComment Str
+	Name       string
 }
 ```
 
+Variant is like `Variation` but auto-disabled unless `Add` is set.
 
 #### func (*Variant) NameWith
 
@@ -457,6 +472,7 @@ type Variation struct {
 }
 ```
 
+Variation is like `Variant` but auto-enabled unless `Disabled` is set.
 
 #### func (*Variation) NameWith
 

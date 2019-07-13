@@ -29,16 +29,18 @@ func (me Str) With(placeholderNamesAndValues ...string) string {
 
 var strWith = ustr.NamedPlaceholders('{', '}')
 
+// Variant is like `Variation` but auto-disabled unless `Add` is set.
 type Variant struct {
 	Add        bool
-	Name       string
 	DocComment Str
+	Name       string
 }
 
 func (me *Variant) NameWith(placeholderNamesAndValues ...string) string {
 	return Str(me.Name).With(placeholderNamesAndValues...)
 }
 
+// Variation is like `Variant` but auto-enabled unless `Disabled` is set.
 type Variation struct {
 	Disabled   bool
 	DocComment Str

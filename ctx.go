@@ -51,7 +51,7 @@ type Ctx struct {
 	// strictly read-only
 	Pkg *Pkg
 
-	gents                          Gents
+	Gents                          Gents
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
@@ -63,11 +63,11 @@ func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 	}
 	return &Ctx{
 		Opt: *me, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
-		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, gents: gents, Pkg: pkg,
+		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, Gents: gents, Pkg: pkg,
 	}
 }
 
-func (me *Ctx) mayGentRunForType(g IGent, t *Type) bool {
+func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool {
 	return g.Opt().mayRunForType(me, t) &&
 		(me.Opt.MayGentRunForType == nil || me.Opt.MayGentRunForType(g, t))
 }
@@ -96,6 +96,17 @@ func (me *Ctx) DeclsGeneratedSoFar(maybeGent IGent, maybeType *Type) (matches []
 		}
 	}
 	return
+}
+
+func (me *Ctx) GentExistsFor(t *Type, check func(IGent) bool) bool {
+	if t != nil {
+		for _, gent := range me.Gents {
+			if me.MayGentRunForType(gent, t) && check(gent) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Import returns the `pkgImportName` for the specified `pkgImportPath`.

@@ -131,7 +131,7 @@ func (me *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *
 	}
 	for _, t := range me.Types {
 		for _, g := range gents {
-			if ctx.mayGentRunForType(g, t) {
+			if ctx.MayGentRunForType(g, t) {
 				dst.Body.Add(ctx.generateTopLevelDecls(g, t)...)
 			}
 		}
