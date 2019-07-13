@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	. "github.com/go-leap/dev/go/gen"
+	"github.com/go-leap/str"
 	"github.com/metaleap/go-gent"
 )
 
@@ -104,20 +105,24 @@ func (me *GentStructJsonMethods) genMarshalStruct(ctx *gent.Ctx, field func() (I
 		code.Add(writeName)
 	}
 	code.Add(ˇ.R.Set(B.Append.Of(ˇ.R, '{')))
-	for i := range t.Struct.Fields {
-		fld := &t.Struct.Fields[i]
-		if jsonfieldname := fld.JsonNameFinal(); jsonfieldname != "" {
-			pref, jsonomitempty := ",", fld.JsonOmitEmpty()
-			if i == 0 {
-				pref = ""
-			}
-			writename := ˇ.R.Set(B.Append.Of(ˇ.R, pref+strconv.Quote(jsonfieldname)+":").Spreads())
+	code.Add(me.genMarshalStructFields(ctx, t.Struct.Fields, acc, true)...)
+	code.Add(ˇ.R.Set(B.Append.Of(ˇ.R, '}')))
+	return
+}
+
+func (me *GentStructJsonMethods) genMarshalStructFields(ctx *gent.Ctx, fields SynStructFields, acc ISyn, skipLeadingComma bool) (code Syns) {
+	for i := range fields {
+		fld := &fields[i]
+		if ft := ctx.Pkg.Types.Named(fld.Type.UltimateElemType().Named.TypeName); fld.Name == "" && ft != nil && ft.Expr.GenRef.Struct != nil {
+			code.Add(me.genMarshalStructFields(ctx, ft.Expr.GenRef.Struct.Fields, acc, false)...)
+		} else if jsonfieldname := fld.JsonNameFinal(); jsonfieldname != "" {
+			jsonomitempty := fld.JsonOmitEmpty()
+			writename := ˇ.R.Set(B.Append.Of(ˇ.R, ustr.If(skipLeadingComma && i == 0, "", ",")+strconv.Quote(jsonfieldname)+":").Spreads())
 			code.Add(me.genMarshalBasedOnType(ctx,
 				func() (ISyn, *TypeRef) { return D(acc, N(fld.EffectiveName())), fld.Type },
 				writename, jsonomitempty)...)
 		}
 	}
-	code.Add(ˇ.R.Set(B.Append.Of(ˇ.R, '}')))
 	return
 }
 
