@@ -23,6 +23,17 @@ type GentEnumJsonMethods struct {
 	StringerToUse *gentenums.StringMethodOpts
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if t.IsEnumish() {
+		yield.Add(
+			me.genMarshalMethod(ctx, t),
+			me.genUnmarshalMethod(ctx, t),
+		)
+	}
+	return
+}
+
 func (me *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	return t.G.T.Method(me.Marshal.MethodName).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment).
@@ -45,15 +56,4 @@ func (me *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *
 				)),
 			)),
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsEnumish() {
-		yield.Add(
-			me.genMarshalMethod(ctx, t),
-			me.genUnmarshalMethod(ctx, t),
-		)
-	}
-	return
 }

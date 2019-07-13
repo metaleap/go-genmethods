@@ -53,13 +53,15 @@ func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) (
 				pref = ""
 			}
 			writename := ˇ.R.Set(B.Append.Of(ˇ.R, pref+strconv.Quote(jsonfieldname)+":").Spreads())
-			switch tsft, tsfn, pkgjson := tsf.Type, tsf.Name, ctx.Import("encoding/json"); true {
+			switch tsft := tsf.Type; true {
 			case tsft.ArrOrSlice.Of != nil:
 				code.Add(writename, ˇ.R.Set(B.Append.Of(ˇ.R, "[]").Spreads()))
 			case tsft.Map.OfKey != nil:
 				code.Add(writename, ˇ.R.Set(B.Append.Of(ˇ.R, "{}").Spreads()))
 			case tsft.Interface != nil:
-				code.Add(me.genMarshalInterface(writename, jsonomitempty, pkgjson, tsfn))
+				code.Add(me.genMarshalInterface(ctx, tsf, writename, jsonomitempty))
+			case tsft.IsBuiltinPrimType(false):
+				code.Add(me.genMarshalBuiltinPrim(ctx, tsf, writename, jsonomitempty))
 			default:
 				code.Add(writename, ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()))
 			}
@@ -69,16 +71,46 @@ func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) (
 	return
 }
 
-func (*GentStructJsonMethods) genMarshalInterface(writeName ISyn, jsonOmitEmpty bool, pkgJson PkgName, fieldName string) ISyn {
-	ifnotnil := If(Self.D(fieldName).Neq(B.Nil), Then(
+func (*GentStructJsonMethods) genMarshalBuiltinPrim(ctx *gent.Ctx, field *SynStructField, writeName ISyn, jsonOmitEmpty bool) ISyn {
+	fieldacc, pkgstrconv := Self.D(field.Name), ctx.Import("strconv")
+	hasval := field.Type.IsntZeroish(fieldacc, false, false)
+	var writeval ISyn
+	switch ftn := field.Type.Named.TypeName; ftn {
+	case T.Bool.Named.TypeName:
+		writeval = pkgstrconv.C("FormatBool", fieldacc)
+	case T.Byte.Named.TypeName, T.Uint.Named.TypeName, T.Uint16.Named.TypeName, T.Uint32.Named.TypeName, T.Uint64.Named.TypeName, T.Uint8.Named.TypeName:
+		writeval = pkgstrconv.C("FormatUint", T.Uint64.From(fieldacc), 10)
+	case T.Int.Named.TypeName, T.Int16.Named.TypeName, T.Int32.Named.TypeName, T.Int64.Named.TypeName, T.Int8.Named.TypeName:
+		writeval = pkgstrconv.C("FormatInt", T.Int64.From(fieldacc), 10)
+	case T.Float32.Named.TypeName:
+		writeval = pkgstrconv.C("FormatFloat", T.Float64.From(fieldacc), 'f', -1, 32)
+	case T.Float64.Named.TypeName:
+		writeval = pkgstrconv.C("FormatFloat", fieldacc, 'f', -1, 64)
+	case T.Rune.Named.TypeName: // not sure if handled already in int32 case above, not pressing right now
+		writeval = pkgstrconv.C("Quote", T.String.From(fieldacc))
+	case T.String.Named.TypeName:
+		writeval = pkgstrconv.C("Quote", fieldacc)
+	default:
+		panic(ftn)
+	}
+	writeempty := !jsonOmitEmpty
+	return If(L(writeempty).Or(hasval), Then(
+		writeName,
+		ˇ.R.Set(B.Append.Of(ˇ.R, writeval).Spreads()),
+	))
+}
+
+func (*GentStructJsonMethods) genMarshalInterface(ctx *gent.Ctx, field *SynStructField, writeName ISyn, jsonOmitEmpty bool) ISyn {
+	fieldacc, pkgjson := Self.D(field.Name), ctx.Import("encoding/json")
+	ifnotnil := If(fieldacc.Neq(B.Nil), Then(
 		writeName,
 		Var(ˇ.E.Name, T.Error, nil),
 		Var(ˇ.Sl.Name, T.SliceOf.Bytes, nil),
-		Tup(ˇ.J, ˇ.Ok).Let(Self.D(fieldName).D(pkgJson.T("Marshaler"))),
+		Tup(ˇ.J, ˇ.Ok).Let(fieldacc.D(pkgjson.T("Marshaler"))),
 		If(ˇ.Ok.And(ˇ.J.Neq(B.Nil)), Then(
 			Tup(ˇ.Sl, ˇ.E).Set(ˇ.J.C("MarshalJSON")),
 		), Else(
-			Tup(ˇ.Sl, ˇ.E).Set(pkgJson.C("Marshal", Self.D(fieldName))),
+			Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", fieldacc)),
 		)),
 		If(ˇ.E.Eq(B.Nil), Then(
 			ˇ.R.Set(B.Append.Of(ˇ.R, ˇ.Sl).Spreads()),
