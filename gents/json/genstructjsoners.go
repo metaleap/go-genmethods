@@ -59,7 +59,7 @@ func (me *GentStructJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func
 	case t.Struct != nil:
 		code.Add(me.genMarshalStruct(ctx, field, writeName)...)
 	case t.Pointer.Of != nil:
-		code.Add(writeName, ˇ.R.Set(B.Append.Of(ˇ.R, "*null").Spreads()))
+		code.Add(me.genMarshalPointer(ctx, field, writeName, jsonOmitEmpty))
 	case t.IsBuiltinPrimType(false):
 		code.Add(me.genMarshalBuiltinPrim(ctx, field, writeName, jsonOmitEmpty, false))
 	case t.Interface != nil:
@@ -119,6 +119,17 @@ func (me *GentStructJsonMethods) genMarshalStruct(ctx *gent.Ctx, field func() (I
 	}
 	code.Add(ˇ.R.Set(B.Append.Of(ˇ.R, '}')))
 	return
+}
+
+func (me *GentStructJsonMethods) genMarshalPointer(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
+	facc, ft := field()
+	return If(B.Nil.Neq(facc), me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
+		return facc, ft.Pointer.Of
+	}, writeName, false),
+		L(!jsonOmitEmpty), Then(
+			writeName,
+			ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
+		))
 }
 
 func (me *GentStructJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
