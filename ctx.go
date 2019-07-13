@@ -1,6 +1,7 @@
 package gent
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/go-leap/dev/go/gen"
@@ -55,6 +56,7 @@ type Ctx struct {
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
 	pkgImportPathsToPkgImportNames udevgogen.PkgImports
+	counter                        int
 }
 
 func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
@@ -70,6 +72,11 @@ func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool {
 	return g.Opt().mayRunForType(me, t) &&
 		(me.Opt.MayGentRunForType == nil || me.Opt.MayGentRunForType(g, t))
+}
+
+func (me *Ctx) N() udevgogen.Named {
+	me.counter++
+	return udevgogen.N("i" + strconv.Itoa(me.counter))
 }
 
 func (me *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) {

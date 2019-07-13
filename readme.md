@@ -94,6 +94,12 @@ uses get emitted) at code-gen time. Import is a `Ctx`-local wrapper of the
 func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool
 ```
 
+#### func (*Ctx) N
+
+```go
+func (me *Ctx) N() udevgogen.Named
+```
+
 #### type CtxOpts
 
 ```go
