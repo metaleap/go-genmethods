@@ -64,6 +64,7 @@ type GentStructJsonMethods struct {
 
 	Marshal struct {
 		JsonMethodOpts
+		InitialBytesCap int
 	}
 	Unmarshal struct {
 		JsonMethodOpts
