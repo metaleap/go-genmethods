@@ -114,7 +114,7 @@ func (me *GentStructJsonMethods) genMarshalStructFields(ctx *gent.Ctx, fields Sy
 	for i := range fields {
 		fld := &fields[i]
 		if ft := ctx.Pkg.Types.Named(fld.Type.UltimateElemType().Named.TypeName); fld.Name == "" && ft != nil && ft.Expr.GenRef.Struct != nil {
-			code.Add(me.genMarshalStructFields(ctx, ft.Expr.GenRef.Struct.Fields, acc, false)...)
+			code.Add(me.genMarshalStructFields(ctx, ft.Expr.GenRef.Struct.Fields, D(acc, N(fld.EffectiveName())), skipLeadingComma && i == 0)...)
 		} else if jsonfieldname := fld.JsonNameFinal(); jsonfieldname != "" {
 			jsonomitempty := fld.JsonOmitEmpty()
 			writename := ˇ.R.Set(B.Append.Of(ˇ.R, ustr.If(skipLeadingComma && i == 0, "", ",")+strconv.Quote(jsonfieldname)+":").Spreads())
@@ -128,9 +128,12 @@ func (me *GentStructJsonMethods) genMarshalStructFields(ctx *gent.Ctx, fields Sy
 
 func (me *GentStructJsonMethods) genMarshalPointer(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
 	facc, ft := field()
-	return If(B.Nil.Neq(facc), me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
-		return facc, ft.Pointer.Of
-	}, writeName, false),
+	return If(
+		B.Nil.Neq(facc), Then(
+			me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
+				return facc, ft.Pointer.Of
+			}, writeName, false),
+		),
 		L(!jsonOmitEmpty), Then(
 			writeName,
 			ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
