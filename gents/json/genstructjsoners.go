@@ -4,13 +4,12 @@ import (
 	"strconv"
 
 	. "github.com/go-leap/dev/go/gen"
-	"github.com/go-leap/str"
 	"github.com/metaleap/go-gent"
 )
 
 func init() {
 	Gents.Structs.Marshal.Name, Gents.Structs.Marshal.DocComment, Gents.Structs.Marshal.InitialBytesCap =
-		DefaultMethodNameMarshal, DefaultDocCommentMarshal, 128
+		DefaultMethodNameMarshal, DefaultDocCommentMarshal, 64
 	Gents.Structs.Unmarshal.Name, Gents.Structs.Unmarshal.DocComment =
 		DefaultMethodNameUnmarshal, DefaultDocCommentUnmarshal
 }
@@ -40,14 +39,17 @@ func (me *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Ty
 	return
 }
 
-func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) (ret *SynFunc) {
-	ret = t.G.Tª.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+func (me *GentStructJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) (code *SynFunc) {
+	return t.G.Tª.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment.With("N", me.Marshal.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(T.SliceOf.Bytes, 0, me.Marshal.InitialBytesCap)),
+			If(Self.Eq(B.Nil), Then(
+				ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
+			), Else(
+				me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil),
+			)),
 		)
-	ret.Body.Add(me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil)...)
-	return
 }
 
 func (me *GentStructJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) (code Syns) {
@@ -104,24 +106,33 @@ func (me *GentStructJsonMethods) genMarshalStruct(ctx *gent.Ctx, field func() (I
 	if writeName != nil {
 		code.Add(writeName)
 	}
-	code.Add(ˇ.R.Set(B.Append.Of(ˇ.R, '{')))
-	code.Add(me.genMarshalStructFields(ctx, t.Struct.Fields, acc, true)...)
-	code.Add(ˇ.R.Set(B.Append.Of(ˇ.R, '}')))
+	idx := ctx.N("idx")
+	code.Add(
+		ˇ.R.Set(B.Append.Of(ˇ.R, '{')),
+		idx.Let(B.Len.Of(ˇ.R)),
+	)
+	code.Add(me.genMarshalStructFields(ctx, t.Struct.Fields, acc)...)
+	code.Add(
+		ˇ.R.Set(B.Append.Of(ˇ.R, '}')),
+		If(ˇ.R.At(idx).Eq(','), Then(ˇ.R.At(idx).Set(' '))),
+	)
 	return
 }
 
-func (me *GentStructJsonMethods) genMarshalStructFields(ctx *gent.Ctx, fields SynStructFields, acc ISyn, skipLeadingComma bool) (code Syns) {
+func (me *GentStructJsonMethods) genMarshalStructFields(ctx *gent.Ctx, fields SynStructFields, acc ISyn) (code Syns) {
 	for i := range fields {
 		fld := &fields[i]
+		var fldcode Syns
 		if ft := ctx.Pkg.Types.Named(fld.Type.UltimateElemType().Named.TypeName); fld.Name == "" && ft != nil && ft.Expr.GenRef.Struct != nil {
-			code.Add(me.genMarshalStructFields(ctx, ft.Expr.GenRef.Struct.Fields, D(acc, N(fld.EffectiveName())), skipLeadingComma && i == 0)...)
+			fldcode = me.genMarshalStructFields(ctx, ft.Expr.GenRef.Struct.Fields, D(acc, N(fld.EffectiveName())))
 		} else if jsonfieldname := fld.JsonNameFinal(); jsonfieldname != "" {
 			jsonomitempty := fld.JsonOmitEmpty()
-			writename := ˇ.R.Set(B.Append.Of(ˇ.R, ustr.If(skipLeadingComma && i == 0, "", ",")+strconv.Quote(jsonfieldname)+":").Spreads())
-			code.Add(me.genMarshalBasedOnType(ctx,
+			writename := ˇ.R.Set(B.Append.Of(ˇ.R, ","+strconv.Quote(jsonfieldname)+":").Spreads())
+			fldcode = me.genMarshalBasedOnType(ctx,
 				func() (ISyn, *TypeRef) { return D(acc, N(fld.EffectiveName())), fld.Type },
-				writename, jsonomitempty)...)
+				writename, jsonomitempty)
 		}
+		code.Add(fldcode...)
 	}
 	return
 }
@@ -159,7 +170,7 @@ func (me *GentStructJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field fun
 
 func (me *GentStructJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
 	facc, ftype := field()
-	hasval, iterk, iterv, isfirst := ftype.IsntZeroish(facc, true, false), ctx.N("mk"), ctx.N("mv"), ctx.N("mf")
+	hasval, isfirst, iterk, iterv := ftype.IsntZeroish(facc, true, false), ctx.N("mf"), ctx.N("mk"), ctx.N("mv")
 	fkacc, fvacc := func() (ISyn, *TypeRef) { return iterk, ftype.Map.OfKey }, func() (ISyn, *TypeRef) { return iterv, ftype.Map.ToVal }
 	key2str := me.genToString(ctx, fkacc, false, true)
 	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
@@ -225,7 +236,7 @@ func (*GentStructJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (ISy
 	facc, ftype := field()
 	pkgjson, canimpl := ctx.Import("encoding/json"), ftype.Named.PkgName == "" && (!ftype.CanNeverImplement()) && !isKnownNumeric
 	hasval := ftype.IsntZeroish(facc, false, isKnownNumeric)
-	ifnotnil := If(L(isKnownNumeric && !jsonOmitEmpty).Or1(hasval), Then(
+	ifnotnil := If(L(implMethodName != "" || (isKnownNumeric && !jsonOmitEmpty)).Or1(hasval), Then(
 		writeName,
 		Var(ˇ.E.Name, T.Error, nil),
 		Var(ˇ.Sl.Name, T.SliceOf.Bytes, nil),
