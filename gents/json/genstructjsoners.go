@@ -106,7 +106,7 @@ func (me *GentStructJsonMethods) genMarshalStruct(ctx *gent.Ctx, field func() (I
 	if writeName != nil {
 		code.Add(writeName)
 	}
-	idx := ctx.N("idx")
+	idx := ctx.N("si")
 	code.Add(
 		ˇ.R.Set(B.Append.Of(ˇ.R, '{')),
 		idx.Let(B.Len.Of(ˇ.R)),
@@ -153,41 +153,44 @@ func (me *GentStructJsonMethods) genMarshalPointer(ctx *gent.Ctx, field func() (
 
 func (me *GentStructJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
 	facc, ftype := field()
-	iter, hasval := ctx.N("i"), ftype.IsntZeroish(facc, true, false)
+	iter, idx, hasval := ctx.N("i"), ctx.N("ai"), ftype.IsntZeroish(facc, true, false)
 	facci := func() (ISyn, *TypeRef) { return At(facc, iter), ftype.ArrOrSlice.Of }
 	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
 		writeName,
 		ˇ.R.Set(B.Append.Of(ˇ.R, '[')),
+		idx.Let(B.Len.Of(ˇ.R)),
 		ForEach(iter, None, facc,
 			me.genMarshalBasedOnType(ctx,
 				facci,
-				If(iter.Neq(0), ˇ.R.Set(B.Append.Of(ˇ.R, ','))),
+				ˇ.R.Set(B.Append.Of(ˇ.R, ',')),
 				false)...,
 		),
 		ˇ.R.Set(B.Append.Of(ˇ.R, ']')),
+		If(ˇ.R.At(idx).Eq(','), Then(ˇ.R.At(idx).Set(' '))),
 	))
 }
 
 func (me *GentStructJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
 	facc, ftype := field()
-	hasval, isfirst, iterk, iterv := ftype.IsntZeroish(facc, true, false), ctx.N("mf"), ctx.N("mk"), ctx.N("mv")
+	hasval, idx, iterk, iterv := ftype.IsntZeroish(facc, true, false), ctx.N("mi"), ctx.N("mk"), ctx.N("mv")
 	fkacc, fvacc := func() (ISyn, *TypeRef) { return iterk, ftype.Map.OfKey }, func() (ISyn, *TypeRef) { return iterv, ftype.Map.ToVal }
 	key2str := me.genToString(ctx, fkacc, false, true)
 	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
 		writeName,
-		isfirst.Let(true),
 		ˇ.R.Set(B.Append.Of(ˇ.R, '{')),
+		idx.Let(B.Len.Of(ˇ.R)),
 		ForEach(iterk, iterv, facc,
 			me.genMarshalBasedOnType(ctx,
 				fvacc,
 				Block(
-					If(isfirst, Then(isfirst.Set(false)), Else(ˇ.R.Set(B.Append.Of(ˇ.R, ',')))),
+					ˇ.R.Set(B.Append.Of(ˇ.R, ',')),
 					ˇ.R.Set(B.Append.Of(ˇ.R, key2str).Spreads()),
 					ˇ.R.Set(B.Append.Of(ˇ.R, ':')),
 				),
 				false)...,
 		),
 		ˇ.R.Set(B.Append.Of(ˇ.R, '}')),
+		If(ˇ.R.At(idx).Eq(','), Then(ˇ.R.At(idx).Set(' '))),
 	))
 }
 
