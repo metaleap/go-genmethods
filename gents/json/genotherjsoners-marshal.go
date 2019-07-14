@@ -19,7 +19,7 @@ func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type, gen
 		))
 	} else {
 		self, code = t.G.T, me.genMarshalBasedOnType(ctx,
-			func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil, false)
+			func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil, false, true)
 	}
 	return self.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment.With("N", me.Marshal.Name)).
@@ -33,8 +33,35 @@ func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type, gen
 		)
 }
 
-func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) (code Syns) {
+func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, canUseExtraDef bool) (code Syns) {
 	acc, t := field()
+	me.genExtraDefs(ctx)
+
+	if canUseExtraDef && !t.IsBuiltinPrimType(false) {
+		for _, tref := range me.Marshal.TryInterfaceTypesBeforeStdlib {
+			if tref.Equiv(t) {
+				defname := me.genExtraDefName(t)
+				var writefromdefcall ISyn = Block(
+					Tup(ˇ.Sl, ˇ.E).Let(C(defname, acc)),
+					If(ˇ.E.Eq(B.Nil), Then(
+						writeName,
+						ˇ.R.Set(B.Append.Of(ˇ.R, ˇ.Sl).Spreads()),
+					), Else(
+						ˇ.Err.Set(ˇ.E),
+						Ret(nil),
+					)),
+				)
+				if !jsonOmitEmpty {
+					code.Add(writefromdefcall)
+				} else {
+					code.Add(If(t.IsntZeroish(acc, false, false),
+						writefromdefcall))
+				}
+				return
+			}
+		}
+	}
+
 	switch {
 	case t.ArrOrSlice.Of != nil:
 		code.Add(me.genMarshalArrayOrSlice(ctx, field, writeName, jsonOmitEmpty))
@@ -73,7 +100,7 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 			} else {
 				code.Add(me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
 					return acc, gt.Expr.GenRef
-				}, writeName, jsonOmitEmpty)...)
+				}, writeName, jsonOmitEmpty, true)...)
 			}
 		} else {
 			panic(t.Named.TypeName)
@@ -113,7 +140,7 @@ func (me *GentTypeJsonMethods) genMarshalStructFields(ctx *gent.Ctx, fields SynS
 			writename := ˇ.R.Set(B.Append.Of(ˇ.R, ","+strconv.Quote(jsonfieldname)+":").Spreads())
 			fldcode = me.genMarshalBasedOnType(ctx,
 				func() (ISyn, *TypeRef) { return D(acc, N(fld.EffectiveName())), fld.Type },
-				writename, jsonomitempty)
+				writename, jsonomitempty, true)
 		}
 		code.Add(fldcode...)
 	}
@@ -126,7 +153,7 @@ func (me *GentTypeJsonMethods) genMarshalPointer(ctx *gent.Ctx, field func() (IS
 		B.Nil.Neq(facc), Then(
 			me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
 				return facc, ft.Pointer.Of
-			}, writeName, false),
+			}, writeName, false, true),
 		),
 		L(!jsonOmitEmpty), Then(
 			writeName,
@@ -147,7 +174,7 @@ func (me *GentTypeJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field func(
 			me.genMarshalBasedOnType(ctx,
 				facci,
 				ˇ.R.Set(B.Append.Of(ˇ.R, ',')),
-				false)...,
+				false, true)...,
 		),
 		ˇ.R.Set(B.Append.Of(ˇ.R, ']')),
 		me.genResliceOrFixup(idx),
@@ -183,7 +210,7 @@ func (me *GentTypeJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, 
 					ˇ.R.Set(B.Append.Of(ˇ.R, key2str).Spreads()),
 					ˇ.R.Set(B.Append.Of(ˇ.R, ':')),
 				),
-				false)...,
+				false, true)...,
 		),
 		ˇ.R.Set(B.Append.Of(ˇ.R, '}')),
 		me.genResliceOrFixup(idx),
@@ -229,9 +256,13 @@ func (me *GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (IS
 			Tup(ˇ.Sl, ˇ.E).Set(Call(D(facc, N(implMethodName)))),
 		), Else(
 			GEN_IF(canimpl, Then(
-				Tup(ˇ.J, Nope).Let(D(facc, pkgjson.T("Marshaler"))),
-				If(ˇ.J.Neq(B.Nil), Then(
-					Tup(ˇ.Sl, ˇ.E).Set(ˇ.J.C("MarshalJSON")),
+				Tup(ˇ.J, ˇ.Ok).Let(D(facc, pkgjson.T("Marshaler"))),
+				If(ˇ.Ok, Then(
+					If(ˇ.J.Neq(B.Nil), Then(
+						Tup(ˇ.Sl, ˇ.E).Set(ˇ.J.C("MarshalJSON")),
+					), Else(
+						ˇ.Sl.Set(T.SliceOf.Bytes.From("null")),
+					)),
 				), Else(
 					me.genIfaceFallbacks(ctx, facc, stdlibfallback),
 				)),
@@ -256,38 +287,48 @@ func (*GentTypeJsonMethods) genExtraDefName(t *TypeRef) string {
 	return "__gent__jsonMarshal_" + ustr.ReplB(t.String(), '[', 's', ']', '_', '*', 'p', '{', '_', '}', '_', '.', '_')
 }
 
-func (me *GentTypeJsonMethods) genIfaceFallbacks(ctx *gent.Ctx, facc ISyn, stdlibFallback ISyn) (ifaceFallbacks ISyn) {
-	ifaceFallbacks = stdlibFallback
-
+func (me *GentTypeJsonMethods) genExtraDefs(ctx *gent.Ctx) {
 	if !me.Marshal.tryInterfaceTypesDefsDone {
 		me.Marshal.tryInterfaceTypesDefsDone = true
 		defsdone := map[string]struct{}{}
 		for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
 			defname := me.genExtraDefName(checktype)
+			var defcode ISyn = me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
+				return ˇ.V, checktype
+			}, Block(), false, false)
+			if checktype.Interface != nil {
+				defcode = If(B.Nil.Eq(ˇ.V), Then(
+					ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
+				), Else(
+					defcode,
+				))
+			}
 			if _, defdone := defsdone[defname]; !defdone {
 				defsdone[defname] = struct{}{}
 				ctx.ExtraDefs = append(ctx.ExtraDefs, Func(defname, ˇ.V.OfType(checktype)).
 					Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
-					Code(
-						me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
-							return ˇ.V, checktype
-						}, Block(), false),
-					),
+					Code(defcode),
 				)
 			}
 		}
 	}
+}
 
+func (me *GentTypeJsonMethods) genIfaceFallbacks(ctx *gent.Ctx, facc ISyn, stdlibFallback ISyn) (ifaceFallbacks ISyn) {
+	ifaceFallbacks = stdlibFallback
+	me.genExtraDefs(ctx)
 	for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
-		defname := me.genExtraDefName(checktype)
-		val, ok := ctx.N("v"), ctx.N("ok")
-		ifaceFallbacks = Block(
-			Tup(val, ok).Let(D(facc, checktype)),
-			If(ok, Then(
-				Tup(ˇ.Sl, ˇ.E).Set(C(defname, val)),
-			),
-				ifaceFallbacks),
-		)
+		if !checktype.IsEmptyInterface() {
+			defname := me.genExtraDefName(checktype)
+			val, ok := ctx.N("v"), ctx.N("ok")
+			ifaceFallbacks = Block(
+				Tup(val, ok).Let(D(facc, checktype)),
+				If(ok, Then(
+					Tup(ˇ.Sl, ˇ.E).Set(C(defname, val)),
+				),
+					ifaceFallbacks),
+			)
+		}
 	}
 
 	return
