@@ -247,8 +247,8 @@ func (*GentStructJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (ISy
 			Tup(ˇ.Sl, ˇ.E).Set(Call(D(facc, N(implMethodName)))),
 		), Else(
 			GEN_IF(canimpl, Then(
-				Tup(ˇ.J, ˇ.Ok).Let(D(facc, pkgjson.T("Marshaler"))),
-				If(ˇ.Ok.And(ˇ.J.Neq(B.Nil)), Then(
+				Tup(ˇ.J, Nope).Let(D(facc, pkgjson.T("Marshaler"))),
+				If(ˇ.J.Neq(B.Nil), Then(
 					Tup(ˇ.Sl, ˇ.E).Set(ˇ.J.C("MarshalJSON")),
 				), Else(
 					Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
