@@ -22,9 +22,9 @@ var (
 	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
-		Enums GentEnumJsonMethods
+		EnumishTypes GentEnumJsonMethods
 
-		Structs GentStructJsonMethods
+		OtherTypes GentTypeJsonMethods
 
 		// contains pointers to all the above fields, in order
 		All gent.Gents
@@ -56,10 +56,10 @@ func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
-#### type GentStructJsonMethods
+#### type GentTypeJsonMethods
 
 ```go
-type GentStructJsonMethods struct {
+type GentTypeJsonMethods struct {
 	gent.Opts
 
 	Marshal struct {
@@ -73,10 +73,10 @@ type GentStructJsonMethods struct {
 ```
 
 
-#### func (*GentStructJsonMethods) GenerateTopLevelDecls
+#### func (*GentTypeJsonMethods) GenerateTopLevelDecls
 
 ```go
-func (me *GentStructJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
+func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns)
 ```
 GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 
@@ -85,5 +85,6 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 ```go
 type JsonMethodOpts struct {
 	gent.Variation
+	MayGenFor func(*gent.Type) bool
 }
 ```

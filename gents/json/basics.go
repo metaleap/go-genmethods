@@ -21,9 +21,9 @@ var (
 	// and they allow importers their own "sane defaults" base for less-noisy tweaking.
 	// They are only _initialized_ by this package, but not otherwise _used_ by it.
 	Gents struct {
-		Enums GentEnumJsonMethods
+		EnumishTypes GentEnumJsonMethods
 
-		Structs GentStructJsonMethods
+		OtherTypes GentTypeJsonMethods
 
 		// contains pointers to all the above fields, in order
 		All gent.Gents
@@ -32,8 +32,9 @@ var (
 
 type JsonMethodOpts struct {
 	gent.Variation
+	MayGenFor func(*gent.Type) bool
 }
 
 func init() {
-	Gents.All = gent.Gents{&Gents.Enums, &Gents.Structs}
+	Gents.All = gent.Gents{&Gents.EnumishTypes, &Gents.OtherTypes}
 }

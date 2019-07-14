@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	Gents.Enums.Marshal.Name, Gents.Enums.Unmarshal.Name, Gents.Enums.Marshal.DocComment, Gents.Enums.Unmarshal.DocComment, Gents.Enums.StringerToUse =
+	Gents.EnumishTypes.Marshal.Name, Gents.EnumishTypes.Unmarshal.Name, Gents.EnumishTypes.Marshal.DocComment, Gents.EnumishTypes.Unmarshal.DocComment, Gents.EnumishTypes.StringerToUse =
 		DefaultMethodNameMarshal, DefaultMethodNameUnmarshal, DefaultDocCommentMarshal, DefaultDocCommentUnmarshal, &gentenums.Gents.Stringers.All[0]
 }
 
@@ -26,10 +26,10 @@ type GentEnumJsonMethods struct {
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
-		if !me.Marshal.Disabled {
+		if (!me.Marshal.Disabled) && (me.Marshal.MayGenFor == nil || me.Marshal.MayGenFor(t)) {
 			yield.Add(me.genMarshalMethod(ctx, t))
 		}
-		if !me.Unmarshal.Disabled {
+		if (!me.Unmarshal.Disabled) && (me.Unmarshal.MayGenFor == nil || me.Unmarshal.MayGenFor(t)) {
 			yield.Add(me.genUnmarshalMethod(ctx, t))
 		}
 	}
