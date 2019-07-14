@@ -27,6 +27,8 @@ type CtxOpts struct {
 	// (or any) `IGent` on the given (or any) `*Type`.
 	// See also `IGent.Opt().MayRunForType`.
 	MayGentRunForType func(IGent, *Type) bool
+
+	allTypeNames map[string]bool
 }
 
 type Stats struct {
@@ -70,6 +72,7 @@ func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 }
 
 func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool {
+	me.Opt.allTypeNames[t.Name] = true
 	return g.Opt().mayRunForType(me, t) &&
 		(me.Opt.MayGentRunForType == nil || me.Opt.MayGentRunForType(g, t))
 }

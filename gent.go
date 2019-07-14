@@ -169,7 +169,16 @@ func (me Pkgs) MustRunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents G
 func (me Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents) (timeTakenTotal time.Duration, statsPerPkg map[*Pkg]*Stats, errs map[*Pkg]error) {
 	var maps sync.Mutex
 	var runs sync.WaitGroup
-	starttime, run := time.Now(), func(pkg *Pkg) {
+
+	if maybeCtxOpts == nil {
+		maybeCtxOpts = &Defaults.CtxOpt
+	}
+	if maybeCtxOpts.allTypeNames == nil {
+		maybeCtxOpts.allTypeNames = make(map[string]bool, 32)
+	}
+
+	starttime := time.Now()
+	run := func(pkg *Pkg) {
 		stats, err := pkg.RunGentsAndGenerateOutputFile(maybeCtxOpts, gents)
 		maps.Lock()
 		if statsPerPkg[pkg] = stats; err != nil {
@@ -179,6 +188,16 @@ func (me Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents
 		runs.Done()
 	}
 
+	for _, gent := range gents {
+		opt := gent.Opt()
+		for _, tname := range opt.RunNeverForTypes.Named {
+			maybeCtxOpts.allTypeNames[tname] = false
+		}
+		for _, tname := range opt.RunOnlyForTypes.Named {
+			maybeCtxOpts.allTypeNames[tname] = false
+		}
+	}
+
 	statsPerPkg, errs = make(map[*Pkg]*Stats, len(me)), map[*Pkg]error{}
 	runs.Add(len(me))
 	for _, pkg := range me {
@@ -186,5 +205,12 @@ func (me Pkgs) RunGentsAndGenerateOutputFiles(maybeCtxOpts *CtxOpts, gents Gents
 	}
 	runs.Wait()
 	timeTakenTotal = time.Since(starttime)
+
+	for tname, tencountered := range maybeCtxOpts.allTypeNames {
+		if !tencountered {
+			println("Note: type name `" + tname + "` never encountered")
+		}
+	}
+
 	return
 }
