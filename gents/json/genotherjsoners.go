@@ -7,6 +7,8 @@ import (
 	"github.com/metaleap/go-gent"
 )
 
+var jsonWriteNull = ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads())
+
 func init() {
 	Gents.OtherTypes.Marshal.Name, Gents.OtherTypes.Marshal.DocComment, Gents.OtherTypes.Marshal.InitialBytesCap =
 		DefaultMethodNameMarshal, DefaultDocCommentMarshal, 64
@@ -19,7 +21,8 @@ type GentTypeJsonMethods struct {
 
 	Marshal struct {
 		JsonMethodOpts
-		InitialBytesCap int
+		InitialBytesCap            int
+		ResliceInsteadOfWhitespace bool
 	}
 	Unmarshal struct {
 		JsonMethodOpts
@@ -40,23 +43,23 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 }
 
 func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
-	self := t.G.Tª
-	var kickoff ISyn
+	var self *TypeRef
+	var code ISyn
 	if t.Expr.GenRef.Struct != nil {
-		kickoff = me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil)
+		self, code = t.G.Tª, If(Self.Eq(B.Nil), Then(
+			jsonWriteNull,
+		), Else(
+			me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil),
+		))
 	} else {
-		self = t.G.T
-		kickoff = me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil, false)
+		self, code = t.G.T, me.genMarshalBasedOnType(ctx,
+			func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil, false)
 	}
 	return self.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment.With("N", me.Marshal.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(T.SliceOf.Bytes, 0, me.Marshal.InitialBytesCap)),
-			If(Self.Eq(B.Nil), Then(
-				ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
-			), Else(
-				kickoff,
-			)),
+			code,
 		)
 }
 
@@ -74,9 +77,9 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 	case t.IsBuiltinPrimType(false):
 		code.Add(me.genMarshalBuiltinPrim(ctx, field, writeName, jsonOmitEmpty, false))
 	case t.Interface != nil:
-		code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false))
+		code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false, false))
 	case t.Named.TypeName != "" && t.Named.PkgName != "":
-		code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false))
+		code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false, false))
 	case t.Named.TypeName != "" && t.Named.PkgName == "":
 		var mname string
 		if gt := ctx.Pkg.Types.Named(t.Named.TypeName); gt != nil {
@@ -94,7 +97,9 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 			if isenumish && mname == "" {
 				code.Add(me.genMarshalBuiltinPrim(ctx, field, writeName, jsonOmitEmpty, true))
 			} else if mname != "" {
-				code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, mname, isenumish))
+				code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty,
+					mname, isenumish || 0 != gt.Expr.GenRef.BitSizeIfBuiltInNumberType(),
+					gt.IsSliceOrArray() || gt.Expr.GenRef.Map.OfKey != nil))
 			} else {
 				code.Add(me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
 					return acc, gt.Expr.GenRef
@@ -122,7 +127,7 @@ func (me *GentTypeJsonMethods) genMarshalStruct(ctx *gent.Ctx, field func() (ISy
 	code.Add(me.genMarshalStructFields(ctx, t.Struct.Fields, acc)...)
 	code.Add(
 		ˇ.R.Set(B.Append.Of(ˇ.R, '}')),
-		If(ˇ.R.At(idx).Eq(','), Then(ˇ.R.At(idx).Set(' '))),
+		me.genResliceOrFixup(idx),
 	)
 	return
 }
@@ -155,7 +160,7 @@ func (me *GentTypeJsonMethods) genMarshalPointer(ctx *gent.Ctx, field func() (IS
 		),
 		L(!jsonOmitEmpty), Then(
 			writeName,
-			ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
+			jsonWriteNull,
 		))
 }
 
@@ -163,7 +168,8 @@ func (me *GentTypeJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field func(
 	facc, ftype := field()
 	iter, idx, hasval := ctx.N("i"), ctx.N("ai"), ftype.IsntZeroish(facc, true, false)
 	facci := func() (ISyn, *TypeRef) { return At(facc, iter), ftype.ArrOrSlice.Of }
-	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
+
+	writeiter := Block(
 		writeName,
 		ˇ.R.Set(B.Append.Of(ˇ.R, '[')),
 		idx.Let(B.Len.Of(ˇ.R)),
@@ -174,8 +180,19 @@ func (me *GentTypeJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field func(
 				false)...,
 		),
 		ˇ.R.Set(B.Append.Of(ˇ.R, ']')),
-		If(ˇ.R.At(idx).Eq(','), Then(ˇ.R.At(idx).Set(' '))),
-	))
+		me.genResliceOrFixup(idx),
+	)
+
+	if jsonOmitEmpty {
+		return If(hasval, writeiter)
+	} else {
+		return If(B.Nil.Eq(facc), Then(
+			writeName,
+			jsonWriteNull,
+		),
+			writeiter,
+		)
+	}
 }
 
 func (me *GentTypeJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
@@ -183,7 +200,8 @@ func (me *GentTypeJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, 
 	hasval, idx, iterk, iterv := ftype.IsntZeroish(facc, true, false), ctx.N("mi"), ctx.N("mk"), ctx.N("mv")
 	fkacc, fvacc := func() (ISyn, *TypeRef) { return iterk, ftype.Map.OfKey }, func() (ISyn, *TypeRef) { return iterv, ftype.Map.ToVal }
 	key2str := me.genToString(ctx, fkacc, false, true)
-	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
+
+	writeiter := Block(
 		writeName,
 		ˇ.R.Set(B.Append.Of(ˇ.R, '{')),
 		idx.Let(B.Len.Of(ˇ.R)),
@@ -198,7 +216,74 @@ func (me *GentTypeJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, 
 				false)...,
 		),
 		ˇ.R.Set(B.Append.Of(ˇ.R, '}')),
-		If(ˇ.R.At(idx).Eq(','), Then(ˇ.R.At(idx).Set(' '))),
+		me.genResliceOrFixup(idx),
+	)
+
+	if jsonOmitEmpty {
+		return If(hasval, writeiter)
+	}
+
+	return If(B.Nil.Eq(facc), Then(
+		writeName, jsonWriteNull,
+	),
+		writeiter,
+	)
+}
+
+func (me *GentTypeJsonMethods) genMarshalBuiltinPrim(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, forceInt bool) ISyn {
+	facc, ftype := field()
+	hasval := ftype.IsntZeroish(facc, false, forceInt)
+	writeval := me.genToString(ctx, field, forceInt, false)
+	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
+		writeName,
+		ˇ.R.Set(B.Append.Of(ˇ.R, writeval).Spreads()),
+	))
+}
+
+func (*GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, implMethodName string, isKnownNumish bool, isKnownLenish bool) ISyn {
+	facc, ftype := field()
+	pkgjson, canimpl := ctx.Import("encoding/json"), ftype.Named.PkgName == "" && (!ftype.CanNeverImplement()) && !(isKnownNumish || isKnownLenish)
+	hasval := ftype.IsntZeroish(facc, isKnownLenish, isKnownNumish)
+	skipcheck := (!jsonOmitEmpty) || (implMethodName != "" && !isKnownLenish)
+	ifnotnil := If(L(skipcheck).Or1(hasval), Then(
+		writeName,
+		Var(ˇ.E.Name, T.Error, nil),
+		Var(ˇ.Sl.Name, T.SliceOf.Bytes, nil),
+		GEN_IF(implMethodName != "", Then(
+			Tup(ˇ.Sl, ˇ.E).Set(Call(D(facc, N(implMethodName)))),
+		), Else(
+			GEN_IF(canimpl, Then(
+				Tup(ˇ.J, Nope).Let(D(facc, pkgjson.T("Marshaler"))),
+				If(ˇ.J.Neq(B.Nil), Then(
+					Tup(ˇ.Sl, ˇ.E).Set(ˇ.J.C("MarshalJSON")),
+				), Else(
+					Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
+				)),
+			), Else(
+				Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
+			)),
+		)),
+		If(ˇ.E.Eq(B.Nil), Then(
+			ˇ.R.Set(B.Append.Of(ˇ.R, ˇ.Sl).Spreads()),
+		), Else(
+			ˇ.Err.Set(ˇ.E),
+			Ret(nil),
+		)),
+	))
+	if (!jsonOmitEmpty) && !isKnownNumish {
+		ifnotnil.Else.Add(writeName, jsonWriteNull)
+	}
+	return ifnotnil
+}
+
+func (me *GentTypeJsonMethods) genResliceOrFixup(idx Named) ISyn {
+	if me.Marshal.ResliceInsteadOfWhitespace {
+		return If(ˇ.R.At(idx).Eq(','), Then(
+			ˇ.R.Set(B.Append.Of(ˇ.R.Sl(None, idx), ˇ.R.Sl(idx.Plus(1), None)).Spreads()),
+		))
+	}
+	return If(ˇ.R.At(idx).Eq(','), Then(
+		ˇ.R.At(idx).Set(' '),
 	))
 }
 
@@ -231,51 +316,6 @@ func (*GentTypeJsonMethods) genToString(ctx *gent.Ctx, field func() (ISyn, *Type
 		code = pkgstrconv.C("Quote", code)
 	}
 	return
-}
-
-func (me *GentTypeJsonMethods) genMarshalBuiltinPrim(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, forceInt bool) ISyn {
-	facc, ftype := field()
-	hasval := ftype.IsntZeroish(facc, false, forceInt)
-	writeval := me.genToString(ctx, field, forceInt, false)
-	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
-		writeName,
-		ˇ.R.Set(B.Append.Of(ˇ.R, writeval).Spreads()),
-	))
-}
-
-func (*GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, implMethodName string, isKnownNumeric bool) ISyn {
-	facc, ftype := field()
-	pkgjson, canimpl := ctx.Import("encoding/json"), ftype.Named.PkgName == "" && (!ftype.CanNeverImplement()) && !isKnownNumeric
-	hasval := ftype.IsntZeroish(facc, false, isKnownNumeric)
-	ifnotnil := If(L(implMethodName != "" || (isKnownNumeric && !jsonOmitEmpty)).Or1(hasval), Then(
-		writeName,
-		Var(ˇ.E.Name, T.Error, nil),
-		Var(ˇ.Sl.Name, T.SliceOf.Bytes, nil),
-		GEN_IF(implMethodName != "", Then(
-			Tup(ˇ.Sl, ˇ.E).Set(Call(D(facc, N(implMethodName)))),
-		), Else(
-			GEN_IF(canimpl, Then(
-				Tup(ˇ.J, Nope).Let(D(facc, pkgjson.T("Marshaler"))),
-				If(ˇ.J.Neq(B.Nil), Then(
-					Tup(ˇ.Sl, ˇ.E).Set(ˇ.J.C("MarshalJSON")),
-				), Else(
-					Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
-				)),
-			), Else(
-				Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
-			)),
-		)),
-		If(ˇ.E.Eq(B.Nil), Then(
-			ˇ.R.Set(B.Append.Of(ˇ.R, ˇ.Sl).Spreads()),
-		), Else(
-			ˇ.Err.Set(ˇ.E),
-			Ret(nil),
-		)),
-	))
-	if (!jsonOmitEmpty) && !isKnownNumeric {
-		ifnotnil.Else.Add(writeName, ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()))
-	}
-	return ifnotnil
 }
 
 func (me *GentTypeJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
