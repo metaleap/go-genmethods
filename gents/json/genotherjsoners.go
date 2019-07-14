@@ -39,15 +39,23 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 	return
 }
 
-func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) (code *SynFunc) {
-	return t.G.Tª.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+	self := t.G.Tª
+	var kickoff ISyn
+	if t.Expr.GenRef.Struct != nil {
+		kickoff = me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil)
+	} else {
+		self = t.G.T
+		kickoff = me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil, false)
+	}
+	return self.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment.With("N", me.Marshal.Name)).
 		Code(
 			ˇ.R.Set(B.Make.Of(T.SliceOf.Bytes, 0, me.Marshal.InitialBytesCap)),
 			If(Self.Eq(B.Nil), Then(
 				ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads()),
 			), Else(
-				me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil),
+				kickoff,
 			)),
 		)
 }
