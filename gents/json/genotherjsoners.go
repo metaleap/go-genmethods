@@ -23,6 +23,7 @@ type GentTypeJsonMethods struct {
 		ResliceInsteadOfWhitespace    bool
 		GenPrintlnOnStdlibFallbacks   bool
 		TryInterfaceTypesBeforeStdlib []*TypeRef
+		tryInterfaceTypesDefsDone     bool
 	}
 	Unmarshal struct {
 		JsonMethodOpts

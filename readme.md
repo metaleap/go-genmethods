@@ -55,6 +55,8 @@ type Ctx struct {
 	// strictly read-only
 	Pkg *Pkg
 
+	ExtraDefs []*udevgogen.SynFunc
+
 	Gents Gents
 }
 ```

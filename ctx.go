@@ -54,6 +54,8 @@ type Ctx struct {
 	// strictly read-only
 	Pkg *Pkg
 
+	ExtraDefs []*udevgogen.SynFunc
+
 	Gents                          Gents
 	timeStarted                    time.Time
 	declsGenerated                 map[ctxDeclKey]udevgogen.Syns
@@ -66,8 +68,9 @@ func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 		me = &Defaults.CtxOpt
 	}
 	return &Ctx{
-		Opt: *me, timeStarted: time.Now(), pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
-		declsGenerated: map[ctxDeclKey]udevgogen.Syns{}, Gents: gents, Pkg: pkg,
+		Opt: *me, timeStarted: time.Now(), Gents: gents, Pkg: pkg,
+		pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
+		declsGenerated:                 map[ctxDeclKey]udevgogen.Syns{},
 	}
 }
 

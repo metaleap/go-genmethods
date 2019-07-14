@@ -136,6 +136,10 @@ func (me *Pkg) RunGents(maybeCtxOpts *CtxOpts, gents Gents) (src []byte, stats *
 			}
 		}
 	}
+	for _, defcode := range ctx.ExtraDefs {
+		dst.Add(defcode)
+	}
+
 	stats = &Stats{}
 	stats.DurationOf.Constructing = time.Since(ctx.timeStarted)
 

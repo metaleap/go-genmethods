@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	. "github.com/go-leap/dev/go/gen"
+	"github.com/go-leap/str"
 	"github.com/metaleap/go-gent"
 )
 
@@ -251,16 +252,39 @@ func (me *GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (IS
 	return ifnotnil
 }
 
+func (*GentTypeJsonMethods) genExtraDefName(t *TypeRef) string {
+	return "__gent__jsonMarshal_" + ustr.ReplB(t.String(), '[', 's', ']', '_', '*', 'p', '{', '_', '}', '_', '.', '_')
+}
+
 func (me *GentTypeJsonMethods) genIfaceFallbacks(ctx *gent.Ctx, facc ISyn, stdlibFallback ISyn) (ifaceFallbacks ISyn) {
 	ifaceFallbacks = stdlibFallback
+
+	if !me.Marshal.tryInterfaceTypesDefsDone {
+		me.Marshal.tryInterfaceTypesDefsDone = true
+		defsdone := map[string]struct{}{}
+		for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
+			defname := me.genExtraDefName(checktype)
+			if _, defdone := defsdone[defname]; !defdone {
+				defsdone[defname] = struct{}{}
+				ctx.ExtraDefs = append(ctx.ExtraDefs, Func(defname, ˇ.V.OfType(checktype)).
+					Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+					Code(
+						me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
+							return ˇ.V, checktype
+						}, Block(), false),
+					),
+				)
+			}
+		}
+	}
+
 	for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
+		defname := me.genExtraDefName(checktype)
 		val, ok := ctx.N("v"), ctx.N("ok")
 		ifaceFallbacks = Block(
 			Tup(val, ok).Let(D(facc, checktype)),
 			If(ok, Then(
-				me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
-					return val, checktype
-				}, Block(), false),
+				Tup(ˇ.Sl, ˇ.E).Set(C(defname, val)),
 			),
 				ifaceFallbacks),
 		)
