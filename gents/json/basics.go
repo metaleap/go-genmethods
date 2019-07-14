@@ -32,7 +32,17 @@ var (
 
 type JsonMethodOpts struct {
 	gent.Variation
-	MayGenFor func(*gent.Type) bool
+	MayGenFor              func(*gent.Type) bool
+	GenPanicImplsForOthers bool
+}
+
+func (me *JsonMethodOpts) genWhat(t *gent.Type) (genNormalImpl bool, genPanicImpl bool) {
+	if !me.Disabled {
+		if genNormalImpl = me.MayGenFor == nil || me.MayGenFor(t); !genNormalImpl {
+			genPanicImpl = me.GenPanicImplsForOthers
+		}
+	}
+	return
 }
 
 func init() {

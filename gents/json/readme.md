@@ -64,8 +64,10 @@ type GentTypeJsonMethods struct {
 
 	Marshal struct {
 		JsonMethodOpts
-		InitialBytesCap            int
-		ResliceInsteadOfWhitespace bool
+		InitialBytesCap               int
+		ResliceInsteadOfWhitespace    bool
+		GenPrintlnOnStdlibFallbacks   bool
+		TryInterfaceTypesBeforeStdlib []*TypeRef
 	}
 	Unmarshal struct {
 		JsonMethodOpts
@@ -86,6 +88,7 @@ GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 ```go
 type JsonMethodOpts struct {
 	gent.Variation
-	MayGenFor func(*gent.Type) bool
+	MayGenFor              func(*gent.Type) bool
+	GenPanicImplsForOthers bool
 }
 ```

@@ -26,35 +26,43 @@ type GentEnumJsonMethods struct {
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
-		if (!me.Marshal.Disabled) && (me.Marshal.MayGenFor == nil || me.Marshal.MayGenFor(t)) {
-			yield.Add(me.genMarshalMethod(ctx, t))
+		if gmn, gmp := me.Marshal.genWhat(t); gmn || gmp {
+			yield.Add(me.genMarshalMethod(ctx, t, gmp))
 		}
-		if (!me.Unmarshal.Disabled) && (me.Unmarshal.MayGenFor == nil || me.Unmarshal.MayGenFor(t)) {
-			yield.Add(me.genUnmarshalMethod(ctx, t))
+		if gun, gup := me.Unmarshal.genWhat(t); gun || gup {
+			yield.Add(me.genUnmarshalMethod(ctx, t, gup))
 		}
 	}
 	return
 }
 
-func (me *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+func (me *GentEnumJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type, genPanicImpl bool) *SynFunc {
 	return t.G.T.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment.With("N", me.Marshal.Name)).
 		Code(
-			ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", Self.C(me.StringerToUse.Name)))),
+			GEN_IF(genPanicImpl, Then(
+				B.Panic.Of(t.Name),
+			), Else(
+				ˇ.R.Set(T.SliceOf.Bytes.From(ctx.Import("strconv").C("Quote", Self.C(me.StringerToUse.Name)))),
+			)),
 		)
 }
 
-func (me *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
+func (me *GentEnumJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type, genPanicImpl bool) *SynFunc {
 	return t.G.Tª.Method(me.Unmarshal.Name, ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
 		Doc(me.Unmarshal.DocComment.With("N", me.Unmarshal.Name)).
 		Code(
-			Var(ˇ.S.Name, T.String, nil),
-			Tup(ˇ.S, ˇ.Err).Set(ctx.Import("strconv").C("Unquote", T.String.From(ˇ.V))),
-			If(ˇ.Err.Eq(B.Nil), Then(
-				Var(ˇ.T.Name, t.G.T, nil),
-				Tup(ˇ.T, ˇ.Err).Set(N(me.StringerToUse.Parser.FuncName.With("T", t.Name, "str", me.StringerToUse.Name)).Of(ˇ.S)),
+			GEN_IF(genPanicImpl, Then(
+				Then(B.Panic.Of(t.Name)),
+			), Else(
+				Var(ˇ.S.Name, T.String, nil),
+				Tup(ˇ.S, ˇ.Err).Set(ctx.Import("strconv").C("Unquote", T.String.From(ˇ.V))),
 				If(ˇ.Err.Eq(B.Nil), Then(
-					Self.Deref().Set(ˇ.T),
+					Var(ˇ.T.Name, t.G.T, nil),
+					Tup(ˇ.T, ˇ.Err).Set(N(me.StringerToUse.Parser.FuncName.With("T", t.Name, "str", me.StringerToUse.Name)).Of(ˇ.S)),
+					If(ˇ.Err.Eq(B.Nil), Then(
+						Self.Deref().Set(ˇ.T),
+					)),
 				)),
 			)),
 		)
