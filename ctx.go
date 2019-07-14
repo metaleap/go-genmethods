@@ -74,9 +74,9 @@ func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool {
 		(me.Opt.MayGentRunForType == nil || me.Opt.MayGentRunForType(g, t))
 }
 
-func (me *Ctx) N() udevgogen.Named {
+func (me *Ctx) N(pref string) udevgogen.Named {
 	me.counter++
-	return udevgogen.N("i" + strconv.Itoa(me.counter))
+	return udevgogen.N(pref + strconv.Itoa(me.counter))
 }
 
 func (me *Ctx) generateTopLevelDecls(g IGent, t *Type) (decls udevgogen.Syns) {

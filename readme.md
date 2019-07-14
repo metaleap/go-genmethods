@@ -97,7 +97,7 @@ func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool
 #### func (*Ctx) N
 
 ```go
-func (me *Ctx) N() udevgogen.Named
+func (me *Ctx) N(pref string) udevgogen.Named
 ```
 
 #### type CtxOpts

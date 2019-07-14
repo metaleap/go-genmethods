@@ -56,7 +56,7 @@ func (me *GentStructJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func
 	case t.ArrOrSlice.Of != nil:
 		code.Add(me.genMarshalArrayOrSlice(ctx, field, writeName, jsonOmitEmpty))
 	case t.Map.OfKey != nil:
-		code.Add(writeName, ˇ.R.Set(B.Append.Of(ˇ.R, "{}").Spreads()))
+		code.Add(me.genMarshalMap(ctx, field, writeName, jsonOmitEmpty))
 	case t.Struct != nil:
 		code.Add(me.genMarshalStruct(ctx, field, writeName)...)
 	case t.Pointer.Of != nil:
@@ -94,7 +94,7 @@ func (me *GentStructJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func
 			panic(t.Named.TypeName)
 		}
 	default:
-		code.Add(writeName, ˇ.R.Set(B.Append.Of(ˇ.R, "?null").Spreads()))
+		panic(t.String())
 	}
 	return
 }
@@ -142,7 +142,7 @@ func (me *GentStructJsonMethods) genMarshalPointer(ctx *gent.Ctx, field func() (
 
 func (me *GentStructJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
 	facc, ftype := field()
-	iter, hasval := ctx.N(), ftype.IsntZeroish(facc, true, false)
+	iter, hasval := ctx.N("i"), ftype.IsntZeroish(facc, true, false)
 	facci := func() (ISyn, *TypeRef) { return At(facc, iter), ftype.ArrOrSlice.Of }
 	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
 		writeName,
@@ -157,32 +157,64 @@ func (me *GentStructJsonMethods) genMarshalArrayOrSlice(ctx *gent.Ctx, field fun
 	))
 }
 
-func (*GentStructJsonMethods) genMarshalBuiltinPrim(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, forceInt bool) ISyn {
+func (me *GentStructJsonMethods) genMarshalMap(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool) ISyn {
 	facc, ftype := field()
-	pkgstrconv, hasval := ctx.Import("strconv"), ftype.IsntZeroish(facc, false, forceInt)
-	var writeval ISyn
+	hasval, iterk, iterv, isfirst := ftype.IsntZeroish(facc, true, false), ctx.N("mk"), ctx.N("mv"), ctx.N("mf")
+	fkacc, fvacc := func() (ISyn, *TypeRef) { return iterk, ftype.Map.OfKey }, func() (ISyn, *TypeRef) { return iterv, ftype.Map.ToVal }
+	key2str := me.genToString(ctx, fkacc, false, true)
+	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
+		writeName,
+		isfirst.Let(true),
+		ˇ.R.Set(B.Append.Of(ˇ.R, '{')),
+		ForEach(iterk, iterv, facc,
+			me.genMarshalBasedOnType(ctx,
+				fvacc,
+				Block(
+					If(isfirst, Then(isfirst.Set(false)), Else(ˇ.R.Set(B.Append.Of(ˇ.R, ',')))),
+					ˇ.R.Set(B.Append.Of(ˇ.R, key2str).Spreads()),
+					ˇ.R.Set(B.Append.Of(ˇ.R, ':')),
+				),
+				false)...,
+		),
+		ˇ.R.Set(B.Append.Of(ˇ.R, '}')),
+	))
+}
+
+func (*GentStructJsonMethods) genToString(ctx *gent.Ctx, field func() (ISyn, *TypeRef), forceInt bool, ensureQuoted bool) (code ISyn) {
+	isquoted, pkgstrconv := false, ctx.Import("strconv")
+	facc, ftype := field()
 	if forceInt {
-		writeval = pkgstrconv.C("FormatInt", T.Int64.From(facc), 10)
+		code = pkgstrconv.C("FormatInt", T.Int64.From(facc), 10)
 	} else {
-		switch ftn := ftype.Named.TypeName; ftn {
-		case T.Bool.Named.TypeName:
-			writeval = pkgstrconv.C("FormatBool", facc)
-		case T.Byte.Named.TypeName, T.Uint.Named.TypeName, T.Uint16.Named.TypeName, T.Uint32.Named.TypeName, T.Uint64.Named.TypeName, T.Uint8.Named.TypeName:
-			writeval = pkgstrconv.C("FormatUint", T.Uint64.From(facc), 10)
-		case T.Int.Named.TypeName, T.Int16.Named.TypeName, T.Int32.Named.TypeName, T.Int64.Named.TypeName, T.Int8.Named.TypeName:
-			writeval = pkgstrconv.C("FormatInt", T.Int64.From(facc), 10)
-		case T.Float32.Named.TypeName:
-			writeval = pkgstrconv.C("FormatFloat", T.Float64.From(facc), 'f', -1, 32)
-		case T.Float64.Named.TypeName:
-			writeval = pkgstrconv.C("FormatFloat", facc, 'f', -1, 64)
-		case T.Rune.Named.TypeName:
-			writeval = pkgstrconv.C("Quote", T.String.From(facc))
-		case T.String.Named.TypeName:
-			writeval = pkgstrconv.C("Quote", facc)
+		switch ftn := ftype.Named; ftn {
+		case T.Bool.Named:
+			code = pkgstrconv.C("FormatBool", facc)
+		case T.Byte.Named, T.Uint.Named, T.Uint16.Named, T.Uint32.Named, T.Uint64.Named, T.Uint8.Named:
+			code = pkgstrconv.C("FormatUint", T.Uint64.From(facc), 10)
+		case T.Int.Named, T.Int16.Named, T.Int32.Named, T.Int64.Named, T.Int8.Named:
+			code = pkgstrconv.C("FormatInt", T.Int64.From(facc), 10)
+		case T.Float32.Named:
+			code = pkgstrconv.C("FormatFloat", T.Float64.From(facc), 'f', -1, 32)
+		case T.Float64.Named:
+			code = pkgstrconv.C("FormatFloat", facc, 'f', -1, 64)
+		case T.Rune.Named:
+			code, isquoted = pkgstrconv.C("Quote", T.String.From(facc)), true
+		case T.String.Named:
+			code, isquoted = pkgstrconv.C("Quote", facc), true
 		default:
-			panic(ftn)
+			code = Call(D(facc, N("String")))
 		}
 	}
+	if ensureQuoted && !isquoted {
+		code = pkgstrconv.C("Quote", code)
+	}
+	return
+}
+
+func (me *GentStructJsonMethods) genMarshalBuiltinPrim(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, forceInt bool) ISyn {
+	facc, ftype := field()
+	hasval := ftype.IsntZeroish(facc, false, forceInt)
+	writeval := me.genToString(ctx, field, forceInt, false)
 	return If(L(!jsonOmitEmpty).Or1(hasval), Then(
 		writeName,
 		ˇ.R.Set(B.Append.Of(ˇ.R, writeval).Spreads()),
