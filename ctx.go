@@ -11,15 +11,16 @@ import (
 func init() {
 	Defaults.CtxOpt.EmitNoOpFuncBodies = usys.EnvBool("GOGENT_EMITNOOPS", false)
 	Defaults.CtxOpt.NoGoFmt = usys.EnvBool("GOGENT_NOGOFMT", false)
+	Defaults.CtxOpt.HelpersPrefix = "__gent__"
 }
 
 // CtxOpts wraps `Ctx` options.
 type CtxOpts struct {
-	// For Defaults.CtxOpts, initialized from env-var
+	// For `Defaults.CtxOpts`, initialized from env-var
 	// `GOGENT_NOGOFMT` if `strconv.ParseBool`able.
 	NoGoFmt bool
 
-	// For Defaults.CtxOpts, initialized from env-var
+	// For `Defaults.CtxOpts`, initialized from env-var
 	// `GOGENT_EMITNOOPS` if `strconv.ParseBool`able.
 	EmitNoOpFuncBodies bool
 
@@ -27,6 +28,9 @@ type CtxOpts struct {
 	// (or any) `IGent` on the given (or any) `*Type`.
 	// See also `IGent.Opt().MayRunForType`.
 	MayGentRunForType func(IGent, *Type) bool
+
+	// For `Defaults.CtxOpts`, initially set to `"__gent__"`.
+	HelpersPrefix string
 
 	allTypeNames map[string]bool
 }
