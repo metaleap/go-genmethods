@@ -8,10 +8,10 @@ import (
 var jsonWriteNull = ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads())
 
 func init() {
-	Gents.OtherTypes.Marshal.Name, Gents.OtherTypes.Marshal.DocComment, Gents.OtherTypes.Marshal.InitialBytesCap =
-		DefaultMethodNameMarshal, DefaultDocCommentMarshal, 64
-	Gents.OtherTypes.Unmarshal.Name, Gents.OtherTypes.Unmarshal.DocComment =
-		DefaultMethodNameUnmarshal, DefaultDocCommentUnmarshal
+	Gents.OtherTypes.Marshal.HelpersPrefix, Gents.OtherTypes.Marshal.Name, Gents.OtherTypes.Marshal.DocComment, Gents.OtherTypes.Marshal.InitialBytesCap =
+		"jsonMarshal_", DefaultMethodNameMarshal, DefaultDocCommentMarshal, 64
+	Gents.OtherTypes.Unmarshal.HelpersPrefix, Gents.OtherTypes.Unmarshal.Name, Gents.OtherTypes.Unmarshal.DocComment =
+		"jsonUnmarshal_", DefaultMethodNameUnmarshal, DefaultDocCommentUnmarshal
 }
 
 type GentTypeJsonMethods struct {

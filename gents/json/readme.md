@@ -90,5 +90,6 @@ type JsonMethodOpts struct {
 	gent.Variation
 	MayGenFor              func(*gent.Type) bool
 	GenPanicImplsForOthers bool
+	HelpersPrefix          string
 }
 ```

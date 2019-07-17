@@ -40,7 +40,7 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 	if canUseExtraDef && !t.IsBuiltinPrimType(false) {
 		for _, tref := range me.Marshal.TryInterfaceTypesBeforeStdlib {
 			if tref.Equiv(t) {
-				defname := me.genExtraDefName(t)
+				defname := me.genExtraDefName(ctx, t)
 				var writefromdefcall ISyn = Block(
 					Tup(ˇ.Sl, ˇ.E).Let(C(defname, acc)),
 					If(ˇ.E.Eq(B.Nil), Then(
@@ -283,8 +283,8 @@ func (me *GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (IS
 	return ifnotnil
 }
 
-func (*GentTypeJsonMethods) genExtraDefName(t *TypeRef) string {
-	return "__gent__jsonMarshal_" + ustr.ReplB(t.String(), '[', 's', ']', '_', '*', 'p', '{', '_', '}', '_', '.', '_')
+func (me *GentTypeJsonMethods) genExtraDefName(ctx *gent.Ctx, t *TypeRef) string {
+	return ctx.Opt.HelpersPrefix + me.Marshal.HelpersPrefix + ustr.ReplB(t.String(), '[', 's', ']', '_', '*', 'p', '{', '_', '}', '_', '.', '_')
 }
 
 func (me *GentTypeJsonMethods) genExtraDefs(ctx *gent.Ctx) {
@@ -292,7 +292,7 @@ func (me *GentTypeJsonMethods) genExtraDefs(ctx *gent.Ctx) {
 		me.Marshal.tryInterfaceTypesDefsDone = true
 		defsdone := map[string]struct{}{}
 		for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
-			defname := me.genExtraDefName(checktype)
+			defname := me.genExtraDefName(ctx, checktype)
 			var defcode ISyn = me.genMarshalBasedOnType(ctx, func() (ISyn, *TypeRef) {
 				return ˇ.V, checktype
 			}, Block(), false, false)
@@ -319,7 +319,7 @@ func (me *GentTypeJsonMethods) genIfaceFallbacks(ctx *gent.Ctx, facc ISyn, stdli
 	me.genExtraDefs(ctx)
 	for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
 		if !checktype.IsEmptyInterface() {
-			defname := me.genExtraDefName(checktype)
+			defname := me.genExtraDefName(ctx, checktype)
 			val, ok := ctx.N("v"), ctx.N("ok")
 			ifaceFallbacks = Block(
 				Tup(val, ok).Let(D(facc, checktype)),
