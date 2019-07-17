@@ -11,6 +11,7 @@ import (
 func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type, genPanicImpl bool) *SynFunc {
 	var self *TypeRef
 	var code ISyn
+	_ = ctx.N("") // reset counter --- yields less noisy diffs on re-gens
 	if t.Expr.GenRef.Struct != nil {
 		self, code = t.G.Tª, If(Self.Eq(B.Nil), Then(
 			jsonWriteNull,

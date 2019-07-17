@@ -85,6 +85,9 @@ func (me *Ctx) MayGentRunForType(g IGent, t *Type) bool {
 }
 
 func (me *Ctx) N(pref string) udevgogen.Named {
+	if pref == "" {
+		me.counter = 0
+	}
 	me.counter++
 	return udevgogen.N(pref + strconv.Itoa(me.counter))
 }
