@@ -26,11 +26,11 @@ type GentEnumJsonMethods struct {
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (me *GentEnumJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsEnumish() {
-		if gmn, gmp := me.Marshal.genWhat(t); gmn || gmp {
-			yield.Add(me.genMarshalMethod(ctx, t, gmp))
+		if gennormal, genpanic := me.Marshal.genWhat(t); gennormal || genpanic {
+			yield.Add(me.genMarshalMethod(ctx, t, genpanic))
 		}
-		if gun, gup := me.Unmarshal.genWhat(t); gun || gup {
-			yield.Add(me.genUnmarshalMethod(ctx, t, gup))
+		if gennormal, genpanic := me.Unmarshal.genWhat(t); gennormal || genpanic {
+			yield.Add(me.genUnmarshalMethod(ctx, t, genpanic))
 		}
 	}
 	return

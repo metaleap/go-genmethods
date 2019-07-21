@@ -21,7 +21,7 @@ type GentTypeJsonMethods struct {
 		JsonMethodOpts
 		InitialBytesCap               int
 		ResliceInsteadOfWhitespace    bool
-		GenPrintlnOnStdlibFallbacks   bool
+		OnStdlibFallbacks             func(*gent.Ctx, ISyn, ...ISyn) Syns
 		TryInterfaceTypesBeforeStdlib []*TypeRef
 		tryInterfaceTypesDefsDone     bool
 	}
@@ -30,14 +30,19 @@ type GentTypeJsonMethods struct {
 	}
 }
 
+func onStdlibDefaultCodegen(_ *gent.Ctx, _ ISyn, s ...ISyn) Syns { return s }
+
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if me.Marshal.OnStdlibFallbacks == nil {
+		me.Marshal.OnStdlibFallbacks = onStdlibDefaultCodegen
+	}
 	if !t.IsEnumish() {
-		if gmn, gmp := me.Marshal.genWhat(t); gmn || gmp {
-			yield.Add(me.genMarshalMethod(ctx, t, gmp))
+		if gennormal, genpanic := me.Marshal.genWhat(t); gennormal || genpanic {
+			yield.Add(me.genMarshalMethod(ctx, t, genpanic))
 		}
-		if gun, gup := me.Unmarshal.genWhat(t); gun || gup {
-			yield.Add(me.genUnmarshalMethod(ctx, t, gup))
+		if gennormal, genpanic := me.Unmarshal.genWhat(t); gennormal || genpanic {
+			yield.Add(me.genUnmarshalMethod(ctx, t, genpanic))
 		}
 	}
 	return

@@ -243,12 +243,9 @@ func (me *GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (IS
 	pkgjson, canimpl := ctx.Import("encoding/json"), ftype.Named.PkgName == "" && (!ftype.CanNeverImplement()) && !(isKnownNumish || isKnownLenish)
 	hasval := ftype.IsntZeroish(facc, isKnownLenish, isKnownNumish)
 	skipcheck := (!jsonOmitEmpty) || (implMethodName != "" && !isKnownLenish)
-	stdlibfallback := GEN_IF(me.Marshal.GenPrintlnOnStdlibFallbacks, Then(
-		B.Println.Of("JSON.MARSHAL:", ctx.Import("fmt").C("Sprintf", "%T", facc)),
+	stdlibfallback := me.Marshal.OnStdlibFallbacks(ctx, facc,
 		Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
-	), Else(
-		Tup(ˇ.Sl, ˇ.E).Set(pkgjson.C("Marshal", facc)),
-	))
+	)
 	ifnotnil := If(L(skipcheck).Or1(hasval), Then(
 		writeName,
 		Var(ˇ.E.Name, T.Error, nil),

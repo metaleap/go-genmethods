@@ -66,7 +66,7 @@ type GentTypeJsonMethods struct {
 		JsonMethodOpts
 		InitialBytesCap               int
 		ResliceInsteadOfWhitespace    bool
-		GenPrintlnOnStdlibFallbacks   bool
+		OnStdlibFallbacks             func(*gent.Ctx, ISyn, ...ISyn) Syns
 		TryInterfaceTypesBeforeStdlib []*TypeRef
 	}
 	Unmarshal struct {
