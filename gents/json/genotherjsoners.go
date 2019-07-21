@@ -39,9 +39,11 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 	}
 	if !t.IsEnumish() {
 		if gennormal, genpanic := me.Marshal.genWhat(t); gennormal || genpanic {
+			_ = ctx.N("") // reset counter for dyn-names --- yields less noisy diffs on re-gens
 			yield.Add(me.genMarshalMethod(ctx, t, genpanic))
 		}
 		if gennormal, genpanic := me.Unmarshal.genWhat(t); gennormal || genpanic {
+			_ = ctx.N("")
 			yield.Add(me.genUnmarshalMethod(ctx, t, genpanic))
 		}
 	}

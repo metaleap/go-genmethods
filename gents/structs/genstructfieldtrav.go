@@ -28,6 +28,14 @@ type GentStructFieldsTrav struct {
 	MayIncludeField func(*SynStructField) bool
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentStructFieldsTrav) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if tstruct := t.Expr.GenRef.Struct; tstruct != nil {
+		yield.Add(me.genTraverseMethod(ctx, t))
+	}
+	return
+}
+
 func (me *GentStructFieldsTrav) genTraverseMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	numfields := len(t.Expr.GenRef.Struct.Fields)
 	return t.G.Tª.Method(me.MethodName, on).
@@ -47,12 +55,4 @@ func (me *GentStructFieldsTrav) genTraverseMethod(ctx *gent.Ctx, t *gent.Type) *
 				return Syns{}
 			})...,
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentStructFieldsTrav) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if tstruct := t.Expr.GenRef.Struct; tstruct != nil {
-		yield.Add(me.genTraverseMethod(ctx, t))
-	}
-	return
 }

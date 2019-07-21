@@ -43,6 +43,48 @@ type GentListEnumerantsFuncs struct {
 	Rename          gent.Rename
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if t.IsEnumish() && !(me.ListBoth.Disabled && me.ListMap.Disabled && me.ListNames.Disabled && me.ListValues.Disabled) {
+		names, values := make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
+		for i, enumerant := range t.Enumish.ConstNames {
+			if renamed := enumerant; enumerant != "_" && (i > 0 || !me.AlwaysSkipFirst) {
+				if me.Rename != nil {
+					renamed = me.Rename(ctx, t, enumerant)
+				}
+				if renamed != "" {
+					names.Add(L(renamed))
+					values.Add(t.G.T.N(enumerant))
+				}
+			}
+		}
+
+		var fnamevals, fnamenames string
+		if !(me.ListBoth.Disabled && me.ListNames.Disabled && me.ListValues.Disabled) {
+			fnamevals, fnamenames = me.ListValues.NameWith("T", t.Name), me.ListNames.NameWith("T", t.Name)
+		}
+
+		if !me.ListMap.Disabled {
+			fnamemap := me.ListMap.NameWith("T", t.Name)
+			yield.Add(me.genListMapFunc(t, fnamemap, names, values))
+		}
+		if !me.ListBoth.Disabled {
+			fnameboth := me.ListBoth.NameWith("T", t.Name, "s", ustr.If(ustr.Suff(t.Name, "s"), "es", "s"))
+			if ustr.Suff(fnameboth, "ys") {
+				fnameboth = fnameboth[:len(fnameboth)-2] + "ies"
+			}
+			yield.Add(me.genListBothFunc(t, fnameboth, fnamenames, fnamevals, len(names)))
+		}
+		if !(me.ListNames.Disabled && me.ListBoth.Disabled) {
+			yield.Add(me.genListNamesFunc(t, fnamenames, names))
+		}
+		if !(me.ListValues.Disabled && me.ListBoth.Disabled) {
+			yield.Add(me.genListValuesFunc(t, fnamevals, values))
+		}
+	}
+	return
+}
+
 func (me *GentListEnumerantsFuncs) genListNamesFunc(t *gent.Type, funcName string, enumerantNames Syns) *SynFunc {
 	return Func(funcName).Ret("names", T.SliceOf.Strings).
 		Doc(
@@ -85,48 +127,6 @@ func (me *GentListEnumerantsFuncs) genListMapFunc(t *gent.Type, funcName string,
 				return N("namesToValues").At(enumerantNames[i]).Set(enumerantValues[i])
 			}),
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentListEnumerantsFuncs) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsEnumish() && !(me.ListBoth.Disabled && me.ListMap.Disabled && me.ListNames.Disabled && me.ListValues.Disabled) {
-		names, values := make(Syns, 0, len(t.Enumish.ConstNames)), make(Syns, 0, len(t.Enumish.ConstNames))
-		for i, enumerant := range t.Enumish.ConstNames {
-			if renamed := enumerant; enumerant != "_" && (i > 0 || !me.AlwaysSkipFirst) {
-				if me.Rename != nil {
-					renamed = me.Rename(ctx, t, enumerant)
-				}
-				if renamed != "" {
-					names.Add(L(renamed))
-					values.Add(t.G.T.N(enumerant))
-				}
-			}
-		}
-
-		var fnamevals, fnamenames string
-		if !(me.ListBoth.Disabled && me.ListNames.Disabled && me.ListValues.Disabled) {
-			fnamevals, fnamenames = me.ListValues.NameWith("T", t.Name), me.ListNames.NameWith("T", t.Name)
-		}
-
-		if !me.ListMap.Disabled {
-			fnamemap := me.ListMap.NameWith("T", t.Name)
-			yield.Add(me.genListMapFunc(t, fnamemap, names, values))
-		}
-		if !me.ListBoth.Disabled {
-			fnameboth := me.ListBoth.NameWith("T", t.Name, "s", ustr.If(ustr.Suff(t.Name, "s"), "es", "s"))
-			if ustr.Suff(fnameboth, "ys") {
-				fnameboth = fnameboth[:len(fnameboth)-2] + "ies"
-			}
-			yield.Add(me.genListBothFunc(t, fnameboth, fnamenames, fnamevals, len(names)))
-		}
-		if !(me.ListNames.Disabled && me.ListBoth.Disabled) {
-			yield.Add(me.genListNamesFunc(t, fnamenames, names))
-		}
-		if !(me.ListValues.Disabled && me.ListBoth.Disabled) {
-			yield.Add(me.genListValuesFunc(t, fnamevals, values))
-		}
-	}
-	return
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.

@@ -29,6 +29,31 @@ type GentFilteringMethods struct {
 	}
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if t.IsSlice() {
+		if me.NonNils.Add && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil {
+			yield.Add(me.genNonNilsMethod(t))
+		}
+		if me.Func.Add {
+			yield.Add(me.genSelectWhereMethod(t))
+		}
+		if (!me.By.Disabled) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
+			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
+				for _, field := range me.By.Fields {
+					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
+						yield.Add(me.genByFieldMethod(t, fld))
+					}
+				}
+				for i := range me.By.Methods {
+					yield.Add(me.genByMethodMethod(t, i))
+				}
+			}
+		}
+	}
+	return
+}
+
 func (me *GentFilteringMethods) genNonNilsMethod(t *gent.Type) *SynFunc {
 	return t.G.T.Method(me.NonNils.Name).Rets(ˇ.R.OfType(t.G.T)).
 		Doc(me.NonNils.DocComment.With("N", me.NonNils.Name, "this", Self.Name, "T", t.Expr.GenRef.UltimateElemType().String())).
@@ -85,31 +110,6 @@ func (me *GentFilteringMethods) genByMethodMethod(t *gent.Type, i int) *SynFunc 
 				Ret(ˇ.V.C(mem.Name, mem.Type.Func.Args.Names(false)...)),
 			))),
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentFilteringMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsSlice() {
-		if me.NonNils.Add && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil {
-			yield.Add(me.genNonNilsMethod(t))
-		}
-		if me.Func.Add {
-			yield.Add(me.genSelectWhereMethod(t))
-		}
-		if (!me.By.Disabled) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
-			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
-				for _, field := range me.By.Fields {
-					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
-						yield.Add(me.genByFieldMethod(t, fld))
-					}
-				}
-				for i := range me.By.Methods {
-					yield.Add(me.genByMethodMethod(t, i))
-				}
-			}
-		}
-	}
-	return
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.

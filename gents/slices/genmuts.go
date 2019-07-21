@@ -19,14 +19,6 @@ type GentMutatorMethods struct {
 	Append gent.Variant
 }
 
-func (me *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
-	return t.G.Tª.Method(me.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
-		Doc(me.Append.DocComment.With("N", me.Append.Name)).
-		Code(
-			Self.Deref().Set(B.Append.Of(Self.Deref(), ˇ.V).Spreads()),
-		)
-}
-
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (me *GentMutatorMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
 	if t.IsSlice() {
@@ -35,6 +27,14 @@ func (me *GentMutatorMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type)
 		}
 	}
 	return
+}
+
+func (me *GentMutatorMethods) genAppendMethod(t *gent.Type) *SynFunc {
+	return t.G.Tª.Method(me.Append.Name).Args(ˇ.V.OfType(t.Expr.GenRef.ArrOrSlice.Of)).Spreads().
+		Doc(me.Append.DocComment.With("N", me.Append.Name)).
+		Code(
+			Self.Deref().Set(B.Append.Of(Self.Deref(), ˇ.V).Spreads()),
+		)
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.

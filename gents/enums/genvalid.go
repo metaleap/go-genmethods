@@ -29,17 +29,6 @@ type GentIsValidMethod struct {
 
 type comparisonOperator = func(IAny) IExprBoolish
 
-func (me *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
-	return t.G.This.Method(me.MethodName).Rets(ˇ.R.OfType(T.Bool)).
-		Doc(me.DocComment.With(
-			"N", me.MethodName, "T", t.Name,
-			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
-		)).
-		Code(
-			ˇ.R.Set(gtOrGeq(N(name1)).And(ltOrLeq(N(name2)))), // r = (this >? ‹lowestEnumerant›) && (this <? ‹highestEnumerant›)
-		)
-}
-
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // It returns at most one method if `t` is a suitable enum type-def.
 func (me *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
@@ -60,4 +49,15 @@ func (me *GentIsValidMethod) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) 
 		yield = Syns{me.genIsValidMethod(t, op1, op2, name1, name2, info1, info2)}
 	}
 	return
+}
+
+func (me *GentIsValidMethod) genIsValidMethod(t *gent.Type, gtOrGeq, ltOrLeq comparisonOperator, name1, name2 string, hint1, hint2 string) *SynFunc {
+	return t.G.This.Method(me.MethodName).Rets(ˇ.R.OfType(T.Bool)).
+		Doc(me.DocComment.With(
+			"N", me.MethodName, "T", t.Name,
+			"fn", name1, "fh", hint1, "ln", name2, "lh", hint2,
+		)).
+		Code(
+			ˇ.R.Set(gtOrGeq(N(name1)).And(ltOrLeq(N(name2)))), // r = (this >? ‹lowestEnumerant›) && (this <? ‹highestEnumerant›)
+		)
 }

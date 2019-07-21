@@ -28,6 +28,27 @@ type GentConvertMethods struct {
 	}
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if t.IsSlice() {
+		if (me.Fields.Add || me.ToMaps.Add) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
+			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
+				for _, field := range me.Fields.Named {
+					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
+						if me.Fields.Add {
+							yield.Add(me.genFieldsMethod(t, fld))
+						}
+						if me.ToMaps.Add {
+							yield.Add(me.genToMapMethod(t, fld))
+						}
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
 func (me *GentConvertMethods) genFieldsMethod(t *gent.Type, field *SynStructField) *SynFunc {
 	methodname, tsl :=
 		me.Fields.NameWith("field", field.Name), TSlice(field.Type)
@@ -52,27 +73,6 @@ func (me *GentConvertMethods) genToMapMethod(t *gent.Type, field *SynStructField
 				ˇ.R.At(Self.At(ˇ.I).D(N(field.Name))).Set(Self.At(ˇ.I)),
 			),
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentConvertMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsSlice() {
-		if (me.Fields.Add || me.ToMaps.Add) && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of != nil && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName != "" && t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.PkgName == "" {
-			if tstruc := ctx.Pkg.Types.Named(t.Expr.GenRef.ArrOrSlice.Of.Pointer.Of.Named.TypeName); tstruc != nil && tstruc.Expr.GenRef.Struct != nil {
-				for _, field := range me.Fields.Named {
-					if fld := tstruc.Expr.GenRef.Struct.Field(field, false); fld != nil {
-						if me.Fields.Add {
-							yield.Add(me.genFieldsMethod(t, fld))
-						}
-						if me.ToMaps.Add {
-							yield.Add(me.genToMapMethod(t, fld))
-						}
-					}
-				}
-			}
-		}
-	}
-	return
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.

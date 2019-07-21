@@ -27,6 +27,19 @@ type GentStructFieldsGetSet struct {
 	Setter gent.Variation
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentStructFieldsGetSet) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if tstruct := t.Expr.GenRef.Struct; tstruct != nil {
+		if !me.Getter.Disabled {
+			yield.Add(me.genGetMethod(ctx, t))
+		}
+		if !me.Setter.Disabled {
+			yield.Add(me.genSetMethod(ctx, t))
+		}
+	}
+	return
+}
+
 func (me *GentStructFieldsGetSet) genGetMethod(ctx *gent.Ctx, t *gent.Type) *SynFunc {
 	return t.G.Tª.Method(me.Getter.Name).
 		Args(ˇ.Name.OfType(T.String), ˇ.V.OfType(T.Empty.Interface)).
@@ -66,17 +79,4 @@ func (me *GentStructFieldsGetSet) genSetMethod(ctx *gent.Ctx, t *gent.Type) *Syn
 					)
 				})...),
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentStructFieldsGetSet) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if tstruct := t.Expr.GenRef.Struct; tstruct != nil {
-		if !me.Getter.Disabled {
-			yield.Add(me.genGetMethod(ctx, t))
-		}
-		if !me.Setter.Disabled {
-			yield.Add(me.genSetMethod(ctx, t))
-		}
-	}
-	return
 }

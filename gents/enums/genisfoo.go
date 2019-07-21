@@ -31,16 +31,6 @@ type GentIsFooMethods struct {
 	MethodNameRenameEnumerant gent.Rename
 }
 
-func (me *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
-	return t.G.This.Method(methodName).Rets(ˇ.R.OfType(T.Bool)).
-		Doc(
-			me.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
-		).
-		Code(
-			ˇ.R.Set(Self.Eq(N(enumerant))), // r = (this == ‹enumerant›)
-		)
-}
-
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 // If `t` is a suitable enum type-def, it returns a method `t.IsFoo() bool` for
 // each enumerant `Foo` in `t`, which equals-compares its receiver to the enumerant.
@@ -59,4 +49,14 @@ func (me *GentIsFooMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (
 		}
 	}
 	return
+}
+
+func (me *GentIsFooMethods) genIsFooMethod(t *gent.Type, methodName string, enumerant string) *SynFunc {
+	return t.G.This.Method(methodName).Rets(ˇ.R.OfType(T.Bool)).
+		Doc(
+			me.DocComment.With("N", methodName, "T", t.Name, "e", enumerant),
+		).
+		Code(
+			ˇ.R.Set(Self.Eq(N(enumerant))), // r = (this == ‹enumerant›)
+		)
 }

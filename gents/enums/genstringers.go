@@ -58,6 +58,42 @@ type StringMethodOpts struct {
 	}
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if len(me.All) > 0 && t.IsEnumish() {
+		yield = make(Syns, 0, 3*len(me.All))
+		pkgstrconv, pkgstrings, names := ctx.Import("strconv"), ctx.Import("strings"), make([]string, 0, len(t.Enumish.ConstNames))
+		for _, enumerant := range t.Enumish.ConstNames {
+			if enumerant != "_" {
+				names = append(names, enumerant)
+			}
+		}
+		hadrenameslast, renames := true, make([]string, len(names))
+
+		for i := range me.All {
+			if self := &me.All[i]; !self.Disabled {
+				if self.EnumerantRename != nil {
+					for i := range names {
+						renames[i] = self.EnumerantRename(ctx, t, names[i])
+					}
+					hadrenameslast = true
+				} else if hadrenameslast {
+					copy(renames, names)
+					hadrenameslast = false
+				}
+
+				if yield.Add(self.genStringerMethod(t, pkgstrconv, names, renames)); self.Parser.Add {
+					fnp := self.genParseFunc(t, me.DocComments.Parsers, pkgstrconv, pkgstrings, names, renames)
+					if yield.Add(fnp); self.Parser.Errless.Add {
+						yield.Add(self.genParseErrlessFunc(t, me.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.Name, fnp.Name))
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
 func (me *StringMethodOpts) genStringerMethod(t *gent.Type, pkgstrconv PkgName, names []string, renames []string) *SynFunc {
 	var earlycheck IExprBoolish
 	if !me.SkipEarlyChecks {
@@ -160,42 +196,6 @@ func (me *StringMethodOpts) genParseErrlessFunc(t *gent.Type, docComment gent.St
 				Then(Self.Set(maybe)),     // this = maybe
 				Else(Self.Set(fallback))), // else this = fallback
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentStringersMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if len(me.All) > 0 && t.IsEnumish() {
-		yield = make(Syns, 0, 3*len(me.All))
-		pkgstrconv, pkgstrings, names := ctx.Import("strconv"), ctx.Import("strings"), make([]string, 0, len(t.Enumish.ConstNames))
-		for _, enumerant := range t.Enumish.ConstNames {
-			if enumerant != "_" {
-				names = append(names, enumerant)
-			}
-		}
-		hadrenameslast, renames := true, make([]string, len(names))
-
-		for i := range me.All {
-			if self := &me.All[i]; !self.Disabled {
-				if self.EnumerantRename != nil {
-					for i := range names {
-						renames[i] = self.EnumerantRename(ctx, t, names[i])
-					}
-					hadrenameslast = true
-				} else if hadrenameslast {
-					copy(renames, names)
-					hadrenameslast = false
-				}
-
-				if yield.Add(self.genStringerMethod(t, pkgstrconv, names, renames)); self.Parser.Add {
-					fnp := self.genParseFunc(t, me.DocComments.Parsers, pkgstrconv, pkgstrings, names, renames)
-					if yield.Add(fnp); self.Parser.Errless.Add {
-						yield.Add(self.genParseErrlessFunc(t, me.DocComments.ParsersErrlessVariant, fnp.Name+self.Parser.Errless.Name, fnp.Name))
-					}
-				}
-			}
-		}
-	}
-	return
 }
 
 // EnableOrDisableAllVariantsAndOptionals implements `github.com/metaleap/go-gent.IGent`.

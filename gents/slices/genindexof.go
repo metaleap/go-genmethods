@@ -54,6 +54,25 @@ type IndexMethodOpts struct {
 	Predicate gent.Variant
 }
 
+// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
+func (me *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
+	if t.IsSliceOrArray() {
+		if !me.IndexOf.Disabled {
+			yield.Add(me.genIndexOfs(t, false)...)
+		}
+		if !me.IndexLast.Disabled {
+			yield.Add(me.genIndexOfs(t, true)...)
+		}
+		if !me.IndicesOf.Disabled {
+			yield.Add(me.genIndicesOfs(t)...)
+		}
+		if !me.Contains.Disabled {
+			yield.Add(me.genContainsMethods(t)...)
+		}
+	}
+	return
+}
+
 func (me *GentIndexMethods) genIndicesOfMethod(t *gent.Type, methodName string, resultsCapFactor uint, predicate bool) *SynFunc {
 	arg, ret := me.indexMethodArg(t, false, predicate), ˇ.R.OfType(T.SliceOf.Ints)
 	foreachitemcheckcond := GEN_IF(predicate, Then(
@@ -99,25 +118,6 @@ func (me *GentIndexMethods) genIndexOfMethod(t *gent.Type, methodName string, is
 			})),
 			ˇ.R.Set(-1), // r = -1
 		)
-}
-
-// GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
-func (me *GentIndexMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	if t.IsSliceOrArray() {
-		if !me.IndexOf.Disabled {
-			yield.Add(me.genIndexOfs(t, false)...)
-		}
-		if !me.IndexLast.Disabled {
-			yield.Add(me.genIndexOfs(t, true)...)
-		}
-		if !me.IndicesOf.Disabled {
-			yield.Add(me.genIndicesOfs(t)...)
-		}
-		if !me.Contains.Disabled {
-			yield.Add(me.genContainsMethods(t)...)
-		}
-	}
-	return
 }
 
 func (me *GentIndexMethods) genIndexOfs(t *gent.Type, isLast bool) (decls Syns) {

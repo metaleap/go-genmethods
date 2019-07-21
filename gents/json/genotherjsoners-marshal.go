@@ -9,20 +9,19 @@ import (
 )
 
 func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type, genPanicImpl bool) *SynFunc {
-	var self *TypeRef
+	var selftype *TypeRef
 	var code ISyn
-	_ = ctx.N("") // reset counter --- yields less noisy diffs on re-gens
 	if t.Expr.GenRef.Struct != nil {
-		self, code = t.G.Tª, If(Self.Eq(B.Nil), Then(
+		selftype, code = t.G.Tª, If(Self.Eq(B.Nil), Then(
 			jsonWriteNull,
 		), Else(
 			me.genMarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil),
 		))
 	} else {
-		self, code = t.G.T, me.genMarshalBasedOnType(ctx,
+		selftype, code = t.G.T, me.genMarshalBasedOnType(ctx,
 			func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef }, nil, false, true)
 	}
-	return self.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
+	return selftype.Method(me.Marshal.Name).Rets(ˇ.R.OfType(T.SliceOf.Bytes), ˇ.Err).
 		Doc(me.Marshal.DocComment.With("N", me.Marshal.Name)).
 		Code(
 			GEN_IF(genPanicImpl, Then(
