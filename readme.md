@@ -264,6 +264,12 @@ func LoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string, dontLo
 func MustLoadPkg(pkgImportPathOrFileSystemPath string, outputFileName string) *Pkg
 ```
 
+#### func  TryExtPkg
+
+```go
+func TryExtPkg(pkgImpPath string) (extPkg *Pkg)
+```
+
 #### func (*Pkg) DirName
 
 ```go

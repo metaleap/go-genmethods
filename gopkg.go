@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/go-leap/dev/go"
 	"github.com/go-leap/dev/go/gen"
@@ -38,6 +39,15 @@ type Pkg struct {
 		}
 	}
 }
+
+var (
+	extPkgs struct {
+		all map[string]*Pkg
+		sync.Mutex
+	}
+)
+
+func init() { extPkgs.all = map[string]*Pkg{} }
 
 func MustLoadPkgs(pkgPathsWithOutputFileNames map[string]string) Pkgs {
 	if pkgs, err := LoadPkgs(pkgPathsWithOutputFileNames); err != nil {
@@ -141,3 +151,26 @@ func (me *Pkg) load_FromFiles(goFilePaths []string) (err error) {
 }
 
 func (me *Pkg) DirName() string { return filepath.Base(me.DirPath) }
+
+func TryExtPkg(pkgImpPath string) (extPkg *Pkg) {
+	extPkgs.Lock()
+	var ok bool
+	if extPkg, ok = extPkgs.all[pkgImpPath]; !ok {
+		if extPkg, _ = LoadPkg(pkgImpPath, "", ""); extPkg == nil {
+			for k, v := range miscPkgNames {
+				if v == pkgImpPath {
+					pkgImpPath, ok = k, true
+					break
+				}
+			}
+			if ok {
+				extPkg, _ = LoadPkg(pkgImpPath, "", "")
+			}
+		}
+		if extPkgs.all[pkgImpPath] = extPkg; extPkg != nil {
+			extPkgs.all[extPkg.ImportPath] = extPkg
+		}
+	}
+	extPkgs.Unlock()
+	return
+}

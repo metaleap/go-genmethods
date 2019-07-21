@@ -76,11 +76,19 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 		code.Add(me.genMarshalBuiltinPrim(ctx, field, writeName, jsonOmitEmpty, false))
 	case t.Interface != nil:
 		code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false, false))
-	case t.Named.TypeName != "" && t.Named.PkgName != "":
-		code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false, false))
-	case t.Named.TypeName != "" && t.Named.PkgName == "":
+	case t.Named.TypeName != "":
+		var pkg *gent.Pkg
+		if t.Named.PkgName == "" {
+			pkg = ctx.Pkg
+		} else { // if pkg = gent.TryExtPkg(t.Named.PkgName); pkg == nil  /* ext-pkgs stuff not really working just yet, TODO when it becomes more pressing */ {
+			code.Add(me.genMarshalUnknown(ctx, field, writeName, jsonOmitEmpty, "", false, false))
+			return
+		}
+
 		var mname string
-		if gt := ctx.Pkg.Types.Named(t.Named.TypeName); gt != nil {
+		if gt := pkg.Types.Named(t.Named.TypeName); gt == nil {
+			panic(t.Named.TypeName)
+		} else {
 			isenumish := gt.IsEnumish()
 			_ = ctx.GentExistsFor(gt, func(g gent.IGent) (ok bool) {
 				gje, ok1 := g.(*GentEnumJsonMethods)
@@ -103,8 +111,6 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 					return acc, gt.Expr.GenRef
 				}, writeName, jsonOmitEmpty, true)...)
 			}
-		} else {
-			panic(t.Named.TypeName)
 		}
 	default:
 		panic(t.String())

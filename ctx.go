@@ -71,6 +71,9 @@ func (me *CtxOpts) newCtx(pkg *Pkg, gents Gents) *Ctx {
 	if me == nil {
 		me = &Defaults.CtxOpt
 	}
+	extPkgs.Lock()
+	extPkgs.all[pkg.ImportPath] = pkg
+	extPkgs.Unlock()
 	return &Ctx{
 		Opt: *me, timeStarted: time.Now(), Gents: gents, Pkg: pkg,
 		pkgImportPathsToPkgImportNames: udevgogen.PkgImports{},
