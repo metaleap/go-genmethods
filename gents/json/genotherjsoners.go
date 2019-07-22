@@ -44,7 +44,8 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 		}
 		if gennormal, genpanic := me.Unmarshal.genWhat(t); gennormal || genpanic {
 			_ = ctx.N("")
-			yield.Add(me.genUnmarshalMethod(ctx, t, genpanic))
+			yield.Add(me.genUnmarshalFromAnyMethod(ctx, t, genpanic),
+				me.genUnmarshalMethod(ctx, t, genpanic))
 		}
 	}
 	return

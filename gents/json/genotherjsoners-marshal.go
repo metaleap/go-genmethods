@@ -91,11 +91,11 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, field func()
 			isenumish := gt.IsEnumish()
 			_ = ctx.GentExistsFor(gt, func(g gent.IGent) (ok bool) {
 				gje, ok1 := g.(*GentEnumJsonMethods)
-				gjs, ok2 := g.(*GentTypeJsonMethods)
+				gjt, ok2 := g.(*GentTypeJsonMethods)
 				if ok = ok1 && !gje.Disabled; ok {
 					mname, isenumish = gje.Marshal.Name, true
-				} else if ok = ok2 && !gjs.Disabled; ok {
-					mname = gjs.Marshal.Name
+				} else if ok = ok2 && !gjt.Disabled; ok {
+					mname = gjt.Marshal.Name
 				}
 				return
 			})
