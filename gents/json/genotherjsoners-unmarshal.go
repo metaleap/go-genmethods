@@ -50,11 +50,17 @@ func (me *GentTypeJsonMethods) genUnmarshalStructFromAny(ctx *gent.Ctx, from ISy
 	for i := range t.Struct.Fields {
 		fld := &t.Struct.Fields[i]
 		if jsonname := fld.JsonNameFinal(); jsonname != "" {
-			fdacc, nv, nok := D(facc, N(fld.EffectiveName())), ctx.N("v"), ctx.N("o")
+			fdacc, nv, nok, nz, ftr :=
+				D(facc, N(fld.EffectiveName())), ctx.N("v"), ctx.N("o"), ctx.N("z"), me.typeUnderlyingIfNamed(ctx, fld.Type)
+			var tref *TypeRef
+			if ftr != nil {
+				tref = ftr.Expr.GenRef
+			}
 			code.Add(
 				Tup(nv, nok).Let(At(from, L(jsonname))),
-				If(nok,
-					me.genUnmarshalSetFromJsonValue(ctx, nv, func() (ISyn, *TypeRef) { return fdacc, fld.Type }),
+				If(nok.Not(), Then(
+					me.genSetToZero(fdacc, nz, fld.Type, tref),
+				), me.genUnmarshalSetFromJsonValue(ctx, nv, func() (ISyn, *TypeRef) { return fdacc, fld.Type }),
 				),
 			)
 		}
@@ -63,11 +69,7 @@ func (me *GentTypeJsonMethods) genUnmarshalStructFromAny(ctx *gent.Ctx, from ISy
 	return
 }
 
-func (me *GentTypeJsonMethods) genUnmarshalSetFromJsonValue(ctx *gent.Ctx, from ISyn, field func() (ISyn, *TypeRef)) (code Syns) {
-	facc, t := field()
-	block, nzero := &code, ctx.N("z")
-	block.Add(B.Println.Of(from))
-	var tn *gent.Type
+func (*GentTypeJsonMethods) typeUnderlyingIfNamed(ctx *gent.Ctx, t *TypeRef) (tRef *gent.Type) {
 	var tnr *TypeRef
 	if t.Pointer.Of != nil && t.Pointer.Of.Named.TypeName != "" && t.Pointer.Of.Named.PkgName == "" {
 		tnr = t.Pointer.Of
@@ -75,33 +77,46 @@ func (me *GentTypeJsonMethods) genUnmarshalSetFromJsonValue(ctx *gent.Ctx, from 
 		tnr = t
 	}
 	if tnr != nil {
-		if tn = ctx.Pkg.Types.Named(tnr.Named.TypeName); tn != nil {
-			if tn.Expr.GenRef == nil {
-				tn = nil
+		if tRef = ctx.Pkg.Types.Named(tnr.Named.TypeName); tRef != nil {
+			if tRef.Expr.GenRef == nil {
+				tRef = nil
 			} else {
-				for tn.Expr.GenRef.Named.TypeName != "" && tn.Expr.GenRef.Named.PkgName == "" {
-					if tnext := ctx.Pkg.Types.Named(tn.Expr.GenRef.Named.TypeName); tnext == nil || tnext.Expr.GenRef == nil {
+				for tRef.Expr.GenRef.Named.TypeName != "" && tRef.Expr.GenRef.Named.PkgName == "" {
+					if tnext := ctx.Pkg.Types.Named(tRef.Expr.GenRef.Named.TypeName); tnext == nil || tnext.Expr.GenRef == nil {
 						break
 					} else {
-						tn = tnext
+						tRef = tnext
 					}
 				}
 			}
 		}
 	}
-	if tnr = nil; tn != nil {
+	return
+}
+
+func (*GentTypeJsonMethods) genSetToZero(fAcc ISyn, n Named, t *TypeRef, t2 *TypeRef) ISyn {
+	return GEN_BYCASE(USUALLY(Block(
+		Var(n.Name, t, nil),
+		Set(fAcc, n),
+	)), UNLESS{
+		t.Equiv(T.String) || (t2 != nil && t2.Equiv(T.String)):                                     Set(fAcc, L("")),
+		t.Equiv(T.Bool) || (t2 != nil && t2.Equiv(T.Bool)):                                         Set(fAcc, L(false)),
+		t.BitSizeIfBuiltInNumberType() != 0 || (t2 != nil && t2.BitSizeIfBuiltInNumberType() != 0): Set(fAcc, L(0)),
+		t.CanNil() || (t2 != nil && t2.CanNil()):                                                   Set(fAcc, B.Nil),
+	})
+}
+
+func (me *GentTypeJsonMethods) genUnmarshalSetFromJsonValue(ctx *gent.Ctx, from ISyn, field func() (ISyn, *TypeRef)) (code Syns) {
+	facc, t := field()
+	block, nzero := &code, ctx.N("z")
+	block.Add(B.Println.Of(from))
+	tn := me.typeUnderlyingIfNamed(ctx, t)
+	var tnr *TypeRef
+	if tn != nil {
 		tnr = tn.Expr.GenRef
 	}
 
-	setnil := GEN_BYCASE(USUALLY(Block(
-		Var(nzero.Name, t, nil),
-		Set(facc, nzero),
-	)), UNLESS{
-		t.Equiv(T.String) || (tnr != nil && tnr.Equiv(T.String)):                                     Set(facc, L("")),
-		t.Equiv(T.Bool) || (tnr != nil && tnr.Equiv(T.Bool)):                                         Set(facc, L(false)),
-		t.BitSizeIfBuiltInNumberType() != 0 || (tnr != nil && tnr.BitSizeIfBuiltInNumberType() != 0): Set(facc, L(0)),
-		t.CanNil() || (tnr != nil && tnr.CanNil()):                                                   Set(facc, B.Nil),
-	})
+	setnil := me.genSetToZero(facc, nzero, t, tnr)
 	chknil := If(B.Nil.Neq(from), Then(), setnil)
 	block.Add(chknil)
 	block = &chknil.IfThens[0].Body
