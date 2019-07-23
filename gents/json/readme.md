@@ -71,6 +71,7 @@ type GentTypeJsonMethods struct {
 	}
 	Unmarshal struct {
 		JsonMethodOpts
+		HelperMethodName string
 	}
 }
 ```

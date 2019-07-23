@@ -10,8 +10,8 @@ var jsonWriteNull = ˇ.R.Set(B.Append.Of(ˇ.R, "null").Spreads())
 func init() {
 	Gents.OtherTypes.Marshal.HelpersPrefix, Gents.OtherTypes.Marshal.Name, Gents.OtherTypes.Marshal.DocComment, Gents.OtherTypes.Marshal.InitialBytesCap =
 		"jsonMarshal_", DefaultMethodNameMarshal, DefaultDocCommentMarshal, 64
-	Gents.OtherTypes.Unmarshal.HelpersPrefix, Gents.OtherTypes.Unmarshal.Name, Gents.OtherTypes.Unmarshal.DocComment =
-		"jsonUnmarshal_", DefaultMethodNameUnmarshal, DefaultDocCommentUnmarshal
+	Gents.OtherTypes.Unmarshal.HelpersPrefix, Gents.OtherTypes.Unmarshal.HelperMethodName, Gents.OtherTypes.Unmarshal.Name, Gents.OtherTypes.Unmarshal.DocComment =
+		"jsonUnmarshal_", "FromAny", DefaultMethodNameUnmarshal, DefaultDocCommentUnmarshal
 }
 
 type GentTypeJsonMethods struct {
@@ -27,6 +27,7 @@ type GentTypeJsonMethods struct {
 	}
 	Unmarshal struct {
 		JsonMethodOpts
+		HelperMethodName string
 	}
 }
 

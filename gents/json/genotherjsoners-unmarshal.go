@@ -7,15 +7,16 @@ import (
 
 func (me *GentTypeJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type, genPanicImpl bool) *SynFunc {
 	var code ISyn
-	var selftype *TypeRef
 	if t.Expr.GenRef.Struct != nil {
-		selftype = t.G.Tª
 		code = me.genUnmarshalStruct(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef })
-	} else {
-		selftype = t.G.T
+	} else if t.Expr.GenRef.ArrOrSlice.Of != nil {
+		code = me.genUnmarshalSlice(ctx, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef })
+	} else if t.Expr.GenRef.Map.OfKey != nil {
 		code = Block(ˇ.Err.Set(B.Nil))
+	} else {
+		panic(t.Name)
 	}
-	return selftype.Method(me.Unmarshal.Name, ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
+	return t.G.Tª.Method(me.Unmarshal.Name, ˇ.V.OfType(T.SliceOf.Bytes)).Rets(ˇ.Err).
 		Doc(me.Unmarshal.DocComment.With("N", me.Unmarshal.Name)).
 		Code(
 			GEN_IF(genPanicImpl, Then(
@@ -28,30 +29,37 @@ func (me *GentTypeJsonMethods) genUnmarshalMethod(ctx *gent.Ctx, t *gent.Type, g
 
 func (me *GentTypeJsonMethods) genUnmarshalFromAnyMethod(ctx *gent.Ctx, t *gent.Type, genPanicImpl bool) *SynFunc {
 	var code ISyn
-	var selftype, argtype *TypeRef
+	var argtype *TypeRef
 	if t.Expr.GenRef.Struct != nil {
-		selftype, argtype = t.G.Tª, TMap(T.String, T.Empty.Interface)
-		code = me.genUnmarshalStructFromAny(ctx, ˇ.V, func() (ISyn, *TypeRef) { return Self, t.Expr.GenRef })
+		argtype = TMap(T.String, T.Empty.Interface)
+		code = me.genUnmarshalStructFromAny(ctx, ˇ.V, Self, t.Expr.GenRef.Struct)
 	} else if t.Expr.GenRef.ArrOrSlice.Of != nil {
-		selftype, argtype = t.G.T, TSlice(T.Empty.Interface)
-		code = Block()
+		argtype = TSlice(T.Empty.Interface)
+		code = Block(
+			ˇ.Sl.Let(Self.Deref()),
+			me.genUnmarshalSliceFromAny(ctx, ˇ.V, ˇ.Sl, t.G.T, t.Expr.GenRef.ArrOrSlice.Of),
+			Self.Deref().Set(ˇ.Sl),
+		)
 	} else if t.Expr.GenRef.Map.OfKey != nil {
-		selftype, argtype = t.G.T, TMap(T.String, T.Empty.Interface)
-		code = Block()
+		argtype = TMap(T.String, T.Empty.Interface)
+		code = Block(
+			Var(ˇ.KVs.Name, t.G.T, nil),
+			me.genUnmarshalMapFromAny(ctx, ˇ.V, ˇ.KVs, t.G.T, t.Expr.GenRef),
+			Self.Deref().Set(ˇ.KVs),
+		)
 	} else {
 		panic(t.Name)
 	}
-	return selftype.Method(me.Unmarshal.HelpersPrefix+"FromAny", ˇ.V.OfType(argtype)).
+	return t.G.Tª.Method(me.unmarshalHelperMethodName(ctx), ˇ.V.OfType(argtype)).
 		Code(code)
 }
 
-func (me *GentTypeJsonMethods) genUnmarshalStructFromAny(ctx *gent.Ctx, from ISyn, field func() (ISyn, *TypeRef)) (code Syns) {
-	facc, t := field()
-	for i := range t.Struct.Fields {
-		fld := &t.Struct.Fields[i]
+func (me *GentTypeJsonMethods) genUnmarshalStructFromAny(ctx *gent.Ctx, from ISyn, acc ISyn, t *TypeStruct) (code Syns) {
+	for i := range t.Fields {
+		fld := &t.Fields[i]
 		if jsonname := fld.JsonNameFinal(); jsonname != "" {
 			fdacc, nv, nok, nz, ftr :=
-				D(facc, N(fld.EffectiveName())), ctx.N("v"), ctx.N("o"), ctx.N("z"), me.typeUnderlyingIfNamed(ctx, fld.Type)
+				D(acc, N(fld.EffectiveName())), ctx.N("v"), ctx.N("o"), ctx.N("z"), me.typeUnderlyingIfNamed(ctx, fld.Type)
 			var tref *TypeRef
 			if ftr != nil {
 				tref = ftr.Expr.GenRef
@@ -121,9 +129,9 @@ func (me *GentTypeJsonMethods) genUnmarshalSetFromJsonValue(ctx *gent.Ctx, from 
 	block.Add(chknil)
 	block = &chknil.IfThens[0].Body
 
+	var mslice bool
+	var mmap bool
 	if tn != nil {
-		var mslice bool
-		var mmap bool
 		_ = ctx.GentExistsFor(tn, func(g gent.IGent) (ok bool) {
 			gjt, ok2 := g.(*GentTypeJsonMethods)
 			if ok = ok2 && !gjt.Disabled; ok {
@@ -135,29 +143,28 @@ func (me *GentTypeJsonMethods) genUnmarshalSetFromJsonValue(ctx *gent.Ctx, from 
 			}
 			return
 		})
-		if mslice || mmap {
-			targ, nv := TSlice(T.Empty.Interface), ctx.N("v")
-			if mmap {
-				targ = TMap(T.String, T.Empty.Interface)
-			}
-			ctor := Then()
-			if t.Pointer.Of != nil || (tnr != nil && tnr.Pointer.Of != nil) {
-				ctor.Add(Set(facc, B.New.Of(t.Pointer.Of)))
-			} else if t.Map.OfKey != nil || (tnr != nil && tnr.Map.OfKey != nil) {
-				ctor.Add(Set(facc, B.Make.Of(t, B.Len.Of(nv))))
-			}
-			block.Add(
-				nv.Let(D(from, targ)),
-				If(nv.Eq(B.Nil), setnil, Else(
-					If(L(len(ctor) > 0).And(B.Nil.Eq(facc)), ctor),
-					C(D(facc, N("jsonUnmarshal_FromAny")), nv),
-				)),
-			)
-			return
-		}
 	}
 
-	if t.IsBuiltinPrimType(false) || (tnr != nil && tnr.IsBuiltinPrimType(false)) || (tn != nil && tn.IsEnumish()) {
+	if mslice || mmap {
+		targ, nv := TSlice(T.Empty.Interface), ctx.N("v")
+		if mmap {
+			targ = TMap(T.String, T.Empty.Interface)
+		}
+		ctor := Then()
+		if t.Pointer.Of != nil || (tnr != nil && tnr.Pointer.Of != nil) {
+			ctor.Add(Set(facc, B.New.Of(t.Pointer.Of)))
+		} else if t.Map.OfKey != nil || (tnr != nil && tnr.Map.OfKey != nil) {
+			ctor.Add(Set(facc, B.Make.Of(t, B.Len.Of(nv))))
+		}
+		block.Add(
+			nv.Let(D(from, targ)),
+			If(nv.Eq(B.Nil), setnil, Else(
+				If(L(len(ctor) > 0).And(B.Nil.Eq(facc)), ctor),
+				C(D(facc, N(me.unmarshalHelperMethodName(ctx))), nv),
+			)),
+		)
+
+	} else if t.IsBuiltinPrimType(false) || (tnr != nil && tnr.IsBuiltinPrimType(false)) || (tn != nil && tn.IsEnumish()) {
 		if t.Equiv(T.Bool) || (tnr != nil && tnr.Equiv(T.Bool)) {
 			block.Add(Set(facc, t.From(D(from, T.Bool))))
 		} else if t.Equiv(T.String) || (tnr != nil && tnr.Equiv(T.String)) {
@@ -167,35 +174,81 @@ func (me *GentTypeJsonMethods) genUnmarshalSetFromJsonValue(ctx *gent.Ctx, from 
 		}
 
 	} else if tstr := t.Struct; tstr != nil || (tnr != nil && tnr.Struct != nil) {
+		if tstr == nil {
+			tstr = tnr.Struct
+		}
 		tmp := ctx.N("t")
 		block.Add(
 			tmp.Let(D(from, TMap(T.String, T.Empty.Interface))),
-			If(B.Nil.Eq(tmp), setnil, me.genUnmarshalStructFromAny(ctx, tmp, field)),
+			If(B.Nil.Eq(tmp), Then(setnil), me.genUnmarshalStructFromAny(ctx, tmp, facc, tstr)),
+		)
+
+	} else if tm := t.Map.OfKey; tm != nil || (tnr != nil && tnr.Map.OfKey != nil) {
+		if tm != nil {
+			tm = t
+		} else {
+			tm = tnr
+		}
+		m := ctx.N("m")
+		block.Add(
+			m.Let(D(from, TMap(T.String, T.Empty.Interface))),
+			If(m.Eq(B.Nil), Then(setnil), me.genUnmarshalMapFromAny(ctx, m, facc, t, tm)),
 		)
 
 	} else if tsl := t.ArrOrSlice.Of; tsl != nil || (tnr != nil && tnr.ArrOrSlice.Of != nil) {
 		if tsl == nil {
 			tsl = tnr.ArrOrSlice.Of
 		}
-		sl, sli, slv := ctx.N("s"), ctx.N("si"), ctx.N("sv")
+		sl := ctx.N("s")
 		block.Add(
 			sl.Let(D(from, TSlice(T.Empty.Interface))),
-			If(sl.Eq(B.Nil), Then(
-				Set(facc, B.Nil),
-			), Else(
-				If(B.Len.Of(facc).Geq(B.Len.Of(sl)), Then(
-					Set(facc, At(facc, Sl(L(0), B.Len.Of(sl)))),
-				), Else(
-					Set(facc, B.Make.Of(t, B.Len.Of(sl))),
-				)),
-				ForEach(sli, slv, sl,
-					me.genUnmarshalSetFromJsonValue(ctx, slv,
-						func() (ISyn, *TypeRef) { return At(facc, sli), tsl },
-					)...,
-				),
-			)),
+			If(sl.Eq(B.Nil), Then(setnil), me.genUnmarshalSliceFromAny(ctx, sl, facc, t, tsl)),
 		)
+
 	}
+	return
+}
+
+func (me *GentTypeJsonMethods) genUnmarshalMapFromAny(ctx *gent.Ctx, from ISyn, fAcc ISyn, t *TypeRef, tm *TypeRef) (code Syns) {
+	mk, mv, tmp := ctx.N("mk"), ctx.N("mv"), ctx.N("t")
+	code.Add(
+		Set(fAcc, B.Make.Of(t, B.Len.Of(from))),
+		ForEach(mk, mv, from,
+			Var(tmp.Name, tm.Map.ToVal, nil),
+			me.genUnmarshalSetFromJsonValue(ctx, mv,
+				func() (ISyn, *TypeRef) { return tmp, tm.Map.ToVal },
+			),
+			At(fAcc, mk).Set(tmp),
+		),
+	)
+	return
+}
+
+func (me *GentTypeJsonMethods) genUnmarshalSliceFromAny(ctx *gent.Ctx, from ISyn, fAcc ISyn, t *TypeRef, tElem *TypeRef) (code Syns) {
+	sli, slv := ctx.N("si"), ctx.N("sv")
+	code.Add(
+		If(B.Len.Of(fAcc).Geq(B.Len.Of(from)), Then(
+			Set(fAcc, At(fAcc, Sl(L(0), B.Len.Of(from)))),
+		), Else(
+			Set(fAcc, B.Make.Of(t, B.Len.Of(from))),
+		)),
+		ForEach(sli, slv, from,
+			me.genUnmarshalSetFromJsonValue(ctx, slv,
+				func() (ISyn, *TypeRef) { return At(fAcc, sli), tElem },
+			)...,
+		),
+	)
+	return
+}
+
+func (me *GentTypeJsonMethods) genUnmarshalSlice(ctx *gent.Ctx, field func() (ISyn, *TypeRef)) (code Syns) {
+	code.Add(
+		Var(ˇ.Sl.Name, TSlice(T.Empty.Interface), nil),
+		ˇ.Err.Set(ctx.Import("encoding/json").C("Unmarshal", ˇ.V, ˇ.Sl.Addr())),
+		If(ˇ.Err.Eq(B.Nil), Then(
+			Self.C(me.unmarshalHelperMethodName(ctx), ˇ.Sl),
+		)),
+	)
 	return
 }
 
@@ -206,8 +259,12 @@ func (me *GentTypeJsonMethods) genUnmarshalStruct(ctx *gent.Ctx, field func() (I
 		Var(ˇ.KVs.Name, nil, B.Make.Of(TMap(T.String, T.Empty.Interface), len(ts.Fields))),
 		ˇ.Err.Set(ctx.Import("encoding/json").C("Unmarshal", ˇ.V, ˇ.KVs.Addr())),
 		If(ˇ.Err.Eq(B.Nil), Then(
-			Self.C(me.Unmarshal.HelpersPrefix+"FromAny", ˇ.KVs),
+			Self.C(me.unmarshalHelperMethodName(ctx), ˇ.KVs),
 		)),
 	)
 	return
+}
+
+func (me *GentTypeJsonMethods) unmarshalHelperMethodName(ctx *gent.Ctx) string {
+	return ctx.Opt.HelpersPrefix + me.Unmarshal.HelpersPrefix + me.Unmarshal.HelperMethodName
 }
