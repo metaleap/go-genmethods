@@ -245,7 +245,7 @@ func (me *GentTypeJsonMethods) genMarshalBuiltinPrim(ctx *gent.Ctx, field func()
 
 func (me *GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, field func() (ISyn, *TypeRef), writeName ISyn, jsonOmitEmpty bool, implMethodName string, isKnownNumish bool, isKnownLenish bool) ISyn {
 	facc, ftype := field()
-	pkgjson, canimpl := ctx.Import("encoding/json"), ftype.Named.PkgName == "" && (!ftype.CanNeverImplement()) && !(isKnownNumish || isKnownLenish)
+	pkgjson, canimpl := me.pkgjson, ftype.Named.PkgName == "" && (!ftype.CanNeverImplement()) && !(isKnownNumish || isKnownLenish)
 	hasval := ftype.IsntZeroish(facc, isKnownLenish, isKnownNumish)
 	skipcheck := (!jsonOmitEmpty) || (implMethodName != "" && !isKnownLenish)
 	stdlibfallback := me.Marshal.OnStdlibFallbacks(ctx, facc,
