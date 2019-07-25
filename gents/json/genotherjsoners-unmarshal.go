@@ -166,6 +166,14 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodeStruct(ctx *gent.Ctx, fAcc ISyn
 }
 
 func (me *GentTypeJsonMethods) genUnmarshalDecodePtr(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
+	pv := ctx.N("pv")
+	code.Add(
+		Var(pv.Name, fType.Pointer.Of, nil),
+		me.genUnmarshalDecodeBasedOnType(ctx, pv, fType.Pointer.Of),
+		If(ˇ.Err.Eq(B.Nil), Then(
+			Set(fAcc, pv.Addr()),
+		)),
+	)
 	return
 }
 
