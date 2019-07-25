@@ -170,10 +170,59 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodePtr(ctx *gent.Ctx, fAcc ISyn, f
 }
 
 func (me *GentTypeJsonMethods) genUnmarshalDecodeBuiltinPrim(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
+	var valtype, valmethodtype *TypeRef
+	var valmethodname string
+
+	switch fType.Named {
+	case T.String.Named:
+		valtype = fType
+	case T.Bool.Named:
+		valtype = fType
+	case T.Byte.Named, T.Uint.Named, T.Uint16.Named, T.Uint32.Named, T.Uint64.Named, T.Uint8.Named:
+		valtype, valmethodname, valmethodtype = me.pkgjson.T("Number"), "Int64", T.Int64
+	case T.Float32.Named, T.Float64.Named:
+		valtype, valmethodname, valmethodtype = me.pkgjson.T("Number"), "Float64", T.Float64
+	case T.Rune.Named, T.Int.Named, T.Int16.Named, T.Int32.Named, T.Int64.Named, T.Int8.Named:
+		valtype, valmethodname, valmethodtype = me.pkgjson.T("Number"), "Int64", T.Int64
+	default:
+		var t *gent.Type
+		if fType.Named.TypeName != "" && fType.Named.PkgName == "" {
+			t = ctx.Pkg.Types.Named(fType.Named.TypeName)
+		}
+		if t == nil {
+			panic(fType)
+		} else {
+			valtype, valmethodname, valmethodtype = me.pkgjson.T("Number"), "Int64", T.Int64
+		}
+	}
+	tok, tmp := ctx.N("jt"), ctx.N("v")
+	code.Add(
+		Var(tok.Name, me.pkgjson.T("Token"), nil),
+		Tup(tok, ˇ.Err).Set(ˇ.J.C("Token")),
+		If(ˇ.Err.Eq(B.Nil).And(tok.Neq(B.Nil)), Then(
+			Switch(ˇ.V.Let(tok.D("type"))).
+				Case(B.Nil).
+				Case(valtype,
+					GEN_IF(valmethodname == "", Then(
+						Set(fAcc, ˇ.V),
+					), Else(
+						Var(tmp.Name, valmethodtype, nil),
+						Tup(tmp, ˇ.Err).Set(ˇ.V.C(valmethodname)),
+						If(ˇ.Err.Eq(B.Nil), Then(
+							Set(fAcc, fType.From(tmp)),
+						)),
+					)),
+				).
+				DefaultCase(
+					ˇ.Err.Set(me.pkgerrs.C("New", "expected "+valtype.String())),
+				),
+		)),
+	)
 	return
 }
 
 func (me *GentTypeJsonMethods) genUnmarshalDecodeUnknown(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
+	println("UNKNOWN:", fType.String())
 	return
 }
 
