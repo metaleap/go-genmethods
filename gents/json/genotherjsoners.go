@@ -28,17 +28,22 @@ type GentTypeJsonMethods struct {
 	Unmarshal struct {
 		JsonMethodOpts
 		InternalDecodeMethodName string
+		DefaultCaps              struct {
+			Slices int
+			Maps   int
+		}
 	}
 
-	pkgjson PkgName
-	pkgerrs PkgName
+	pkgjson  PkgName
+	pkgbytes PkgName
+	pkgerrs  PkgName
 }
 
 func onStdlibDefaultCodegen(_ *gent.Ctx, _ ISyn, s ...ISyn) Syns { return s }
 
 // GenerateTopLevelDecls implements `github.com/metaleap/go-gent.IGent`.
 func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type) (yield Syns) {
-	me.pkgjson, me.pkgerrs = ctx.Import("encoding/json"), ctx.Import("errors")
+	me.pkgjson, me.pkgerrs, me.pkgbytes = ctx.Import("encoding/json"), ctx.Import("errors"), ctx.Import("bytes")
 	if me.Marshal.OnStdlibFallbacks == nil {
 		me.Marshal.OnStdlibFallbacks = onStdlibDefaultCodegen
 	}
@@ -50,7 +55,6 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 		if gennormal, genpanic := me.Unmarshal.genWhat(t); gennormal || genpanic {
 			_ = ctx.N("")
 			yield.Add(
-				me.genUnmarshalFromAnyMethod(ctx, t, genpanic),
 				me.genUnmarshalDecodeMethod(ctx, t, genpanic),
 				me.genUnmarshalMethod(ctx, t, genpanic),
 			)

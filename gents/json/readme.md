@@ -72,6 +72,10 @@ type GentTypeJsonMethods struct {
 	Unmarshal struct {
 		JsonMethodOpts
 		InternalDecodeMethodName string
+		DefaultCaps              struct {
+			Slices int
+			Maps   int
+		}
 	}
 }
 ```
