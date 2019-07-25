@@ -30,51 +30,6 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodeMethod(ctx *gent.Ctx, t *gent.T
 		Code(me.genUnmarshalDecodeBasedOnType(ctx, self, t.Expr.GenRef)...)
 }
 
-func (me *GentTypeJsonMethods) unmarshalDecodeMethodName(ctx *gent.Ctx) string {
-	if me.Unmarshal.InternalDecodeMethodName != "" {
-		return me.Unmarshal.InternalDecodeMethodName
-	}
-	return ctx.Opt.HelpersPrefix + me.Unmarshal.HelpersPrefix + "Decode"
-}
-
-func (me *GentTypeJsonMethods) genUnmarshalDecodeObjOrArr(ctx *gent.Ctx, delim byte, jk Named, k Named, onBeforeLoop Syns, onNextValue Syns, onSuccess Syns) (code Syns) {
-	nexttok, ttok, t2, td :=
-		ˇ.J.C("Token"), me.pkgjson.T("Token"), ctx.N("t"), ctx.N("d")
-	code.Add(
-		Var(t2.Name, ttok, nil),
-		Tup(t2, ˇ.Err).Set(nexttok),
-		If(ˇ.Err.Eq(B.Nil).And(t2.Neq(B.Nil)), Then(
-			Switch(td.Let(t2.D(N("type")))).
-				Case(B.Nil).
-				Case(me.pkgjson.T("Delim"),
-					If(L(delim).Neq(td), Then(
-						ˇ.Err.Set(me.pkgerrs.C("New", "expected "+string(delim))),
-					), append(onBeforeLoop,
-						For(nil, ˇ.Err.Eq(B.Nil).And(ˇ.J.C("More")), nil,
-							GEN_IF(jk.Name == "", onNextValue, Else(
-								Var(jk.Name, ttok, nil),
-								Tup(jk, ˇ.Err).Set(nexttok),
-								If(ˇ.Err.Eq(B.Nil), append(Then(
-									k.Let(jk.D(T.String)),
-								), onNextValue...)),
-							)),
-						),
-						If(ˇ.Err.Eq(B.Nil), Then(
-							Tup(Nope, ˇ.Err).Set(nexttok),
-						)),
-						If(ˇ.Err.Eq(B.Nil),
-							onSuccess,
-						),
-					))).
-				DefaultCase(
-					ˇ.Err.Set(me.pkgerrs.C("New", "expected "+string(delim))),
-				),
-		),
-		),
-	)
-	return
-}
-
 func (me *GentTypeJsonMethods) genUnmarshalDecodeBasedOnType(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) Syns {
 	switch {
 	case fType.ArrOrSlice.Of != nil:
@@ -152,16 +107,16 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodeMap(ctx *gent.Ctx, fAcc ISyn, f
 
 func (me *GentTypeJsonMethods) genUnmarshalDecodeStruct(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
 	jk, fn := ctx.N("jk"), ctx.N("fn")
-	sw := Switch(fn)
+	fieldnamecases := Switch(fn)
 	for i := range fType.Struct.Fields {
 		fld := &fType.Struct.Fields[i]
 		if jsonname := fld.JsonNameFinal(); jsonname != "" {
-			sw.Case(L(jsonname),
+			fieldnamecases.Case(L(jsonname),
 				me.genUnmarshalDecodeBasedOnType(ctx, D(fAcc, N(fld.EffectiveName())), fld.Type)...,
 			)
 		}
 	}
-	code = me.genUnmarshalDecodeObjOrArr(ctx, '{', jk, fn, nil, Syns{sw}, nil)
+	code = me.genUnmarshalDecodeObjOrArr(ctx, '{', jk, fn, nil, Syns{fieldnamecases}, nil)
 	return
 }
 
@@ -230,40 +185,58 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodeBuiltinPrim(ctx *gent.Ctx, fAcc
 }
 
 func (me *GentTypeJsonMethods) genUnmarshalDecodeUnknown(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
-	println("UNKNOWN:", fType.String())
+	tmp := ctx.N("ix")
+	code.Add(
+		Var(tmp.Name, fType, nil),
+		ˇ.Err.Set(ˇ.J.C("Decode", tmp.Addr())),
+		If(ˇ.Err.Eq(B.Nil), Then(
+			Set(fAcc, tmp),
+		)),
+	)
 	return
 }
 
-func (*GentTypeJsonMethods) typeUnderlyingIfNamed(ctx *gent.Ctx, t *TypeRef) (tRef *gent.Type) {
-	for t.Pointer.Of != nil {
-		t = t.Pointer.Of
+func (me *GentTypeJsonMethods) unmarshalDecodeMethodName(ctx *gent.Ctx) string {
+	if me.Unmarshal.InternalDecodeMethodName != "" {
+		return me.Unmarshal.InternalDecodeMethodName
 	}
-	if t.Named.TypeName != "" && t.Named.PkgName == "" {
-		if tRef = ctx.Pkg.Types.Named(t.Named.TypeName); tRef != nil {
-			if tRef.Expr.GenRef == nil {
-				tRef = nil
-			} else {
-				for tRef.Expr.GenRef.Named.TypeName != "" && tRef.Expr.GenRef.Named.PkgName == "" {
-					if tnext := ctx.Pkg.Types.Named(tRef.Expr.GenRef.Named.TypeName); tnext == nil || tnext.Expr.GenRef == nil {
-						break
-					} else {
-						tRef = tnext
-					}
-				}
-			}
-		}
-	}
-	return
+	return ctx.Opt.HelpersPrefix + me.Unmarshal.HelpersPrefix + "Decode"
 }
 
-func (*GentTypeJsonMethods) genSetToZero(fAcc ISyn, n Named, tN *TypeRef, tS *TypeRef) ISyn {
-	return GEN_BYCASE(USUALLY(Block(
-		Var(n.Name, tN, nil),
-		Set(fAcc, n),
-	)), UNLESS{
-		tN.Equiv(T.String) || (tS != nil && tS.Equiv(T.String)):                                     Set(fAcc, L("")),
-		tN.Equiv(T.Bool) || (tS != nil && tS.Equiv(T.Bool)):                                         Set(fAcc, L(false)),
-		tN.BitSizeIfBuiltInNumberType() != 0 || (tS != nil && tS.BitSizeIfBuiltInNumberType() != 0): Set(fAcc, L(0)),
-		tN.CanNil() || (tS != nil && tS.CanNil()):                                                   Set(fAcc, B.Nil),
-	})
+func (me *GentTypeJsonMethods) genUnmarshalDecodeObjOrArr(ctx *gent.Ctx, delim byte, jk Named, k Named, onBeforeLoop Syns, onNextValue Syns, onSuccess Syns) (code Syns) {
+	nexttok, ttok, t2, td :=
+		ˇ.J.C("Token"), me.pkgjson.T("Token"), ctx.N("t"), ctx.N("d")
+	code.Add(
+		Var(t2.Name, ttok, nil),
+		Tup(t2, ˇ.Err).Set(nexttok),
+		If(ˇ.Err.Eq(B.Nil).And(t2.Neq(B.Nil)), Then(
+			Switch(td.Let(t2.D(N("type")))).
+				Case(B.Nil).
+				Case(me.pkgjson.T("Delim"),
+					If(L(delim).Neq(td), Then(
+						ˇ.Err.Set(me.pkgerrs.C("New", "expected "+string(delim))),
+					), append(onBeforeLoop,
+						For(nil, ˇ.Err.Eq(B.Nil).And(ˇ.J.C("More")), nil,
+							GEN_IF(jk.Name == "", onNextValue, Else(
+								Var(jk.Name, ttok, nil),
+								Tup(jk, ˇ.Err).Set(nexttok),
+								If(ˇ.Err.Eq(B.Nil), append(Then(
+									k.Let(jk.D(T.String)),
+								), onNextValue...)),
+							)),
+						),
+						If(ˇ.Err.Eq(B.Nil), Then(
+							Tup(Nope, ˇ.Err).Set(nexttok),
+						)),
+						If(ˇ.Err.Eq(B.Nil),
+							onSuccess,
+						),
+					))).
+				DefaultCase(
+					ˇ.Err.Set(me.pkgerrs.C("New", "expected "+string(delim))),
+				),
+		),
+		),
+	)
+	return
 }
