@@ -21,7 +21,6 @@ type GentTypeJsonMethods struct {
 		JsonMethodOpts
 		InitialBytesCap               int
 		ResliceInsteadOfWhitespace    bool
-		OnStdlibFallbacks             func(*gent.Ctx, ISyn, ...ISyn) Syns
 		TryInterfaceTypesBeforeStdlib []*TypeRef
 		tryInterfaceTypesDefsDone     bool
 	}
@@ -48,6 +47,9 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 	me.pkgjson, me.pkgerrs, me.pkgbytes = ctx.Import("encoding/json"), ctx.Import("errors"), ctx.Import("bytes")
 	if me.Marshal.OnStdlibFallbacks == nil {
 		me.Marshal.OnStdlibFallbacks = onStdlibDefaultCodegen
+	}
+	if me.Unmarshal.OnStdlibFallbacks == nil {
+		me.Unmarshal.OnStdlibFallbacks = onStdlibDefaultCodegen
 	}
 	if !t.IsEnumish() {
 		if gennormal, genpanic := me.Marshal.genWhat(t); gennormal || genpanic {

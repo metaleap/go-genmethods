@@ -35,6 +35,7 @@ type JsonMethodOpts struct {
 	MayGenFor              func(*gent.Type) bool
 	GenPanicImplsForOthers bool
 	HelpersPrefix          string
+	OnStdlibFallbacks      func(*gent.Ctx, udevgogen.ISyn, ...udevgogen.ISyn) udevgogen.Syns
 }
 
 func (me *JsonMethodOpts) genWhat(t *gent.Type) (genNormalImpl bool, genPanicImpl bool) {

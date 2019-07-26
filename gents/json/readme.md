@@ -66,7 +66,6 @@ type GentTypeJsonMethods struct {
 		JsonMethodOpts
 		InitialBytesCap               int
 		ResliceInsteadOfWhitespace    bool
-		OnStdlibFallbacks             func(*gent.Ctx, ISyn, ...ISyn) Syns
 		TryInterfaceTypesBeforeStdlib []*TypeRef
 	}
 	Unmarshal struct {
@@ -97,5 +96,6 @@ type JsonMethodOpts struct {
 	MayGenFor              func(*gent.Type) bool
 	GenPanicImplsForOthers bool
 	HelpersPrefix          string
+	OnStdlibFallbacks      func(*gent.Ctx, udevgogen.ISyn, ...udevgogen.ISyn) udevgogen.Syns
 }
 ```

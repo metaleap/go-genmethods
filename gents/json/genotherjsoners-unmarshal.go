@@ -197,13 +197,13 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodeBuiltinPrim(ctx *gent.Ctx, fAcc
 
 func (me *GentTypeJsonMethods) genUnmarshalDecodeUnknown(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
 	tmp := ctx.N("ix")
-	code.Add(
+	code.Add(me.Unmarshal.OnStdlibFallbacks(ctx, fAcc,
 		Var(tmp.Name, fType, nil),
 		ˇ.Err.Set(ˇ.J.C("Decode", tmp.Addr())),
 		If(ˇ.Err.Eq(B.Nil), Then(
 			Set(fAcc, tmp),
 		)),
-	)
+	))
 	return
 }
 
