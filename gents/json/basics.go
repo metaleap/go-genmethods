@@ -39,7 +39,7 @@ type JsonMethodOpts struct {
 
 func (me *JsonMethodOpts) genWhat(t *gent.Type) (genNormalImpl bool, genPanicImpl bool) {
 	if !me.Disabled {
-		if genNormalImpl = me.MayGenFor == nil || me.MayGenFor(t); !genNormalImpl {
+		if genNormalImpl = (me.MayGenFor == nil) || me.MayGenFor(t); !genNormalImpl {
 			genPanicImpl = me.GenPanicImplsForOthers
 		}
 	}

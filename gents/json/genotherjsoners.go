@@ -27,11 +27,13 @@ type GentTypeJsonMethods struct {
 	}
 	Unmarshal struct {
 		JsonMethodOpts
-		InternalDecodeMethodName string
-		DefaultCaps              struct {
+		InternalDecodeMethodName      string
+		CommonTypesToExtractToHelpers []*TypeRef
+		DefaultCaps                   struct {
 			Slices int
 			Maps   int
 		}
+		commonTypesToExtraDefsDone bool
 	}
 
 	pkgjson  PkgName
@@ -53,11 +55,11 @@ func (me *GentTypeJsonMethods) GenerateTopLevelDecls(ctx *gent.Ctx, t *gent.Type
 			yield.Add(me.genMarshalMethod(ctx, t, genpanic))
 		}
 		if gennormal, genpanic := me.Unmarshal.genWhat(t); gennormal || genpanic {
-			_ = ctx.N("")
-			yield.Add(
-				me.genUnmarshalDecodeMethod(ctx, t, genpanic),
-				me.genUnmarshalMethod(ctx, t, genpanic),
-			)
+			_ = ctx.N("") // see comment above
+			yield.Add(me.genUnmarshalMethod(ctx, t, genpanic))
+			if gennormal && !genpanic {
+				yield.Add(me.genUnmarshalDecodeMethod(ctx, t, genpanic))
+			}
 		}
 	}
 	return

@@ -33,12 +33,11 @@ func (me *GentTypeJsonMethods) genMarshalMethod(ctx *gent.Ctx, t *gent.Type, gen
 }
 
 func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef, writeName ISyn, jsonOmitEmpty bool, canUseExtraDef bool) (code Syns) {
-	me.genExtraDefs(ctx)
-
 	if canUseExtraDef && !fType.IsBuiltinPrimType(false) {
+		me.genMarshalExtraDefs(ctx)
 		for _, tref := range me.Marshal.TryInterfaceTypesBeforeStdlib {
 			if tref.Equiv(fType) {
-				defname := me.genExtraDefName(ctx, fType)
+				defname := me.marshalExtraDefName(ctx, tref)
 				var writefromdefcall ISyn = Block(
 					Tup(ˇ.Sl, ˇ.E).Let(C(defname, fAcc)),
 					If(ˇ.E.Eq(B.Nil), Then(
@@ -59,7 +58,6 @@ func (me *GentTypeJsonMethods) genMarshalBasedOnType(ctx *gent.Ctx, fAcc ISyn, f
 			}
 		}
 	}
-
 	switch {
 	case fType.ArrOrSlice.Of != nil:
 		code.Add(me.genMarshalArrayOrSlice(ctx, fAcc, fType, writeName, jsonOmitEmpty))
@@ -264,16 +262,16 @@ func (me *GentTypeJsonMethods) genMarshalUnknown(ctx *gent.Ctx, fAcc ISyn, fType
 	return ifnotnil
 }
 
-func (me *GentTypeJsonMethods) genExtraDefName(ctx *gent.Ctx, t *TypeRef) string {
+func (me *GentTypeJsonMethods) marshalExtraDefName(ctx *gent.Ctx, t *TypeRef) string {
 	return ctx.Opt.HelpersPrefix + me.Marshal.HelpersPrefix + ustr.ReplB(t.String(), '[', 's', ']', '_', '*', 'p', '{', '_', '}', '_', '.', '_')
 }
 
-func (me *GentTypeJsonMethods) genExtraDefs(ctx *gent.Ctx) {
+func (me *GentTypeJsonMethods) genMarshalExtraDefs(ctx *gent.Ctx) {
 	if !me.Marshal.tryInterfaceTypesDefsDone {
 		me.Marshal.tryInterfaceTypesDefsDone = true
 		defsdone := map[string]struct{}{}
 		for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
-			defname := me.genExtraDefName(ctx, checktype)
+			defname := me.marshalExtraDefName(ctx, checktype)
 			var defcode ISyn = me.genMarshalBasedOnType(ctx, ˇ.V, checktype, Block(), false, false)
 			if checktype.Interface != nil {
 				defcode = If(B.Nil.Eq(ˇ.V), Then(
@@ -295,10 +293,10 @@ func (me *GentTypeJsonMethods) genExtraDefs(ctx *gent.Ctx) {
 
 func (me *GentTypeJsonMethods) genIfaceFallbacks(ctx *gent.Ctx, fAcc ISyn, stdlibFallback ISyn) (ifaceFallbacks ISyn) {
 	ifaceFallbacks = stdlibFallback
-	me.genExtraDefs(ctx)
+	me.genMarshalExtraDefs(ctx)
 	for _, checktype := range me.Marshal.TryInterfaceTypesBeforeStdlib {
 		if !checktype.IsEmptyInterface() {
-			defname := me.genExtraDefName(ctx, checktype)
+			defname := me.marshalExtraDefName(ctx, checktype)
 			val, ok := ctx.N("v"), ctx.N("ok")
 			ifaceFallbacks = Block(
 				Tup(val, ok).Let(D(fAcc, checktype)),

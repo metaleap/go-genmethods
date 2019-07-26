@@ -71,8 +71,9 @@ type GentTypeJsonMethods struct {
 	}
 	Unmarshal struct {
 		JsonMethodOpts
-		InternalDecodeMethodName string
-		DefaultCaps              struct {
+		InternalDecodeMethodName      string
+		CommonTypesToExtractToHelpers []*TypeRef
+		DefaultCaps                   struct {
 			Slices int
 			Maps   int
 		}
