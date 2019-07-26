@@ -119,15 +119,22 @@ func (me *GentTypeJsonMethods) genUnmarshalDecodeMap(ctx *gent.Ctx, fAcc ISyn, f
 func (me *GentTypeJsonMethods) genUnmarshalDecodeStruct(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (code Syns) {
 	jk, fn := ctx.N("jk"), ctx.N("fn")
 	fieldnamecases := Switch(fn)
+	fieldnamecases.Cases = me.genUnmarshalDecodeStructFieldNameCases(ctx, fAcc, fType)
+	code = me.genUnmarshalDecodeObjOrArr(ctx, '{', false, jk, fn, nil, Syns{fieldnamecases}, nil)
+	return
+}
+
+func (me *GentTypeJsonMethods) genUnmarshalDecodeStructFieldNameCases(ctx *gent.Ctx, fAcc ISyn, fType *TypeRef) (fieldNameCases SynCases) {
 	for i := range fType.Struct.Fields {
 		fld := &fType.Struct.Fields[i]
-		if jsonname := fld.JsonNameFinal(); jsonname != "" {
-			fieldnamecases.Case(L(jsonname),
+		if ft := ctx.Pkg.Types.Named(fld.Type.UltimateElemType().Named.TypeName); fld.Name == "" && ft != nil && ft.Expr.GenRef.Struct != nil {
+			fieldNameCases = append(fieldNameCases, me.genUnmarshalDecodeStructFieldNameCases(ctx, D(fAcc, N(fld.EffectiveName())), ft.Expr.GenRef)...)
+		} else if jsonfieldname := fld.JsonNameFinal(); jsonfieldname != "" {
+			fieldNameCases.Add(L(jsonfieldname),
 				me.genUnmarshalDecodeBasedOnType(ctx, D(fAcc, N(fld.EffectiveName())), fld.Type, true)...,
 			)
 		}
 	}
-	code = me.genUnmarshalDecodeObjOrArr(ctx, '{', false, jk, fn, nil, Syns{fieldnamecases}, nil)
 	return
 }
 
